@@ -84,6 +84,7 @@ export default function HeroSection() {
   const [url, setUrl] = useState("");
   const [error, setError] = useState("");
   const [analysisStep, setAnalysisStep] = useState(0);
+  const [stepProgress, setStepProgress] = useState(0);
   const [selectedOpportunity, setSelectedOpportunity] = useState<Opportunity | null>(null);
   const [formData, setFormData] = useState({ name: "", company: "", email: "", role: "" });
 
@@ -117,11 +118,26 @@ export default function HeroSection() {
       }
       
       setAnalysisStep(step);
+      setStepProgress(0);
       
       // Get base duration and add random variation (±30%)
       const baseTime = analysisMessages[step]?.baseDuration || 1500;
       const variation = baseTime * 0.3 * (Math.random() * 2 - 1);
       const duration = Math.max(800, baseTime + variation);
+      
+      // Animate progress from 0 to 100 over the duration
+      const progressInterval = 50; // Update every 50ms
+      const progressIncrement = 100 / (duration / progressInterval);
+      let currentProgress = 0;
+      
+      const progressTimer = setInterval(() => {
+        currentProgress += progressIncrement;
+        if (currentProgress >= 100) {
+          currentProgress = 100;
+          clearInterval(progressTimer);
+        }
+        setStepProgress(Math.min(100, Math.round(currentProgress)));
+      }, progressInterval);
       
       step++;
       setTimeout(advanceStep, duration);
@@ -226,21 +242,31 @@ export default function HeroSection() {
               exit={{ opacity: 0, y: -20 }}
               className="max-w-2xl mx-auto text-center"
             >
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                className="w-20 h-20 mx-auto mb-8 rounded-2xl bg-primary/10 flex items-center justify-center"
-              >
-                <Loader2 className="w-10 h-10 text-primary" />
-              </motion.div>
-
               <h2 className="text-2xl md:text-3xl font-bold mb-8">Analyserar er webbplats...</h2>
+
+              {/* Overall progress bar */}
+              <div className="mb-8">
+                <div className="h-2 bg-card rounded-full overflow-hidden">
+                  <motion.div
+                    className="h-full bg-primary rounded-full"
+                    initial={{ width: "0%" }}
+                    animate={{ 
+                      width: `${((analysisStep / analysisMessages.length) * 100) + (stepProgress / analysisMessages.length)}%` 
+                    }}
+                    transition={{ duration: 0.1 }}
+                  />
+                </div>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Totalt: {Math.round(((analysisStep / analysisMessages.length) * 100) + (stepProgress / analysisMessages.length))}%
+                </p>
+              </div>
 
               <div className="space-y-4">
                 {analysisMessages.map((msg, index) => {
                   const Icon = msg.icon;
                   const isActive = index === analysisStep;
                   const isDone = index < analysisStep;
+                  const currentStepProgress = isActive ? stepProgress : isDone ? 100 : 0;
                   
                   return (
                     <motion.div
@@ -250,16 +276,31 @@ export default function HeroSection() {
                         opacity: isDone || isActive ? 1 : 0.3,
                         scale: isActive ? 1.02 : 1
                       }}
-                      className={`flex items-center gap-4 p-4 rounded-xl transition-colors ${
+                      className={`p-4 rounded-xl transition-colors ${
                         isActive ? "bg-primary/10 border border-primary/30" : 
                         isDone ? "bg-card/50" : "bg-card/20"
                       }`}
                     >
-                      <Icon className={`w-5 h-5 ${isDone ? "text-primary" : isActive ? "text-primary" : "text-muted-foreground"}`} />
-                      <span className={isDone || isActive ? "text-foreground" : "text-muted-foreground"}>
-                        {msg.text}
-                      </span>
-                      {isDone && <CheckCircle2 className="w-5 h-5 text-primary ml-auto" />}
+                      <div className="flex items-center gap-4 mb-2">
+                        <Icon className={`w-5 h-5 shrink-0 ${isDone ? "text-primary" : isActive ? "text-primary" : "text-muted-foreground"}`} />
+                        <span className={`text-left flex-1 ${isDone || isActive ? "text-foreground" : "text-muted-foreground"}`}>
+                          {msg.text}
+                        </span>
+                        <span className={`text-sm font-medium shrink-0 ${isActive ? "text-primary" : isDone ? "text-primary" : "text-muted-foreground"}`}>
+                          {currentStepProgress}%
+                        </span>
+                        {isDone && <CheckCircle2 className="w-5 h-5 text-primary shrink-0" />}
+                      </div>
+                      {(isActive || isDone) && (
+                        <div className="h-1.5 bg-card/50 rounded-full overflow-hidden ml-9">
+                          <motion.div
+                            className="h-full bg-primary rounded-full"
+                            initial={{ width: "0%" }}
+                            animate={{ width: `${currentStepProgress}%` }}
+                            transition={{ duration: 0.1 }}
+                          />
+                        </div>
+                      )}
                     </motion.div>
                   );
                 })}
