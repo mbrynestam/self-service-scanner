@@ -157,9 +157,9 @@ export default function UseCasesPage() {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.4, delay: 0.3 + index * 0.1 }}
-                  className="flex items-start gap-3 bg-destructive/10 rounded-xl p-4"
+                  className="flex items-start gap-3 bg-secondary/50 rounded-xl p-4"
                 >
-                  <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
+                  <span className="text-muted-foreground shrink-0 mt-0.5">✗</span>
                   <span className="text-foreground">{point}</span>
                 </motion.div>
               ))}
@@ -232,8 +232,8 @@ export default function UseCasesPage() {
                         </p>
                       </div>
 
-                      <div className="bg-destructive/5 rounded-xl p-5 border border-destructive/20">
-                        <h4 className="text-sm font-semibold text-destructive uppercase tracking-wider mb-2">
+                      <div className="bg-secondary/50 rounded-xl p-5 border border-border/50">
+                        <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">
                           Adresserad risk
                         </h4>
                         <p className="text-foreground">
