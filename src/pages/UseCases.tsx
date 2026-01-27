@@ -4,6 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { ArrowRight, Calculator, Boxes, LineChart, Settings, FileText, Users } from "lucide-react";
 
+// Import use case images
+import pricingCalcImage from "@/assets/usecase-pricing-calculator.jpg";
+import configuratorImage from "@/assets/usecase-configurator.jpg";
+import roiCalcImage from "@/assets/usecase-roi-calculator.jpg";
+import onboardingImage from "@/assets/usecase-onboarding.jpg";
+import assessmentImage from "@/assets/usecase-assessment.jpg";
+import partnerToolsImage from "@/assets/usecase-partner-tools.jpg";
+
 const useCases = [
   {
     icon: Calculator,
@@ -11,6 +19,7 @@ const useCases = [
     description: "Ge köpare möjlighet att konfigurera sin lösning och se prisuppskattningar i realtid. Sluta skicka \"kontakta oss för pris\" – ge dem svaren direkt.",
     benefits: ["Högre konvertering", "Kvalificerade leads", "Kortare säljcykler"],
     example: "En SaaS-plattform implementerade en priskalkylator och såg 65% ökning i demo-bokningar.",
+    image: pricingCalcImage,
   },
   {
     icon: Boxes,
@@ -18,6 +27,7 @@ const useCases = [
     description: "Interaktiva verktyg där köpare bygger ihop sin perfekta lösning med visuell feedback och rekommendationer.",
     benefits: ["Bättre produktförståelse", "Färre returer", "Högre ordervärden"],
     example: "Ett industriföretag ökade genomsnittligt ordervärde med 40% efter lansering.",
+    image: configuratorImage,
   },
   {
     icon: LineChart,
@@ -25,6 +35,7 @@ const useCases = [
     description: "Hjälp köpare bevisa värdet internt med data-drivna business cases som de kan dela med beslutsfattare.",
     benefits: ["Snabbare interna beslut", "Starkare business case", "Fler avslut"],
     example: "B2B-företag såg 50% kortare tid från första kontakt till signerat avtal.",
+    image: roiCalcImage,
   },
   {
     icon: Settings,
@@ -32,6 +43,7 @@ const useCases = [
     description: "Guida nya kunder genom setup och konfiguration utan manuellt stöd – sparar tid för er och förbättrar upplevelsen för dem.",
     benefits: ["Lägre supportkostnader", "Snabbare time-to-value", "Högre kundnöjdhet"],
     example: "Supportärenden minskade med 70% efter implementation av guidad onboarding.",
+    image: onboardingImage,
   },
   {
     icon: FileText,
@@ -39,6 +51,7 @@ const useCases = [
     description: "Interaktiva frågeformulär som hjälper köpare identifiera sina behov och matchar dem med rätt lösning.",
     benefits: ["Bättre leads", "Personaliserad upplevelse", "Ökad engagemang"],
     example: "Leads från behovsanalysen hade 3x högre konverteringsgrad till kund.",
+    image: assessmentImage,
   },
   {
     icon: Users,
@@ -46,6 +59,7 @@ const useCases = [
     description: "Ge era partners verktyg för att sälja mer effektivt – från offertkonfiguratorer till utbildningsplattformar.",
     benefits: ["Aktivare partners", "Ökad partnersälj", "Starkare relationer"],
     example: "Partner-driven försäljning ökade med 120% första året.",
+    image: partnerToolsImage,
   },
 ];
 
@@ -78,7 +92,7 @@ export default function UseCasesPage() {
       {/* Use Cases */}
       <section className="py-24">
         <div className="container mx-auto px-4 lg:px-8">
-          <div className="space-y-16">
+          <div className="space-y-24">
             {useCases.map((useCase, index) => (
               <motion.div
                 key={useCase.title}
@@ -86,35 +100,72 @@ export default function UseCasesPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-100px" }}
                 transition={{ duration: 0.6 }}
-                className="gradient-border rounded-2xl p-8 lg:p-12"
+                className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center"
               >
-                <div className="grid lg:grid-cols-3 gap-8">
-                  <div className="lg:col-span-2">
-                    <div className="flex items-center gap-4 mb-6">
-                      <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
-                        <useCase.icon className="w-7 h-7 text-primary" />
-                      </div>
-                      <h2 className="font-display text-2xl font-bold text-foreground">
-                        {useCase.title}
-                      </h2>
-                    </div>
-                    <p className="text-lg text-muted-foreground mb-6">
-                      {useCase.description}
-                    </p>
-                    <div className="flex flex-wrap gap-3">
-                      {useCase.benefits.map((benefit) => (
-                        <span
-                          key={benefit}
-                          className="px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium"
-                        >
-                          {benefit}
-                        </span>
-                      ))}
-                    </div>
+                {/* Image - alternating sides */}
+                <motion.div 
+                  className={`relative group ${index % 2 === 1 ? 'lg:order-2' : ''}`}
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <div className="relative rounded-2xl overflow-hidden gradient-border">
+                    {/* Animated glow effect */}
+                    <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 via-transparent to-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10" />
+                    
+                    {/* Image with zoom effect on hover */}
+                    <motion.img
+                      src={useCase.image}
+                      alt={useCase.title}
+                      className="w-full aspect-[4/3] object-cover"
+                      whileHover={{ scale: 1.05 }}
+                      transition={{ duration: 0.6 }}
+                    />
+                    
+                    {/* Floating badge */}
+                    <motion.div 
+                      className="absolute top-4 right-4 px-3 py-1.5 rounded-full bg-card/90 backdrop-blur-sm border border-primary/30 flex items-center gap-2 z-20"
+                      initial={{ opacity: 0, y: -10 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.3 }}
+                    >
+                      <useCase.icon className="w-4 h-4 text-primary" />
+                      <span className="text-xs font-medium text-foreground">Interaktiv demo</span>
+                    </motion.div>
                   </div>
-                  <div className="bg-secondary/50 rounded-xl p-6">
-                    <p className="text-sm text-muted-foreground mb-2">Resultat i verkligheten:</p>
-                    <p className="text-foreground font-medium">{useCase.example}</p>
+                </motion.div>
+
+                {/* Content */}
+                <div className={index % 2 === 1 ? 'lg:order-1' : ''}>
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
+                      <useCase.icon className="w-7 h-7 text-primary" />
+                    </div>
+                    <h2 className="font-display text-2xl lg:text-3xl font-bold text-foreground">
+                      {useCase.title}
+                    </h2>
+                  </div>
+                  
+                  <p className="text-lg text-muted-foreground mb-6">
+                    {useCase.description}
+                  </p>
+                  
+                  <div className="flex flex-wrap gap-3 mb-8">
+                    {useCase.benefits.map((benefit) => (
+                      <span
+                        key={benefit}
+                        className="px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium"
+                      >
+                        {benefit}
+                      </span>
+                    ))}
+                  </div>
+
+                  {/* Result box */}
+                  <div className="gradient-border rounded-xl overflow-hidden">
+                    <div className="bg-card p-5">
+                      <p className="text-sm text-muted-foreground mb-2">📊 Resultat i verkligheten:</p>
+                      <p className="text-foreground font-medium">{useCase.example}</p>
+                    </div>
                   </div>
                 </div>
               </motion.div>
