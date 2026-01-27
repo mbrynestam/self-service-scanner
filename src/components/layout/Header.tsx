@@ -22,11 +22,8 @@ export default function Header() {
       <div className="container mx-auto px-4 lg:px-8">
         <div className="flex items-center justify-between h-14 lg:h-16 bg-card/80 backdrop-blur-xl border border-border/50 rounded-2xl px-6 lg:px-8">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-display font-bold text-xl">B</span>
-            </div>
-            <span className="font-display font-bold text-2xl text-foreground">Buyr</span>
+          <Link to="/" className="flex items-center">
+            <img src="/assets/buyr-logo.png" alt="Buyr" className="h-8" />
           </Link>
 
           {/* Desktop Nav */}
