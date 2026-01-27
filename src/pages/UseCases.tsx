@@ -183,7 +183,7 @@ export default function UseCasesPage() {
           >
             <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold mb-6">
               Fem typer av self-service{" "}
-              <span className="gradient-text">vi bygger</span>
+              <span className="gradient-text">vi hjälper er att ta fram</span>
             </h2>
             <p className="text-lg text-muted-foreground">
               Det finns flera sätt att hjälpa köpare framåt på egen hand. Här är de fem typer 
