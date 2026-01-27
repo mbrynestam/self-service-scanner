@@ -60,7 +60,7 @@ Returnera ENDAST JSON, ingen annan text.`;
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "openai/gpt-5",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: `Analysera denna webbplats och rekommendera det bästa self-service verktyget: ${url}` }
