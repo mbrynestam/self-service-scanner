@@ -149,101 +149,80 @@ export default function HeroSection() {
     }
   };
 
-  // Reveal real findings one by one with animation
-  const revealFindings = (analysis: AIAnalysis) => {
+  // Build 4-5 key findings as flying badges
+  const buildFindings = (analysis: AIAnalysis): StreamingInsight[] => {
     const findings: StreamingInsight[] = [];
     
     if (analysis.targetAudience) {
+      const shortAudience = analysis.targetAudience.split(/[,.]/).map(s => s.trim()).find(s => s.length > 10 && s.length < 40) 
+        || analysis.targetAudience.substring(0, 35);
       findings.push({
         id: "audience",
         icon: User,
         category: "Målgrupp",
-        text: analysis.targetAudience.length > 60 
-          ? analysis.targetAudience.substring(0, 60) + "..." 
-          : analysis.targetAudience
+        text: shortAudience.length > 35 ? shortAudience.substring(0, 35) + "..." : shortAudience
       });
     }
     
     if (analysis.buyerRoles?.length > 0) {
       findings.push({
-        id: "roles",
+        id: "role",
         icon: Users,
-        category: "Köproller",
-        text: analysis.buyerRoles.slice(0, 3).join(" • ")
+        category: "Köproll",
+        text: analysis.buyerRoles[0]
       });
     }
     
     if (analysis.painPoints?.length > 0) {
+      const pain = analysis.painPoints[0];
       findings.push({
-        id: "pain1",
+        id: "pain",
         icon: AlertTriangle,
         category: "Pain Point",
-        text: analysis.painPoints[0].length > 50 
-          ? analysis.painPoints[0].substring(0, 50) + "..." 
-          : analysis.painPoints[0]
+        text: pain.length > 35 ? pain.substring(0, 35) + "..." : pain
       });
     }
     
-    if (analysis.concerns?.length > 0) {
+    if (analysis.businessType) {
       findings.push({
-        id: "concern",
-        icon: HelpCircle,
-        category: "Oro",
-        text: analysis.concerns[0].length > 50 
-          ? analysis.concerns[0].substring(0, 50) + "..." 
-          : analysis.concerns[0]
+        id: "type",
+        icon: Target,
+        category: "Bransch",
+        text: analysis.businessType
       });
     }
     
     if (analysis.opportunities?.length > 0) {
       findings.push({
-        id: "opp",
+        id: "rec",
         icon: Lightbulb,
-        category: "Rekommendation",
+        category: "Bästa match",
         text: analysis.opportunities[0].title
       });
     }
 
-    // Reveal findings one by one
-    findings.forEach((finding, index) => {
-      setTimeout(() => {
-        setStreamingInsights(prev => [...prev, finding]);
-        // Update progress as findings are revealed
-        setRealProgress(prev => Math.min(95, prev + (80 / findings.length)));
-      }, index * 300);
-    });
-
-    // Mark as complete after all findings shown
-    setTimeout(() => {
-      setAnalysisComplete(true);
-      setRealProgress(100);
-      setTimeout(() => setPhase("results"), 600);
-    }, findings.length * 300 + 400);
+    return findings.slice(0, 5);
   };
 
   const runAnalysis = async (websiteUrl: string) => {
     startTimeRef.current = Date.now();
+    let currentProgress = 0;
     
-    // Initial loading state - show scanning animation
-    setStreamingInsights([{
-      id: "loading",
-      icon: Search,
-      category: "Scanning",
-      text: "Läser in " + websiteUrl.replace(/^https?:\/\//, "").split("/")[0] + "..."
-    }]);
+    // Smooth progress that never stalls - always moves forward
+    const smoothProgress = () => {
+      progressIntervalRef.current = setInterval(() => {
+        setRealProgress(prev => {
+          // Never stall more than 1 second at any point
+          const increment = prev < 30 ? 3 : prev < 60 ? 2 : prev < 85 ? 1.5 : 0.5;
+          const next = Math.min(prev + increment, 88);
+          currentProgress = next;
+          return next;
+        });
+      }, 400);
+    };
     
-    // Slow initial progress while waiting for AI
-    progressIntervalRef.current = setInterval(() => {
-      setRealProgress(prev => {
-        if (prev >= 15) {
-          if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
-          return 15;
-        }
-        return prev + 1;
-      });
-    }, 200);
+    smoothProgress();
 
-    // Start AI analysis
     try {
       console.log("Starting AI analysis for:", websiteUrl);
       
@@ -281,8 +260,26 @@ export default function HeroSection() {
       if (data?.success && data?.analysis) {
         console.log("AI analysis complete:", data.analysis);
         setAiAnalysis(data.analysis);
-        setStreamingInsights([]); // Clear loading message
-        revealFindings(data.analysis);
+        
+        // Build findings and stream them as flying badges
+        const findings = buildFindings(data.analysis);
+        
+        // Stream findings one by one with flying animation
+        findings.forEach((finding, index) => {
+          setTimeout(() => {
+            setStreamingInsights(prev => [...prev, finding]);
+            // Smooth progress towards 100%
+            setRealProgress(90 + (index + 1) * (10 / findings.length));
+          }, index * 400);
+        });
+
+        // Complete after all findings shown
+        setTimeout(() => {
+          setAnalysisComplete(true);
+          setRealProgress(100);
+          setTimeout(() => setPhase("results"), 500);
+        }, findings.length * 400 + 300);
+        
       } else if (data?.error) {
         console.error("AI error:", data.error);
         setAiError(data.error);
@@ -457,66 +454,48 @@ export default function HeroSection() {
                 <p className="text-sm text-muted-foreground text-center mt-2">{realProgress}%</p>
               </div>
 
-              {/* Findings stream - shows real data as it comes in */}
-              <div className="relative bg-card/30 rounded-xl border border-border p-4 min-h-[180px]">
-                <AnimatePresence mode="popLayout">
+              {/* Flying badges - real findings streaming across */}
+              <div className="relative overflow-hidden rounded-xl bg-card/30 border border-border p-4 h-[120px]">
+                <AnimatePresence>
                   {streamingInsights.map((insight, index) => {
                     const Icon = insight.icon;
-                    const isLatest = index === streamingInsights.length - 1;
-                    
                     return (
                       <motion.div
                         key={insight.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: isLatest ? 1 : 0.4, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        transition={{ duration: 0.3 }}
-                        className={`flex items-center gap-3 py-2 px-3 rounded-lg mb-1 ${
-                          isLatest ? "bg-primary/10" : ""
-                        }`}
+                        initial={{ opacity: 0, x: -100, scale: 0.8 }}
+                        animate={{ 
+                          opacity: 1, 
+                          x: 0, 
+                          scale: 1,
+                          transition: { type: "spring", stiffness: 300, damping: 25 }
+                        }}
+                        exit={{ opacity: 0, x: 100, scale: 0.8 }}
+                        className="absolute left-4 right-4"
+                        style={{ top: `${20 + index * 24}px` }}
                       >
-                        <div className={`p-1.5 rounded-md shrink-0 ${
-                          isLatest ? "bg-primary/20" : "bg-card/50"
-                        }`}>
-                          <Icon className={`w-4 h-4 ${
-                            isLatest ? "text-primary" : "text-muted-foreground"
-                          }`} />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <span className={`text-xs font-medium uppercase tracking-wider ${
-                            isLatest ? "text-primary" : "text-muted-foreground/70"
-                          }`}>
-                            {insight.category}
-                          </span>
-                          <p className={`text-sm truncate ${
-                            isLatest ? "text-foreground" : "text-muted-foreground"
-                          }`}>
-                            {insight.text}
-                          </p>
-                        </div>
-                        {isLatest && !analysisComplete && (
+                        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
+                          <Icon className="w-3.5 h-3.5 text-primary" />
+                          <span className="text-xs font-medium text-primary">{insight.category}:</span>
+                          <span className="text-xs text-foreground">{insight.text}</span>
                           <motion.div
-                            animate={{ opacity: [1, 0.3, 1] }}
-                            transition={{ duration: 0.8, repeat: Infinity }}
-                            className="w-2 h-2 rounded-full bg-primary shrink-0"
+                            animate={{ opacity: [1, 0.4, 1] }}
+                            transition={{ duration: 0.6, repeat: Infinity }}
+                            className="w-1.5 h-1.5 rounded-full bg-primary"
                           />
-                        )}
-                        {isLatest && analysisComplete && (
-                          <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
-                        )}
+                        </div>
                       </motion.div>
                     );
                   })}
                 </AnimatePresence>
                 
                 {streamingInsights.length === 0 && (
-                  <div className="flex items-center justify-center py-8">
+                  <div className="flex items-center justify-center h-full gap-3">
                     <motion.div
                       animate={{ rotate: 360 }}
-                      transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
-                      className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full"
+                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                      className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full"
                     />
-                    <span className="ml-3 text-sm text-muted-foreground">Ansluter...</span>
+                    <span className="text-sm text-muted-foreground">Skannar webbplatsen...</span>
                   </div>
                 )}
               </div>
