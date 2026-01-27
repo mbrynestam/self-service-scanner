@@ -47,7 +47,7 @@ interface AIAnalysis {
   }>;
 }
 
-type FocusArea = "pricing" | "assessment" | "configurator" | "selector" | "onboarding" | "partner";
+type FocusArea = "pricing" | "assessment" | "configurator" | "selector" | "onboarding" | "partner" | "scheduling" | "other";
 
 interface Opportunity {
   id: FocusArea;
@@ -56,7 +56,20 @@ interface Opportunity {
   description: string;
   value: string;
   potentialValue?: string;
+  toolType?: FocusArea;
 }
+
+// Tool type labels for badges
+const toolTypeLabels: Record<FocusArea, string> = {
+  pricing: "Priskalkylator",
+  assessment: "Självtest",
+  configurator: "Konfigurator",
+  selector: "Lösningsväljare",
+  onboarding: "Onboarding",
+  partner: "Partner-verktyg",
+  scheduling: "Bokning",
+  other: "Annat",
+};
 
 const opportunities: Opportunity[] = [
   {
@@ -357,14 +370,16 @@ export default function HeroSection() {
   const getDisplayOpportunities = (): Opportunity[] => {
     if (aiAnalysis?.opportunities && aiAnalysis.opportunities.length > 0) {
       // Map AI opportunities to our format
-      return aiAnalysis.opportunities.map((aiOpp) => {
+      return aiAnalysis.opportunities.slice(0, 6).map((aiOpp) => {
         const iconMap: Record<FocusArea, React.ElementType> = {
           pricing: Calculator,
           assessment: Brain,
           configurator: Puzzle,
           selector: Target,
           onboarding: FileCheck,
-          partner: Users
+          partner: Users,
+          scheduling: Calendar,
+          other: Sparkles
         };
         
         return {
@@ -373,7 +388,8 @@ export default function HeroSection() {
           title: aiOpp.title,
           description: aiOpp.description,
           value: aiOpp.potentialValue || "medium",
-          potentialValue: aiOpp.potentialValue
+          potentialValue: aiOpp.potentialValue,
+          toolType: aiOpp.type
         };
       });
     }
@@ -715,6 +731,10 @@ export default function HeroSection() {
                           <Icon className="w-6 h-6 text-primary" />
                         </div>
                         <div className="flex-1 min-w-0">
+                          {/* Tool type badge */}
+                          <span className="inline-block text-xs font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary mb-2">
+                            {toolTypeLabels[opp.toolType || opp.id] || "Annat"}
+                          </span>
                           <h3 className={`text-lg font-semibold mb-2 transition-colors ${
                             isSelected ? "text-primary" : "text-foreground group-hover:text-primary"
                           }`}>
