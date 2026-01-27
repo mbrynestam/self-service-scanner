@@ -116,6 +116,15 @@ const opportunities: Opportunity[] = [
   }
 ];
 
+function shortenText(text: string, max = 60) {
+  const t = (text || "").replace(/\s+/g, " ").trim();
+  if (t.length <= max) return t;
+  // Prefer cutting at sentence boundary
+  const firstSentence = t.split(/(?<=[.!?])\s/)[0]?.trim();
+  if (firstSentence && firstSentence.length >= 12 && firstSentence.length <= max) return firstSentence;
+  return `${t.slice(0, max - 1).trim()}…`;
+}
+
 // Insight types for the streaming display
 interface StreamingInsight {
   id: string;
@@ -639,54 +648,62 @@ export default function HeroSection() {
                 Exempel på vad som är möjligt – inte rekommendationer på vad ni ska bygga.
               </p>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-                {getDisplayOpportunities().map((opp, index) => {
-                  const Icon = opp.icon;
-                  return (
-                    <motion.div
-                      key={opp.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.3 + index * 0.1 }}
-                      className="p-6 rounded-2xl bg-card/50 border border-border"
-                    >
-                      <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                          <Icon className="w-6 h-6 text-primary" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          {/* Tool type badge */}
-                          <span className="inline-block text-xs font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary mb-2">
-                            {toolTypeLabels[opp.toolType || opp.id] || "Annat"}
-                          </span>
-                          <h3 className="text-lg font-semibold mb-2 text-foreground">
-                            {opp.title}
-                          </h3>
-                          <p className="text-base text-muted-foreground mb-4">
-                            {opp.description}
-                          </p>
-                          {/* Value dots: 1-3 dots for low/medium/high */}
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm text-muted-foreground">Affärsvärde:</span>
-                            <div className="flex gap-1">
-                              {(() => {
-                                const value = opp.value?.toLowerCase() || opp.potentialValue?.toLowerCase() || "";
-                                const dots = value.includes("high") || value.includes("högt") || value.includes("mycket") ? 3 
-                                  : value.includes("medium") || value.includes("medel") ? 2 : 1;
-                                return Array.from({ length: 3 }).map((_, i) => (
-                                  <div 
-                                    key={i} 
-                                    className={`w-2.5 h-2.5 rounded-full ${i < dots ? "bg-primary" : "bg-muted"}`} 
-                                  />
-                                ));
-                              })()}
+              <div className="w-full overflow-x-auto pb-2 -mx-2 px-2 mb-8">
+                <div className="flex gap-3 min-w-min">
+                  {getDisplayOpportunities().map((opp, index) => {
+                    const Icon = opp.icon;
+                    const shortDesc = shortenText(opp.description, 56);
+                    return (
+                      <motion.div
+                        key={opp.id}
+                        initial={{ opacity: 0, x: 18 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.25 + index * 0.08 }}
+                        className="relative flex-shrink-0 w-[240px] h-[140px] rounded-xl bg-card/50 border border-border hover:border-primary/40 transition-all duration-200 p-3"
+                      >
+                        <div className="flex items-start gap-3 h-full">
+                          <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                            <Icon className="w-4 h-4 text-primary" />
+                          </div>
+                          <div className="flex-1 min-w-0 flex flex-col h-full">
+                            {/* Tool type badge */}
+                            <span className="inline-block text-[10px] font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary mb-1 w-fit">
+                              {toolTypeLabels[opp.toolType || opp.id] || "Annat"}
+                            </span>
+                            <h3 className="text-sm font-semibold text-foreground leading-snug mb-1 truncate">
+                              {opp.title}
+                            </h3>
+                            <p className="text-xs text-muted-foreground leading-snug mb-2">
+                              {shortDesc}
+                            </p>
+
+                            {/* Value dots: 1-3 dots for low/medium/high */}
+                            <div className="mt-auto flex items-center justify-between gap-2">
+                              <span className="text-[10px] text-muted-foreground">Affärsvärde</span>
+                              <div className="flex gap-1">
+                                {(() => {
+                                  const value = opp.value?.toLowerCase() || opp.potentialValue?.toLowerCase() || "";
+                                  const dots = value.includes("high") || value.includes("högt") || value.includes("mycket") ? 3
+                                    : value.includes("medium") || value.includes("medel") ? 2 : 1;
+                                  return Array.from({ length: 3 }).map((_, i) => (
+                                    <div
+                                      key={i}
+                                      className={`w-2 h-2 rounded-full ${i < dots ? "bg-primary" : "bg-muted"}`}
+                                    />
+                                  ));
+                                })()}
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    </motion.div>
-                  );
-                })}
+
+                        {index === 0 && (
+                          <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-primary/10 via-transparent to-transparent pointer-events-none" />
+                        )}
+                      </motion.div>
+                    );
+                  })}
+                </div>
               </div>
 
               {/* Explanatory text */}
