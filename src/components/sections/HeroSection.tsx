@@ -208,22 +208,23 @@ export default function HeroSection() {
   const runAnalysis = async (websiteUrl: string) => {
     startTimeRef.current = Date.now();
     
-    // Show progressive "teaser" insights while waiting for AI
+    // Show progressive "teaser" insights while waiting for AI - IMMEDIATELY
     const teaserInsights: StreamingInsight[] = [
       { id: "scan", icon: Search, category: "Skannar", text: websiteUrl.replace(/^https?:\/\//, "").split("/")[0] },
       { id: "detect", icon: Target, category: "Identifierar", text: "verksamhetstyp..." },
       { id: "buyers", icon: Users, category: "Analyserar", text: "köproller..." },
       { id: "pain", icon: AlertTriangle, category: "Hittar", text: "pain points..." },
+      { id: "opp", icon: Lightbulb, category: "Genererar", text: "möjligheter..." },
     ];
     
-    // Stream teasers immediately during fetch
+    // Show first insight IMMEDIATELY, then rapid succession
     teaserInsights.forEach((insight, index) => {
       setTimeout(() => {
         if (phase === "analyzing" && !aiAnalysis) {
           setStreamingInsights(prev => [...prev, insight]);
-          setRealProgress(Math.min(15 + index * 18, 75));
+          setRealProgress(Math.min(10 + index * 15, 80));
         }
-      }, 800 + index * 1200);
+      }, index * 600); // First one at 0ms, then every 600ms
     });
     
     // Smooth background progress
