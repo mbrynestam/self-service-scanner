@@ -641,27 +641,27 @@ export default function HeroSection() {
                 Exempel på vad som är möjligt – inte rekommendationer på vad ni ska bygga.
               </p>
 
-              {/* Scroll indicator */}
-              <div className="flex items-center justify-center gap-2 mb-3 text-muted-foreground">
-                <span className="text-xs">Svep för fler idéer</span>
-                <ArrowRight className="w-3 h-3 animate-pulse" />
-              </div>
-
-              <div className="relative w-full mb-8">
-                {/* Right fade gradient to indicate more content */}
-                <div className="absolute right-0 top-0 bottom-2 w-12 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
+              {/* Masonry grid */}
+              {(() => {
+                const displayOpps = getDisplayOpportunities().slice(0, 6);
+                const count = displayOpps.length;
+                const isOdd = count % 2 === 1 && count > 1;
+                const gridCols = count === 1 ? "grid-cols-1" : "grid-cols-2 lg:grid-cols-3";
                 
-                <div className="w-full overflow-x-auto pb-2 -mx-2 px-2 scrollbar-hide">
-                  <div className="flex gap-3 min-w-min pr-8">
-                    {getDisplayOpportunities().slice(0, 10).map((opp, index) => {
+                return (
+                  <div className={`w-full grid ${gridCols} gap-3 mb-8 max-w-4xl mx-auto`}>
+                    {displayOpps.map((opp, index) => {
                       const Icon = opp.icon;
+                      const isLarge = isOdd && index === 0;
+                      const gridClass = isLarge ? "col-span-2 lg:col-span-1" : "";
+                      
                       return (
                         <motion.div
                           key={opp.id || index}
-                          initial={{ opacity: 0, x: 18 }}
-                          animate={{ opacity: 1, x: 0 }}
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
                           transition={{ delay: 0.2 + index * 0.06 }}
-                          className="relative flex-shrink-0 w-[200px] rounded-xl bg-card/50 border border-border hover:border-primary/40 transition-all duration-200 p-3"
+                          className={`${gridClass} relative rounded-xl bg-card/50 border border-border hover:border-primary/40 transition-all duration-200 p-3`}
                         >
                           <div className="flex flex-col h-full">
                             {/* Tool type badge */}
@@ -669,13 +669,13 @@ export default function HeroSection() {
                               {toolTypeLabels[opp.toolType || opp.id] || "Annat"}
                             </span>
                             
-                            {/* Title - always fully visible */}
-                            <h3 className="text-sm font-semibold text-foreground leading-tight mb-2">
+                            {/* Title */}
+                            <h3 className={`font-semibold text-foreground leading-tight mb-2 ${isLarge ? 'text-base' : 'text-sm'}`}>
                               {opp.title}
                             </h3>
                             
-                            {/* Description - short but complete */}
-                            <p className="text-xs text-muted-foreground leading-snug mb-3 flex-1">
+                            {/* Description */}
+                            <p className={`text-muted-foreground leading-snug mb-3 flex-1 ${isLarge ? 'text-sm' : 'text-xs'}`}>
                               {opp.description}
                             </p>
 
@@ -705,8 +705,8 @@ export default function HeroSection() {
                       );
                     })}
                   </div>
-                </div>
-              </div>
+                );
+              })()}
 
               {/* Explanatory text */}
               <motion.div
