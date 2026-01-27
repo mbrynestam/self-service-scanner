@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   Globe, 
   Sparkles, 
@@ -15,8 +16,22 @@ import {
   Calendar,
   ArrowRight,
   Loader2,
-  CheckCircle2
+  CheckCircle2,
+  AlertCircle
 } from "lucide-react";
+
+interface AIAnalysis {
+  recommended: FocusArea;
+  confidence: number;
+  reasoning: string;
+  opportunities: Array<{
+    type: FocusArea;
+    title: string;
+    description: string;
+    potentialValue: string;
+    fit: number;
+  }>;
+}
 
 type FocusArea = "pricing" | "assessment" | "configurator" | "selector" | "onboarding" | "partner";
 
@@ -87,6 +102,8 @@ export default function HeroSection() {
   const [stepProgress, setStepProgress] = useState(0);
   const [selectedOpportunity, setSelectedOpportunity] = useState<Opportunity | null>(null);
   const [formData, setFormData] = useState({ name: "", company: "", email: "", role: "" });
+  const [aiAnalysis, setAiAnalysis] = useState<AIAnalysis | null>(null);
+  const [aiError, setAiError] = useState<string | null>(null);
 
   const handleUrlSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -101,19 +118,65 @@ export default function HeroSection() {
     try {
       new URL(validUrl);
       setError("");
+      setAiError(null);
+      setAiAnalysis(null);
       setPhase("analyzing");
-      runAnalysis();
+      runAnalysis(validUrl);
     } catch {
       setError("Ange en giltig webbadress");
     }
   };
 
-  const runAnalysis = () => {
+  const runAnalysis = async (websiteUrl: string) => {
     let step = 0;
+    let aiCallComplete = false;
+    let aiResult: AIAnalysis | null = null;
+    
+    // Start AI analysis in background
+    const aiPromise = (async () => {
+      try {
+        console.log("Starting AI analysis for:", websiteUrl);
+        const { data, error } = await supabase.functions.invoke('analyze-website', {
+          body: { url: websiteUrl }
+        });
+        
+        if (error) {
+          console.error("AI analysis error:", error);
+          setAiError("Kunde inte analysera webbplatsen. Försök igen.");
+          return null;
+        }
+        
+        if (data?.success && data?.analysis) {
+          console.log("AI analysis complete:", data.analysis);
+          aiResult = data.analysis;
+          setAiAnalysis(data.analysis);
+          return data.analysis;
+        } else if (data?.error) {
+          console.error("AI error:", data.error);
+          setAiError(data.error);
+          return null;
+        }
+        return null;
+      } catch (err) {
+        console.error("AI call failed:", err);
+        setAiError("Ett fel uppstod vid analysen. Försök igen.");
+        return null;
+      } finally {
+        aiCallComplete = true;
+      }
+    })();
     
     const advanceStep = () => {
       if (step >= analysisMessages.length) {
-        setTimeout(() => setPhase("results"), 800);
+        // Wait for AI to complete before showing results
+        const checkAiComplete = () => {
+          if (aiCallComplete) {
+            setTimeout(() => setPhase("results"), 800);
+          } else {
+            setTimeout(checkAiComplete, 200);
+          }
+        };
+        checkAiComplete();
         return;
       }
       
@@ -167,6 +230,32 @@ export default function HeroSection() {
     };
     
     advanceStep();
+  };
+
+  // Build opportunities list based on AI analysis or fallback to default
+  const getDisplayOpportunities = (): Opportunity[] => {
+    if (aiAnalysis?.opportunities && aiAnalysis.opportunities.length > 0) {
+      // Map AI opportunities to our format
+      return aiAnalysis.opportunities.map((aiOpp) => {
+        const iconMap: Record<FocusArea, React.ElementType> = {
+          pricing: Calculator,
+          assessment: Brain,
+          configurator: Puzzle,
+          selector: Target,
+          onboarding: FileCheck,
+          partner: Users
+        };
+        
+        return {
+          id: aiOpp.type,
+          icon: iconMap[aiOpp.type] || Target,
+          title: aiOpp.title,
+          description: aiOpp.description,
+          value: aiOpp.potentialValue
+        };
+      });
+    }
+    return opportunities;
   };
 
   const handleOpportunitySelect = (opp: Opportunity) => {
@@ -356,13 +445,24 @@ export default function HeroSection() {
                 <h2 className="text-2xl md:text-4xl font-bold mb-4">
                   Klar! Här är era <span className="gradient-text">self-service-möjligheter</span>
                 </h2>
+                {aiAnalysis?.reasoning && (
+                  <p className="text-muted-foreground text-lg max-w-2xl mx-auto mb-4">
+                    {aiAnalysis.reasoning}
+                  </p>
+                )}
+                {aiError && (
+                  <div className="flex items-center justify-center gap-2 text-amber-500 mb-4">
+                    <AlertCircle className="w-5 h-5" />
+                    <p className="text-sm">{aiError} Vi visar standardförslag istället.</p>
+                  </div>
+                )}
                 <p className="text-muted-foreground text-lg">
                   Välj det alternativ som passar er bäst.
                 </p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-                {opportunities.map((opp, index) => {
+                {getDisplayOpportunities().map((opp, index) => {
                   const Icon = opp.icon;
                   const isSelected = selectedOpportunity?.id === opp.id;
                   return (
