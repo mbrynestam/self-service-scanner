@@ -124,7 +124,8 @@ export default function GrownSection() {
               </h3>
               <p className="text-primary font-medium mb-4">Bygger hur köpare kan agera</p>
               <p className="text-muted-foreground text-sm">
-                Konkreta, testbara self-service-verktyg som hjälper köpare komma vidare på egen hand.
+                AI-driven prototyping och konkreta self-service-verktyg som hjälper köpare 
+                komma vidare på egen hand — på dagar istället för månader.
               </p>
             </motion.div>
           </div>
@@ -146,13 +147,14 @@ export default function GrownSection() {
               Buyr skapades som en fristående satsning från Grown med ett tydligt uppdrag:
             </p>
             <p className="text-lg font-medium text-foreground mb-6">
-              Att göra det möjligt för företag att snabbt testa och införa self-service-lösningar 
-              som hjälper köpare komma vidare på egen hand.
+              Att göra det möjligt för företag att använda AI för att snabbt testa och införa 
+              self-service-lösningar som hjälper köpare komma vidare på egen hand.
             </p>
             <p className="text-muted-foreground text-sm">
               Self-service har länge varit en central del i Growns arbete med att bygga förtroende, 
-              utbilda köpare och skapa bättre säljdialoger. Buyr är specialiserat på att ta just 
-              den delen hela vägen till verkliga, interaktiva lösningar.
+              utbilda köpare och skapa bättre säljdialoger. Buyr kombinerar den insikten med 
+              AI-driven utveckling för att ta idéer hela vägen till verkliga, interaktiva lösningar 
+              — snabbare än någonsin tidigare.
             </p>
           </div>
         </motion.div>
