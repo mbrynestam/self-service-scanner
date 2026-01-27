@@ -105,20 +105,15 @@ export default function UseCasesPage() {
                 {/* Image - alternating sides */}
                 <motion.div 
                   className={`relative group ${index % 2 === 1 ? 'lg:order-2' : ''}`}
-                  whileHover={{ scale: 1.02 }}
+                  whileHover={{ scale: 1.03 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <div className="relative rounded-2xl overflow-hidden gradient-border">
-                    {/* Animated glow effect */}
-                    <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 via-transparent to-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10" />
-                    
-                    {/* Image with zoom effect on hover */}
-                    <motion.img
+                  <div className="relative rounded-2xl overflow-hidden border border-transparent group-hover:border-primary transition-colors duration-300">
+                    {/* Image */}
+                    <img
                       src={useCase.image}
                       alt={useCase.title}
                       className="w-full aspect-[4/3] object-cover"
-                      whileHover={{ scale: 1.05 }}
-                      transition={{ duration: 0.6 }}
                     />
                     
                     {/* Floating badge */}
