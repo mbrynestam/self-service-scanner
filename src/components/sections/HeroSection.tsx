@@ -146,9 +146,14 @@ export default function HeroSection() {
     advanceStep();
   };
 
-  const handleOpportunityClick = (opp: Opportunity) => {
+  const handleOpportunitySelect = (opp: Opportunity) => {
     setSelectedOpportunity(opp);
-    setPhase("form");
+  };
+
+  const handleProceedToForm = () => {
+    if (selectedOpportunity) {
+      setPhase("form");
+    }
   };
 
   const handleFormSubmit = (e: React.FormEvent) => {
@@ -329,13 +334,14 @@ export default function HeroSection() {
                   Klar! Här är era <span className="gradient-text">self-service-möjligheter</span>
                 </h2>
                 <p className="text-muted-foreground text-lg">
-                  Klicka på ett alternativ för att se hur det kan fungera för er.
+                  Välj det alternativ som passar er bäst.
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
                 {opportunities.map((opp, index) => {
                   const Icon = opp.icon;
+                  const isSelected = selectedOpportunity?.id === opp.id;
                   return (
                     <motion.button
                       key={opp.id}
@@ -343,15 +349,23 @@ export default function HeroSection() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.1 }}
                       whileHover={{ scale: 1.03 }}
-                      onClick={() => handleOpportunityClick(opp)}
-                      className="group p-6 rounded-2xl bg-card/50 border border-transparent hover:border-primary text-left transition-all duration-300"
+                      onClick={() => handleOpportunitySelect(opp)}
+                      className={`group p-6 rounded-2xl bg-card/50 text-left transition-all duration-300 ${
+                        isSelected 
+                          ? "border-2 border-primary ring-2 ring-primary/20" 
+                          : "border border-transparent hover:border-primary"
+                      }`}
                     >
                       <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
+                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                          isSelected ? "bg-primary/20" : "bg-primary/10 group-hover:bg-primary/20"
+                        }`}>
                           <Icon className="w-6 h-6 text-primary" />
                         </div>
                         <div className="flex-1">
-                          <h3 className="font-semibold text-foreground mb-1 group-hover:text-primary transition-colors">
+                          <h3 className={`font-semibold mb-1 transition-colors ${
+                            isSelected ? "text-primary" : "text-foreground group-hover:text-primary"
+                          }`}>
                             {opp.title}
                           </h3>
                           <p className="text-sm text-muted-foreground mb-3">
@@ -363,15 +377,37 @@ export default function HeroSection() {
                             </span>
                           </div>
                         </div>
-                      </div>
-                      <div className="mt-4 flex items-center text-sm text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-                        <span>Se hur det fungerar</span>
-                        <ArrowRight className="w-4 h-4 ml-2" />
+                        {isSelected && (
+                          <CheckCircle2 className="w-6 h-6 text-primary shrink-0" />
+                        )}
                       </div>
                     </motion.button>
                   );
                 })}
               </div>
+
+              {/* CTA Button */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6 }}
+                className="text-center"
+              >
+                <Button
+                  variant="hero"
+                  size="xl"
+                  onClick={handleProceedToForm}
+                  disabled={!selectedOpportunity}
+                  className="min-w-[300px]"
+                >
+                  <Sparkles className="w-5 h-5 mr-2" />
+                  Se en gratis prototyp
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Button>
+                <p className="text-sm text-muted-foreground mt-4">
+                  Helt utan kostnad • Ingen bindning
+                </p>
+              </motion.div>
             </motion.div>
           )}
 
