@@ -2,7 +2,8 @@ import { motion } from "framer-motion";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { ArrowRight, Sparkles, Search, Zap, TestTube, Rocket, CheckCircle2 } from "lucide-react";
+import { ArrowRight, Sparkles, Search, Zap, TestTube, Rocket, CheckCircle2, Globe } from "lucide-react";
+import ScannerSection from "@/components/sections/ScannerSection";
 
 const aiSprintSteps = [
   {
@@ -280,6 +281,27 @@ export default function SaFunkarDet() {
             </div>
           </motion.div>
         </div>
+      </section>
+
+      {/* Scanner CTA Section */}
+      <section className="py-16 relative">
+        <div className="container mx-auto px-4 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="text-center mb-8"
+          >
+            <h2 className="font-display text-2xl md:text-3xl font-bold mb-3">
+              Vill ni se detta på er egen webbplats?
+            </h2>
+            <p className="text-muted-foreground">
+              Låt vår AI analysera era self-service-möjligheter på 60 sekunder.
+            </p>
+          </motion.div>
+        </div>
+        <ScannerSection variant="compact" />
       </section>
 
       {/* CTA */}

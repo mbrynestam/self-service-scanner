@@ -8,12 +8,14 @@ import DifferentiatorsSection from "@/components/sections/DifferentiatorsSection
 import SocialProofSection from "@/components/sections/SocialProofSection";
 import FAQSection from "@/components/sections/FAQSection";
 import CTASection from "@/components/sections/CTASection";
+import ScannerSection from "@/components/sections/ScannerSection";
 
 export default function Index() {
   return (
     <Layout>
       <HeroSection />
       <ProblemSection />
+      <ScannerSection />
       <SelfServiceSection />
       <ResultsSection />
       <ProcessSection />
