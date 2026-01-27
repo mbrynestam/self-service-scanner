@@ -460,8 +460,26 @@ export default function HeroSection() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="max-w-3xl mx-auto text-center"
+              className="max-w-3xl mx-auto text-center relative"
             >
+              {/* Pulsating background glow */}
+              <motion.div
+                animate={{ 
+                  scale: [1, 1.2, 1],
+                  opacity: [0.15, 0.3, 0.15]
+                }}
+                transition={{ 
+                  duration: 3,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+                className="absolute inset-0 -z-10 blur-3xl"
+                style={{
+                  background: "radial-gradient(circle at center, hsl(var(--primary)) 0%, transparent 70%)",
+                  transform: "translateY(-20%)"
+                }}
+              />
+
               <h2 className="text-3xl md:text-4xl font-bold mb-4">
                 {analysisComplete ? "Analys klar!" : "Analyserar er webbplats..."}
               </h2>
