@@ -421,7 +421,7 @@ export default function HeroSection() {
   };
 
   return (
-    <section className="relative min-h-screen flex items-center overflow-hidden bg-background py-20">
+    <section className="relative h-[90vh] max-h-[90vh] flex items-center overflow-y-auto overflow-x-hidden bg-background py-12">
       {/* Glow Effect */}
       <div className="hero-glow top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
 
