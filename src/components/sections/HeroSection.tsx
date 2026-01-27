@@ -273,7 +273,7 @@ export default function HeroSection() {
           }, index * 150);
         });
 
-        // Complete quickly after findings shown
+        // Complete after findings shown - add pause so user can read insights
         setTimeout(() => {
           setAnalysisComplete(true);
           setRealProgress(100);
@@ -286,7 +286,8 @@ export default function HeroSection() {
             colors: ['#74F5A1', '#22c55e', '#10b981', '#34d399']
           });
           
-          setTimeout(() => setPhase("results"), 400);
+          // Pause 1.5s so user can see the insights before results
+          setTimeout(() => setPhase("results"), 1500);
         }, findings.length * 150 + 200);
         
       } else if (data?.error) {
