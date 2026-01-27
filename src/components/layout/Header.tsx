@@ -69,16 +69,16 @@ export default function Header() {
             exit={{ opacity: 0, height: 0 }}
             className="lg:hidden bg-background border-b border-border overflow-hidden"
           >
-            <nav className="container mx-auto px-4 py-6 flex flex-col gap-4">
+            <nav className="container mx-auto px-4 py-6 flex flex-col gap-2">
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
                   to={link.href}
                   onClick={() => setMobileOpen(false)}
-                  className={`text-lg font-medium py-2 transition-colors ${
+                  className={`text-lg font-bold px-4 py-3 rounded-lg transition-all duration-200 ${
                     location.pathname === link.href
-                      ? "text-primary"
-                      : "text-muted-foreground hover:text-foreground"
+                      ? "text-primary bg-secondary/50"
+                      : "text-[#f3f3f3] hover:bg-secondary/50"
                   }`}
                 >
                   {link.name}
