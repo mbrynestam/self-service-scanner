@@ -120,10 +120,11 @@ export default function HeroSection() {
   const [formData, setFormData] = useState({ name: "", company: "", email: "", role: "" });
   const [aiAnalysis, setAiAnalysis] = useState<AIAnalysis | null>(null);
   const [aiError, setAiError] = useState<string | null>(null);
-  const [streamingInsights, setStreamingInsights] = useState<StreamingInsight[]>([]);
+  const [currentInsight, setCurrentInsight] = useState<StreamingInsight | null>(null);
   const [analysisComplete, setAnalysisComplete] = useState(false);
   const startTimeRef = useRef<number>(0);
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const insightQueueRef = useRef<StreamingInsight[]>([]);
 
   const handleUrlSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -141,7 +142,8 @@ export default function HeroSection() {
       setAiError(null);
       setAiAnalysis(null);
       setRealProgress(0);
-      setStreamingInsights([]);
+      setCurrentInsight(null);
+      insightQueueRef.current = [];
       setAnalysisComplete(false);
       setPhase("analyzing");
       runAnalysis(validUrl);
@@ -205,14 +207,37 @@ export default function HeroSection() {
     return findings.slice(0, 5);
   };
 
+  // Show insights one at a time with fade in/out
+  const showInsightSequence = (insights: StreamingInsight[], onComplete: () => void) => {
+    let index = 0;
+    const showNext = () => {
+      if (index < insights.length) {
+        setCurrentInsight(insights[index]);
+        index++;
+        // Show each insight for 1.8 seconds, then fade and show next
+        setTimeout(showNext, 1800);
+      } else {
+        onComplete();
+      }
+    };
+    showNext();
+  };
+
   const runAnalysis = async (websiteUrl: string) => {
     startTimeRef.current = Date.now();
+    const MIN_DURATION = 10000; // Minimum 10 seconds
     
-    // Show first teaser immediately
-    setStreamingInsights([
-      { id: "scan", icon: Search, category: "Skannar", text: websiteUrl.replace(/^https?:\/\//, "").split("/")[0] }
-    ]);
-    setRealProgress(10);
+    // Show initial scanning message
+    setCurrentInsight({ id: "scan", icon: Search, category: "Skannar", text: websiteUrl.replace(/^https?:\/\//, "").split("/")[0] });
+    setRealProgress(5);
+
+    // Smooth progress animation
+    progressIntervalRef.current = setInterval(() => {
+      setRealProgress(prev => {
+        const increment = prev < 30 ? 1 : prev < 60 ? 0.8 : prev < 85 ? 0.5 : 0.2;
+        return Math.min(prev + increment, 90);
+      });
+    }, 300);
 
     const apiCall = async (step: string) => {
       const response = await fetch(
@@ -234,107 +259,86 @@ export default function HeroSection() {
       return response.json();
     };
 
-    // Merge partial results into full analysis
+    const collectedInsights: StreamingInsight[] = [];
     const mergedAnalysis: Partial<AIAnalysis> = {};
 
     try {
       console.log("Starting parallel AI analysis for:", websiteUrl);
       
       // Launch all 3 steps in parallel
-      const audiencePromise = apiCall("audience");
-      const questionsPromise = apiCall("questions");
-      const opportunitiesPromise = apiCall("opportunities");
-
-      // Handle audience result (first to likely complete)
-      audiencePromise.then(data => {
-        if (data?.success && data?.analysis) {
-          console.log("Audience step complete:", data.analysis);
-          Object.assign(mergedAnalysis, data.analysis);
-          
-          // Show real findings immediately
-          const newInsights: StreamingInsight[] = [];
-          if (data.analysis.targetAudience) {
-            const short = data.analysis.targetAudience.length > 40 
-              ? data.analysis.targetAudience.substring(0, 40) + "..." 
-              : data.analysis.targetAudience;
-            newInsights.push({ id: "audience", icon: User, category: "Målgrupp", text: short });
-          }
-          if (data.analysis.buyerRoles?.length > 0) {
-            newInsights.push({ id: "roles", icon: Users, category: "Köproller", text: data.analysis.buyerRoles.slice(0, 3).join(", ") });
-          }
-          
-          setStreamingInsights(prev => [...prev.filter(i => i.id === "scan"), ...newInsights]);
-          setRealProgress(40);
-        }
-      }).catch(console.error);
-
-      // Handle questions result
-      questionsPromise.then(data => {
-        if (data?.success && data?.analysis) {
-          console.log("Questions step complete:", data.analysis);
-          Object.assign(mergedAnalysis, data.analysis);
-          
-          const newInsights: StreamingInsight[] = [];
-          if (data.analysis.buyerQuestions?.length > 0) {
-            const q = data.analysis.buyerQuestions[0];
-            newInsights.push({ id: "question", icon: HelpCircle, category: "Typisk fråga", text: q.length > 35 ? q.substring(0, 35) + "..." : q });
-          }
-          if (data.analysis.painPoints?.length > 0) {
-            const p = data.analysis.painPoints[0];
-            newInsights.push({ id: "pain", icon: AlertTriangle, category: "Pain Point", text: p.length > 35 ? p.substring(0, 35) + "..." : p });
-          }
-          
-          setStreamingInsights(prev => [...prev, ...newInsights]);
-          setRealProgress(70);
-        }
-      }).catch(console.error);
-
-      // Wait for all to complete
       const [audienceResult, questionsResult, opportunitiesResult] = await Promise.allSettled([
-        audiencePromise,
-        questionsPromise,
-        opportunitiesPromise
+        apiCall("audience"),
+        apiCall("questions"),
+        apiCall("opportunities")
       ]);
 
       if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
 
-      // Merge all successful results
+      // Process audience results
       if (audienceResult.status === "fulfilled" && audienceResult.value?.analysis) {
-        Object.assign(mergedAnalysis, audienceResult.value.analysis);
-      }
-      if (questionsResult.status === "fulfilled" && questionsResult.value?.analysis) {
-        Object.assign(mergedAnalysis, questionsResult.value.analysis);
-      }
-      if (opportunitiesResult.status === "fulfilled" && opportunitiesResult.value?.analysis) {
-        Object.assign(mergedAnalysis, opportunitiesResult.value.analysis);
+        const a = audienceResult.value.analysis;
+        Object.assign(mergedAnalysis, a);
+        if (a.targetAudience) {
+          collectedInsights.push({ id: "audience", icon: User, category: "Målgrupp", text: a.targetAudience });
+        }
+        if (a.buyerRoles?.length > 0) {
+          collectedInsights.push({ id: "roles", icon: Users, category: "Köproller", text: a.buyerRoles.join(", ") });
+        }
       }
 
-      // Check if we have enough data
-      if (mergedAnalysis.targetAudience || mergedAnalysis.opportunities) {
-        console.log("Full analysis merged:", mergedAnalysis);
+      // Process questions results
+      if (questionsResult.status === "fulfilled" && questionsResult.value?.analysis) {
+        const q = questionsResult.value.analysis;
+        Object.assign(mergedAnalysis, q);
+        if (q.buyerQuestions?.length > 0) {
+          collectedInsights.push({ id: "question", icon: HelpCircle, category: "Typisk fråga", text: `"${q.buyerQuestions[0]}"` });
+        }
+        if (q.painPoints?.length > 0) {
+          collectedInsights.push({ id: "pain", icon: AlertTriangle, category: "Pain Point", text: q.painPoints[0] });
+        }
+      }
+
+      // Process opportunities results
+      if (opportunitiesResult.status === "fulfilled" && opportunitiesResult.value?.analysis) {
+        const o = opportunitiesResult.value.analysis;
+        Object.assign(mergedAnalysis, o);
+        if (o.opportunities?.length > 0) {
+          collectedInsights.push({ id: "rec", icon: Lightbulb, category: "Bästa möjlighet", text: o.opportunities[0].title });
+        }
+      }
+
+      // Calculate how long we've been running
+      const elapsed = Date.now() - startTimeRef.current;
+      const remainingTime = Math.max(0, MIN_DURATION - elapsed);
+
+      // Wait if needed to hit minimum duration
+      if (remainingTime > 0) {
+        await new Promise(resolve => setTimeout(resolve, remainingTime / 2));
+      }
+
+      // Show collected insights one by one
+      if (collectedInsights.length > 0 && (mergedAnalysis.targetAudience || mergedAnalysis.opportunities)) {
         setAiAnalysis(mergedAnalysis as AIAnalysis);
         
-        // Add final opportunity insight
-        if (mergedAnalysis.opportunities?.length) {
-          setStreamingInsights(prev => [
-            ...prev,
-            { id: "rec", icon: Lightbulb, category: "Rekommendation", text: mergedAnalysis.opportunities![0].title }
-          ]);
-        }
-        
-        setRealProgress(100);
-        setAnalysisComplete(true);
-        
-        // Trigger confetti
-        confetti({
-          particleCount: 80,
-          spread: 70,
-          origin: { y: 0.6 },
-          colors: ['#74F5A1', '#22c55e', '#10b981', '#34d399']
+        showInsightSequence(collectedInsights, () => {
+          // Ensure minimum total time
+          const totalElapsed = Date.now() - startTimeRef.current;
+          const finalWait = Math.max(0, MIN_DURATION - totalElapsed);
+          
+          setTimeout(() => {
+            setRealProgress(100);
+            setAnalysisComplete(true);
+            
+            confetti({
+              particleCount: 80,
+              spread: 70,
+              origin: { y: 0.6 },
+              colors: ['#74F5A1', '#22c55e', '#10b981', '#34d399']
+            });
+            
+            setTimeout(() => setPhase("results"), 1000);
+          }, finalWait);
         });
-        
-        // Pause so user can see insights
-        setTimeout(() => setPhase("results"), 1500);
       } else {
         setAiError("Kunde inte analysera webbplatsen. Försök igen.");
         setRealProgress(100);
@@ -522,60 +526,61 @@ export default function HeroSection() {
                 </div>
               </div>
 
-              {/* Large flying badges - no container, free floating */}
-              <div className="flex flex-wrap justify-center gap-3 min-h-[140px]">
-                <AnimatePresence mode="popLayout">
-                  {streamingInsights.map((insight) => {
-                    const Icon = insight.icon;
-                    return (
-                      <motion.div
-                        key={insight.id}
-                        initial={{ opacity: 0, scale: 0.5, y: 30 }}
-                        animate={{ 
-                          opacity: 1, 
-                          scale: 1, 
-                          y: 0,
-                          transition: { type: "spring", stiffness: 400, damping: 20 }
-                        }}
-                        exit={{ opacity: 0, scale: 0.8, y: -20 }}
-                        className="inline-flex items-center gap-3 px-5 py-3 rounded-full bg-primary/10 border border-primary/30"
-                      >
-                        <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-                          <Icon className="w-4 h-4 text-primary" />
-                        </div>
-                        <div className="text-left">
-                          <span className="text-xs font-medium text-primary uppercase tracking-wider block">{insight.category}</span>
-                          <span className="text-sm text-foreground font-medium">{insight.text}</span>
-                        </div>
-                        {!analysisComplete && (
-                          <motion.div
-                            animate={{ opacity: [1, 0.3, 1] }}
-                            transition={{ duration: 0.5, repeat: Infinity }}
-                            className="w-2 h-2 rounded-full bg-primary ml-1"
-                          />
-                        )}
-                        {analysisComplete && (
-                          <CheckCircle2 className="w-4 h-4 text-primary ml-1" />
-                        )}
-                      </motion.div>
-                    );
-                  })}
-                </AnimatePresence>
-                
-                {streamingInsights.length === 0 && (
-                  <motion.div 
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="flex items-center gap-3 text-muted-foreground"
-                  >
+              {/* Single insight display - one at a time, clean text */}
+              <div className="min-h-[120px] flex items-center justify-center">
+                <AnimatePresence mode="wait">
+                  {currentInsight && (
                     <motion.div
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                      className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full"
-                    />
-                    <span>Ansluter till AI...</span>
-                  </motion.div>
-                )}
+                      key={currentInsight.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      transition={{ duration: 0.4, ease: "easeOut" }}
+                      className="text-center max-w-xl"
+                    >
+                      <motion.span 
+                        className="text-sm font-medium text-primary uppercase tracking-widest block mb-3"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.1 }}
+                      >
+                        {currentInsight.category}
+                      </motion.span>
+                      <motion.p 
+                        className="text-xl md:text-2xl text-foreground font-medium leading-relaxed"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.2 }}
+                      >
+                        {currentInsight.text}
+                      </motion.p>
+                      <motion.div
+                        animate={{ opacity: [0.3, 1, 0.3] }}
+                        transition={{ duration: 1.5, repeat: Infinity }}
+                        className="mt-6 flex justify-center gap-1"
+                      >
+                        <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                        <div className="w-1.5 h-1.5 rounded-full bg-primary/50" />
+                        <div className="w-1.5 h-1.5 rounded-full bg-primary/30" />
+                      </motion.div>
+                    </motion.div>
+                  )}
+                  
+                  {!currentInsight && (
+                    <motion.div 
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="flex items-center gap-3 text-muted-foreground"
+                    >
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full"
+                      />
+                      <span>Startar analys...</span>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </motion.div>
           )}
