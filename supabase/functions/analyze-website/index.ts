@@ -151,33 +151,32 @@ Returnera ENDAST JSON:
     } else if (step === "opportunities") {
       // Step 3: Self-service opportunities
       systemPrompt = `Du är en strateg på B2B-företaget Buyr, expert på self-service som säljstrategi.
-Analysera webbplatsen och rekommendera 2-4 self-service-verktyg som skapar affärsvärde.
+Analysera webbplatsen och rekommendera 1-6 self-service-verktyg som skapar affärsvärde.
 
 VIKTIGT: En priskalkylator (pricing) är nästan ALLTID det mest relevanta verktyget för B2B-företag. 
 Den ska ALLTID inkluderas om företaget inte redan har en synlig prissättning på sajten.
 Priskalkylator bör typiskt vara det första alternativet i listan.
 
-Self-service-typer (i prioritetsordning):
+Self-service-typer:
 1. pricing: Priskalkylator/ROI-kalkylator - Låter köparen förstå kostnader och värde innan kontakt
 2. assessment: Självtest/behovsanalys - Hjälper köparen kvalificera sig själv
 3. selector: Lösningsväljare/produktguide - Guidar till rätt produkt/tjänst
 4. configurator: Produktkonfigurator - Låter köparen bygga sin lösning
 5. scheduling: Bokningsverktyg - Enkel mötesbokning
+6. other: Annat verktyg - För idéer som inte passar ovan
 
 Returnera ENDAST JSON:
 {
-  "recommended": "pricing" | "assessment" | "selector" | "configurator" | "scheduling",
+  "recommended": "pricing" | "assessment" | "selector" | "configurator" | "scheduling" | "other",
   "reasoning": "Kort förklaring (max 30 ord)",
   "opportunities": [
     {
-      "type": "pricing",
+      "type": "pricing" | "assessment" | "selector" | "configurator" | "scheduling" | "other",
       "title": "Verktygets namn",
       "description": "Vad det löser (max 20 ord)",
       "potentialValue": "high" | "medium" | "low",
       "fit": 0.0-1.0
     }
-  ]
-}
   ]
 }`;
       expectedFields = ["recommended", "reasoning", "opportunities"];
