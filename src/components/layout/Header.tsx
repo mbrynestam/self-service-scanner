@@ -24,9 +24,9 @@ export default function Header() {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-display font-bold text-lg">S</span>
+              <span className="text-primary-foreground font-display font-bold text-lg">B</span>
             </div>
-            <span className="font-display font-bold text-xl text-foreground">Självbetjäning</span>
+            <span className="font-display font-bold text-xl text-foreground">Buyr</span>
           </Link>
 
           {/* Desktop Nav */}
@@ -49,7 +49,7 @@ export default function Header() {
           {/* CTA */}
           <div className="hidden lg:flex items-center gap-4">
             <Button variant="hero" size="lg" asChild>
-              <Link to="/kontakt">Boka demo</Link>
+              <Link to="/kontakt">Boka strategisamtal</Link>
             </Button>
           </div>
 
@@ -90,7 +90,7 @@ export default function Header() {
               ))}
               <Button variant="hero" size="lg" className="mt-4" asChild>
                 <Link to="/kontakt" onClick={() => setMobileOpen(false)}>
-                  Boka demo
+                  Boka strategisamtal
                 </Link>
               </Button>
             </nav>

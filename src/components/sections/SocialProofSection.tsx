@@ -70,7 +70,7 @@ export default function SocialProofSection() {
           transition={{ duration: 0.6, delay: 0.3 }}
           className="text-center mb-12"
         >
-          <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold mb-6">
+          <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold mb-6 text-foreground">
             Vad våra kunder säger
           </h2>
         </motion.div>
