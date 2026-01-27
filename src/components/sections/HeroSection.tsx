@@ -426,6 +426,28 @@ export default function HeroSection() {
     <section className="relative h-[90vh] max-h-[90vh] flex items-center overflow-y-auto overflow-x-hidden bg-background py-12">
       {/* Glow Effect */}
       <div className="hero-glow top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+      
+      {/* Pulsing rings animation */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden">
+        {[...Array(5)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute rounded-full border border-primary/15"
+            initial={{ width: 100, height: 100, opacity: 0 }}
+            animate={{
+              width: [100 + i * 180, 350 + i * 220, 100 + i * 180],
+              height: [100 + i * 180, 350 + i * 220, 100 + i * 180],
+              opacity: [0.05, 0.2, 0.05],
+            }}
+            transition={{
+              duration: 5 + i * 0.6,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: i * 0.9,
+            }}
+          />
+        ))}
+      </div>
 
       <div className="container mx-auto px-4 lg:px-8 relative z-10">
         <AnimatePresence mode="wait">
