@@ -7,23 +7,23 @@ import { ArrowRight, Check, Layers, Zap, BarChart3, Users } from "lucide-react";
 const features = [
   {
     icon: Layers,
-    title: "Modulärt och skalbart",
-    description: "Börja med ett verktyg och bygg ut efter behov. Alla våra lösningar är designade för att växa med er.",
+    title: "Börja litet. Skala smart.",
+    description: "Ni börjar med ett konkret verktyg och en testbar prototyp. När ni ser vad som fungerar kan ni bygga vidare i er egen takt.",
   },
   {
     icon: Zap,
-    title: "Snabb time-to-value",
-    description: "Med AI-prototyping kan ni se resultat på veckor istället för månader.",
+    title: "Från idé till prototyp på dagar",
+    description: "Med AI-drivna sprintar slipper ni långa förstudier. Ni får något klickbart att testa nästan direkt — så beslut kan tas snabbare.",
   },
   {
     icon: BarChart3,
-    title: "Data-drivet",
-    description: "Inbyggd analytics som visar exakt hur besökare interagerar med era verktyg.",
+    title: "Designat för att lära och förbättra",
+    description: "Varje lösning utformas för att ge insikter om hur köpare tänker, klickar och väljer — så ni kan optimera upplevelsen över tid.",
   },
   {
     icon: Users,
-    title: "Anpassat för B2B",
-    description: "Designat för komplexa köpresor med flera beslutsfattare och långa säljcykler.",
+    title: "Skapat för komplex B2B-försäljning",
+    description: "Våra lösningar är anpassade för långa köpresor, flera beslutsfattare och behov av tydlig vägledning innan dialog med sälj.",
   },
 ];
 
@@ -79,10 +79,10 @@ export default function Losning() {
             className="text-center mb-16"
           >
             <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-              Byggt för moderna B2B-köpare
+              Byggt för hur B2B-köpare faktiskt vill köpa
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Varje lösning vi bygger är designad med köparens perspektiv i fokus.
+              Vi designar self-service-upplevelser som låter köpare utforska, förstå och ta nästa steg på egen hand — innan de vill prata med sälj.
             </p>
           </motion.div>
 
