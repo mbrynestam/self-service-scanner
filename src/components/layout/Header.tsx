@@ -26,16 +26,15 @@ export default function Header() {
             <img src="/assets/buyr-logo.png" alt="Buyr" className="h-12" />
           </Link>
 
-          {/* Desktop Nav */}
-          <nav className="hidden lg:flex items-center gap-8">
+          <nav className="hidden lg:flex items-center gap-2">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 to={link.href}
-                className={`text-base font-medium transition-colors duration-200 ${
+                className={`text-lg font-bold px-4 py-2 rounded-lg transition-all duration-200 ${
                   location.pathname === link.href
-                    ? "text-primary"
-                    : "text-muted-foreground hover:text-foreground"
+                    ? "text-primary bg-secondary/50"
+                    : "text-[#f3f3f3] hover:bg-secondary/50"
                 }`}
               >
                 {link.name}
