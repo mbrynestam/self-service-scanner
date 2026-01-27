@@ -94,7 +94,7 @@ export default function Losning() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
-                className="gradient-border rounded-2xl p-6"
+                className="rounded-2xl p-6 bg-secondary/50 hover:bg-secondary/80 transition-all duration-300 hover:scale-[1.03] cursor-default"
               >
                 <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
                   <feature.icon className="w-6 h-6 text-primary" />
