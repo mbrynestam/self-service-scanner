@@ -208,43 +208,13 @@ export default function HeroSection() {
   const runAnalysis = async (websiteUrl: string) => {
     startTimeRef.current = Date.now();
     
-    // Show progressive "teaser" insights while waiting for AI - IMMEDIATELY
-    const teaserInsights: StreamingInsight[] = [
-      { id: "scan", icon: Search, category: "Skannar", text: websiteUrl.replace(/^https?:\/\//, "").split("/")[0] },
-      { id: "detect", icon: Target, category: "Identifierar", text: "verksamhetstyp..." },
-      { id: "buyers", icon: Users, category: "Analyserar", text: "köproller..." },
-      { id: "pain", icon: AlertTriangle, category: "Hittar", text: "pain points..." },
-      { id: "opp", icon: Lightbulb, category: "Genererar", text: "möjligheter..." },
-    ];
-    
-    // Show first insight IMMEDIATELY, then rapid succession
-    teaserInsights.forEach((insight, index) => {
-      setTimeout(() => {
-        if (phase === "analyzing" && !aiAnalysis) {
-          setStreamingInsights(prev => [...prev, insight]);
-          setRealProgress(Math.min(10 + index * 15, 80));
-        }
-      }, index * 600); // First one at 0ms, then every 600ms
-    });
-    
-    // Smooth background progress
-    const smoothProgress = () => {
-      progressIntervalRef.current = setInterval(() => {
-        setRealProgress(prev => {
-          const increment = prev < 30 ? 2 : prev < 60 ? 1.5 : prev < 80 ? 1 : 0.3;
-          return Math.min(prev + increment, 85);
-        });
-      }, 500);
-    };
-    
-    smoothProgress();
+    // Show first teaser immediately
+    setStreamingInsights([
+      { id: "scan", icon: Search, category: "Skannar", text: websiteUrl.replace(/^https?:\/\//, "").split("/")[0] }
+    ]);
+    setRealProgress(10);
 
-    try {
-      console.log("Starting AI analysis for:", websiteUrl);
-      
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 60000);
-      
+    const apiCall = async (step: string) => {
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-website`,
         {
@@ -254,75 +224,126 @@ export default function HeroSection() {
             'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
             'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
           },
-          body: JSON.stringify({ url: websiteUrl }),
-          signal: controller.signal,
+          body: JSON.stringify({ url: websiteUrl, step }),
         }
       );
-      
-      clearTimeout(timeoutId);
-      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
-      
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error("AI analysis error:", response.status, errorData);
-        setAiError(errorData.error || "Kunde inte analysera webbplatsen. Försök igen.");
-        setRealProgress(100);
-        setTimeout(() => setPhase("results"), 500);
-        return;
+        throw new Error(errorData.error || `Step ${step} failed`);
       }
-      
-      const data = await response.json();
-      
-      if (data?.success && data?.analysis) {
-        console.log("AI analysis complete:", data.analysis);
-        setAiAnalysis(data.analysis);
-        
-        // Clear teasers and show real findings immediately
-        setStreamingInsights([]);
-        
-        // Build findings and show them rapidly
-        const findings = buildFindings(data.analysis);
-        
-        // Show real findings quickly - 120ms intervals
-        findings.forEach((finding, index) => {
-          setTimeout(() => {
-            setStreamingInsights(prev => [...prev, finding]);
-            setRealProgress(88 + (index + 1) * (12 / findings.length));
-          }, index * 120);
-        });
+      return response.json();
+    };
 
-        // Complete after findings shown - add pause so user can read insights
-        setTimeout(() => {
-          setAnalysisComplete(true);
-          setRealProgress(100);
+    // Merge partial results into full analysis
+    const mergedAnalysis: Partial<AIAnalysis> = {};
+
+    try {
+      console.log("Starting parallel AI analysis for:", websiteUrl);
+      
+      // Launch all 3 steps in parallel
+      const audiencePromise = apiCall("audience");
+      const questionsPromise = apiCall("questions");
+      const opportunitiesPromise = apiCall("opportunities");
+
+      // Handle audience result (first to likely complete)
+      audiencePromise.then(data => {
+        if (data?.success && data?.analysis) {
+          console.log("Audience step complete:", data.analysis);
+          Object.assign(mergedAnalysis, data.analysis);
           
-          // Trigger confetti celebration
-          confetti({
-            particleCount: 80,
-            spread: 70,
-            origin: { y: 0.6 },
-            colors: ['#74F5A1', '#22c55e', '#10b981', '#34d399']
-          });
+          // Show real findings immediately
+          const newInsights: StreamingInsight[] = [];
+          if (data.analysis.targetAudience) {
+            const short = data.analysis.targetAudience.length > 40 
+              ? data.analysis.targetAudience.substring(0, 40) + "..." 
+              : data.analysis.targetAudience;
+            newInsights.push({ id: "audience", icon: User, category: "Målgrupp", text: short });
+          }
+          if (data.analysis.buyerRoles?.length > 0) {
+            newInsights.push({ id: "roles", icon: Users, category: "Köproller", text: data.analysis.buyerRoles.slice(0, 3).join(", ") });
+          }
           
-          // Pause 1.5s so user can see the insights before results
-          setTimeout(() => setPhase("results"), 1500);
-        }, findings.length * 150 + 200);
+          setStreamingInsights(prev => [...prev.filter(i => i.id === "scan"), ...newInsights]);
+          setRealProgress(40);
+        }
+      }).catch(console.error);
+
+      // Handle questions result
+      questionsPromise.then(data => {
+        if (data?.success && data?.analysis) {
+          console.log("Questions step complete:", data.analysis);
+          Object.assign(mergedAnalysis, data.analysis);
+          
+          const newInsights: StreamingInsight[] = [];
+          if (data.analysis.buyerQuestions?.length > 0) {
+            const q = data.analysis.buyerQuestions[0];
+            newInsights.push({ id: "question", icon: HelpCircle, category: "Typisk fråga", text: q.length > 35 ? q.substring(0, 35) + "..." : q });
+          }
+          if (data.analysis.painPoints?.length > 0) {
+            const p = data.analysis.painPoints[0];
+            newInsights.push({ id: "pain", icon: AlertTriangle, category: "Pain Point", text: p.length > 35 ? p.substring(0, 35) + "..." : p });
+          }
+          
+          setStreamingInsights(prev => [...prev, ...newInsights]);
+          setRealProgress(70);
+        }
+      }).catch(console.error);
+
+      // Wait for all to complete
+      const [audienceResult, questionsResult, opportunitiesResult] = await Promise.allSettled([
+        audiencePromise,
+        questionsPromise,
+        opportunitiesPromise
+      ]);
+
+      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+
+      // Merge all successful results
+      if (audienceResult.status === "fulfilled" && audienceResult.value?.analysis) {
+        Object.assign(mergedAnalysis, audienceResult.value.analysis);
+      }
+      if (questionsResult.status === "fulfilled" && questionsResult.value?.analysis) {
+        Object.assign(mergedAnalysis, questionsResult.value.analysis);
+      }
+      if (opportunitiesResult.status === "fulfilled" && opportunitiesResult.value?.analysis) {
+        Object.assign(mergedAnalysis, opportunitiesResult.value.analysis);
+      }
+
+      // Check if we have enough data
+      if (mergedAnalysis.targetAudience || mergedAnalysis.opportunities) {
+        console.log("Full analysis merged:", mergedAnalysis);
+        setAiAnalysis(mergedAnalysis as AIAnalysis);
         
-      } else if (data?.error) {
-        console.error("AI error:", data.error);
-        setAiError(data.error);
+        // Add final opportunity insight
+        if (mergedAnalysis.opportunities?.length) {
+          setStreamingInsights(prev => [
+            ...prev,
+            { id: "rec", icon: Lightbulb, category: "Rekommendation", text: mergedAnalysis.opportunities![0].title }
+          ]);
+        }
+        
+        setRealProgress(100);
+        setAnalysisComplete(true);
+        
+        // Trigger confetti
+        confetti({
+          particleCount: 80,
+          spread: 70,
+          origin: { y: 0.6 },
+          colors: ['#74F5A1', '#22c55e', '#10b981', '#34d399']
+        });
+        
+        // Pause so user can see insights
+        setTimeout(() => setPhase("results"), 1500);
+      } else {
+        setAiError("Kunde inte analysera webbplatsen. Försök igen.");
         setRealProgress(100);
         setTimeout(() => setPhase("results"), 500);
       }
     } catch (err) {
       if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
-      if (err instanceof Error && err.name === 'AbortError') {
-        console.error("AI call timed out");
-        setAiError("Analysen tog för lång tid. Försök igen.");
-      } else {
-        console.error("AI call failed:", err);
-        setAiError("Ett fel uppstod vid analysen. Försök igen.");
-      }
+      console.error("AI call failed:", err);
+      setAiError(err instanceof Error ? err.message : "Ett fel uppstod vid analysen.");
       setRealProgress(100);
       setTimeout(() => setPhase("results"), 500);
     }

@@ -90,7 +90,7 @@ serve(async (req) => {
   }
 
   try {
-    const { url } = await req.json();
+    const { url, step } = await req.json();
     
     if (!url) {
       return new Response(
@@ -104,7 +104,7 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    console.log("Analyzing website:", url);
+    console.log("Analyzing website:", url, "step:", step || "full");
 
     // Scrape the website content
     const websiteContent = await scrapeWebsite(url);
@@ -112,7 +112,74 @@ serve(async (req) => {
     
     console.log("Website content scraped:", hasContent ? "success" : "failed or minimal content");
 
-    const systemPrompt = `Du är en strateg på B2B-företaget Buyr, expert på self-service som säljstrategi.
+    // Different prompts for different steps
+    let systemPrompt: string;
+    let expectedFields: string[];
+    
+    if (step === "audience") {
+      // Step 1: Quick audience & roles analysis
+      systemPrompt = `Du är en strateg på B2B-företaget Buyr. Analysera webbplatsen och identifiera ENDAST:
+1. Om det är B2B eller B2C
+2. Verksamhetstyp (tjänst/produkt/SaaS/konsult)
+3. Primär målgrupp (kort beskrivning, max 15 ord)
+4. Köproller (max 4 stycken)
+
+Returnera ENDAST JSON:
+{
+  "isB2B": true | false,
+  "businessType": "tjänst" | "produkt/tillverkning" | "SaaS" | "konsult/byrå" | "B2C",
+  "targetAudience": "Kort beskrivning",
+  "buyerRoles": ["Roll 1", "Roll 2"]
+}`;
+      expectedFields = ["isB2B", "businessType", "targetAudience", "buyerRoles"];
+      
+    } else if (step === "questions") {
+      // Step 2: Pain points and questions
+      systemPrompt = `Du är en strateg på B2B-företaget Buyr. Analysera webbplatsen och identifiera ENDAST:
+1. Köparnas viktigaste frågor före köp (max 4)
+2. Pain points (max 3)
+3. Oro och risker köparen har (max 3)
+
+Returnera ENDAST JSON:
+{
+  "buyerQuestions": ["Fråga 1", "Fråga 2"],
+  "painPoints": ["Pain 1", "Pain 2"],
+  "concerns": ["Oro 1", "Oro 2"]
+}`;
+      expectedFields = ["buyerQuestions", "painPoints", "concerns"];
+      
+    } else if (step === "opportunities") {
+      // Step 3: Self-service opportunities
+      systemPrompt = `Du är en strateg på B2B-företaget Buyr, expert på self-service som säljstrategi.
+Analysera webbplatsen och rekommendera 2-4 self-service-verktyg som skapar affärsvärde.
+
+Self-service-typer:
+- assessment: Självtest/behovsanalys
+- selector: Lösningsväljare/produktguide
+- configurator: Produktkonfigurator
+- pricing: Priskalkylator
+- scheduling: Bokningsverktyg
+
+Returnera ENDAST JSON:
+{
+  "recommended": "assessment" | "selector" | "configurator" | "pricing" | "scheduling",
+  "reasoning": "Kort förklaring (max 30 ord)",
+  "opportunities": [
+    {
+      "type": "assessment",
+      "title": "Verktygets namn",
+      "description": "Vad det löser (max 20 ord)",
+      "potentialValue": "Högt" | "Mycket högt" | "Medium",
+      "businessValuePercent": 10-50,
+      "fit": 0.0-1.0
+    }
+  ]
+}`;
+      expectedFields = ["recommended", "reasoning", "opportunities"];
+      
+    } else {
+      // Full analysis (fallback)
+      systemPrompt = `Du är en strateg på B2B-företaget Buyr, expert på self-service som säljstrategi.
 Ditt jobb är att analysera B2B-webbplatser ur köparens perspektiv och identifiera vilka self-service-verktyg som skapar mest affärsvärde.
 
 ARBETSFLÖDE:
@@ -168,12 +235,19 @@ Returnera ENDAST JSON med följande struktur:
 }
 
 Returnera ENDAST JSON, ingen annan text.`;
+      expectedFields = ["isB2B", "businessType", "targetAudience", "buyerRoles", "opportunities"];
+    }
 
     // Build user message with scraped content if available
-    let userMessage = `Analysera denna webbplats och rekommendera det bästa self-service verktyget: ${url}`;
+    let userMessage = `Analysera denna webbplats: ${url}`;
     
     if (hasContent) {
-      userMessage += `\n\nHär är det extraherade textinnehållet från webbplatsen:\n\n${websiteContent}`;
+      // Limit content for faster responses on partial steps
+      const maxContent = step ? 4000 : 8000;
+      const limitedContent = websiteContent.length > maxContent 
+        ? websiteContent.substring(0, maxContent) + "..." 
+        : websiteContent;
+      userMessage += `\n\nWebbplatsinnehåll:\n\n${limitedContent}`;
     }
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -188,7 +262,7 @@ Returnera ENDAST JSON, ingen annan text.`;
           { role: "system", content: systemPrompt },
           { role: "user", content: userMessage }
         ],
-        temperature: 0.7,
+        temperature: 0.5,
       }),
     });
 
@@ -217,59 +291,72 @@ Returnera ENDAST JSON, ingen annan text.`;
       throw new Error("No content in AI response");
     }
 
-    console.log("AI response:", content);
+    console.log("AI response for step", step || "full", ":", content.substring(0, 200));
 
     // Parse JSON from response
     let analysis;
     try {
-      // Remove markdown code blocks if present
       const jsonStr = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
       analysis = JSON.parse(jsonStr);
     } catch (parseError) {
       console.error("Failed to parse AI response:", parseError);
-      // Fallback to default analysis
-      analysis = {
-        isB2B: true,
-        businessType: "tjänst",
-        targetAudience: "B2B-företag som vill effektivisera sin verksamhet",
-        buyerRoles: ["VD", "Marknadschef"],
-        painPoints: ["Svårt att jämföra alternativ", "Oklara priser"],
-        buyerQuestions: ["Vad kostar det?", "Passar detta för oss?"],
-        concerns: ["ROI osäkerhet", "Implementeringstid"],
-        recommended: "pricing",
-        confidence: 0.7,
-        reasoning: "Baserat på webbplatsens innehåll verkar en priskalkylator vara det mest lämpliga verktyget.",
-        opportunities: [
-          {
-            type: "pricing",
-            title: "Interaktiv priskalkylator",
-            description: "Låt era besökare beräkna kostnader direkt på webbplatsen.",
-            potentialValue: "Högt",
-            businessValuePercent: 35,
-            fit: 0.8
-          },
-          {
-            type: "assessment",
-            title: "Behovsanalys",
-            description: "Hjälp besökare förstå sina behov innan de kontaktar er.",
-            potentialValue: "Medium",
-            businessValuePercent: 25,
-            fit: 0.6
-          },
-          {
-            type: "configurator",
-            title: "Produktkonfigurator",
-            description: "Låt kunder bygga sin egen lösning.",
-            potentialValue: "Högt",
-            businessValuePercent: 30,
-            fit: 0.7
-          }
-        ]
-      };
+      // Return step-specific fallback
+      if (step === "audience") {
+        analysis = {
+          isB2B: true,
+          businessType: "tjänst",
+          targetAudience: "B2B-företag",
+          buyerRoles: ["VD", "Marknadschef"]
+        };
+      } else if (step === "questions") {
+        analysis = {
+          buyerQuestions: ["Vad kostar det?", "Passar detta för oss?"],
+          painPoints: ["Svårt att jämföra alternativ"],
+          concerns: ["ROI osäkerhet"]
+        };
+      } else if (step === "opportunities") {
+        analysis = {
+          recommended: "assessment",
+          reasoning: "Ett självtest hjälper köparen förstå sitt behov.",
+          opportunities: [
+            {
+              type: "assessment",
+              title: "Behovsanalys",
+              description: "Hjälp besökare förstå sina behov.",
+              potentialValue: "Högt",
+              businessValuePercent: 30,
+              fit: 0.8
+            }
+          ]
+        };
+      } else {
+        analysis = {
+          isB2B: true,
+          businessType: "tjänst",
+          targetAudience: "B2B-företag som vill effektivisera sin verksamhet",
+          buyerRoles: ["VD", "Marknadschef"],
+          painPoints: ["Svårt att jämföra alternativ"],
+          buyerQuestions: ["Vad kostar det?"],
+          concerns: ["ROI osäkerhet"],
+          recommended: "pricing",
+          confidence: 0.7,
+          reasoning: "En priskalkylator verkar passa.",
+          opportunities: [
+            {
+              type: "pricing",
+              title: "Priskalkylator",
+              description: "Beräkna kostnader direkt.",
+              potentialValue: "Högt",
+              businessValuePercent: 35,
+              fit: 0.8
+            }
+          ]
+        };
+      }
     }
 
     return new Response(
-      JSON.stringify({ success: true, analysis, hasScrapedContent: hasContent }),
+      JSON.stringify({ success: true, analysis, step: step || "full", hasScrapedContent: hasContent }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
