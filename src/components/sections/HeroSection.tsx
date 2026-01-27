@@ -120,7 +120,7 @@ export default function HeroSection() {
   const [aiAnalysis, setAiAnalysis] = useState<AIAnalysis | null>(null);
   const [aiError, setAiError] = useState<string | null>(null);
   const [streamingInsights, setStreamingInsights] = useState<StreamingInsight[]>([]);
-  const [currentPhaseText, setCurrentPhaseText] = useState("Ansluter till AI...");
+  const [analysisComplete, setAnalysisComplete] = useState(false);
   const startTimeRef = useRef<number>(0);
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -141,6 +141,7 @@ export default function HeroSection() {
       setAiAnalysis(null);
       setRealProgress(0);
       setStreamingInsights([]);
+      setAnalysisComplete(false);
       setPhase("analyzing");
       runAnalysis(validUrl);
     } catch {
@@ -148,51 +149,99 @@ export default function HeroSection() {
     }
   };
 
+  // Reveal real findings one by one with animation
+  const revealFindings = (analysis: AIAnalysis) => {
+    const findings: StreamingInsight[] = [];
+    
+    if (analysis.targetAudience) {
+      findings.push({
+        id: "audience",
+        icon: User,
+        category: "Målgrupp",
+        text: analysis.targetAudience.length > 60 
+          ? analysis.targetAudience.substring(0, 60) + "..." 
+          : analysis.targetAudience
+      });
+    }
+    
+    if (analysis.buyerRoles?.length > 0) {
+      findings.push({
+        id: "roles",
+        icon: Users,
+        category: "Köproller",
+        text: analysis.buyerRoles.slice(0, 3).join(" • ")
+      });
+    }
+    
+    if (analysis.painPoints?.length > 0) {
+      findings.push({
+        id: "pain1",
+        icon: AlertTriangle,
+        category: "Pain Point",
+        text: analysis.painPoints[0].length > 50 
+          ? analysis.painPoints[0].substring(0, 50) + "..." 
+          : analysis.painPoints[0]
+      });
+    }
+    
+    if (analysis.concerns?.length > 0) {
+      findings.push({
+        id: "concern",
+        icon: HelpCircle,
+        category: "Oro",
+        text: analysis.concerns[0].length > 50 
+          ? analysis.concerns[0].substring(0, 50) + "..." 
+          : analysis.concerns[0]
+      });
+    }
+    
+    if (analysis.opportunities?.length > 0) {
+      findings.push({
+        id: "opp",
+        icon: Lightbulb,
+        category: "Rekommendation",
+        text: analysis.opportunities[0].title
+      });
+    }
+
+    // Reveal findings one by one
+    findings.forEach((finding, index) => {
+      setTimeout(() => {
+        setStreamingInsights(prev => [...prev, finding]);
+        // Update progress as findings are revealed
+        setRealProgress(prev => Math.min(95, prev + (80 / findings.length)));
+      }, index * 300);
+    });
+
+    // Mark as complete after all findings shown
+    setTimeout(() => {
+      setAnalysisComplete(true);
+      setRealProgress(100);
+      setTimeout(() => setPhase("results"), 600);
+    }, findings.length * 300 + 400);
+  };
+
   const runAnalysis = async (websiteUrl: string) => {
     startTimeRef.current = Date.now();
-    const expectedDuration = 15000; // Expected ~15 seconds
     
-    // Simulate progressive insights while waiting for AI
-    const simulatedInsights: StreamingInsight[] = [
-      { id: "1", icon: Search, category: "Research", text: "Läser in webbplatsens innehåll..." },
-      { id: "2", icon: Search, category: "Research", text: "Analyserar verksamhetsbeskrivning..." },
-      { id: "3", icon: User, category: "Målgrupp", text: "Identifierar primär målgrupp..." },
-      { id: "4", icon: User, category: "Köproller", text: "Kartlägger beslutsfattare..." },
-      { id: "5", icon: Lightbulb, category: "Pain Points", text: "Identifierar smärtpunkter..." },
-      { id: "6", icon: AlertTriangle, category: "Oro", text: "Analyserar köparens oro och risker..." },
-      { id: "7", icon: HelpCircle, category: "Frågor", text: "Identifierar vanliga frågor före köp..." },
-      { id: "8", icon: Lightbulb, category: "Möjligheter", text: "Tar fram self-service-förslag..." },
-    ];
-
-    let insightIndex = 0;
-    let currentProgress = 0;
+    // Initial loading state - show scanning animation
+    setStreamingInsights([{
+      id: "loading",
+      icon: Search,
+      category: "Scanning",
+      text: "Läser in " + websiteUrl.replace(/^https?:\/\//, "").split("/")[0] + "..."
+    }]);
     
-    // Progress timer that updates based on actual elapsed time
+    // Slow initial progress while waiting for AI
     progressIntervalRef.current = setInterval(() => {
-      const elapsed = Date.now() - startTimeRef.current;
-      // Progress goes up to 90% during the wait, then jumps to 100% when complete
-      currentProgress = Math.min(90, (elapsed / expectedDuration) * 90);
-      setRealProgress(Math.round(currentProgress));
-      
-      // Update phase text based on progress
-      if (currentProgress < 20) {
-        setCurrentPhaseText("Hämtar webbplatsinnehåll...");
-      } else if (currentProgress < 50) {
-        setCurrentPhaseText("Analyserar målgrupp och köpresa...");
-      } else if (currentProgress < 80) {
-        setCurrentPhaseText("Identifierar pain points och oro...");
-      } else {
-        setCurrentPhaseText("Genererar rekommendationer...");
-      }
-      
-      // Add new insights at certain progress points
-      const targetInsightCount = Math.floor((currentProgress / 90) * simulatedInsights.length);
-      while (insightIndex < targetInsightCount && insightIndex < simulatedInsights.length) {
-        const insight = simulatedInsights[insightIndex];
-        setStreamingInsights(prev => [...prev, insight]);
-        insightIndex++;
-      }
-    }, 100);
+      setRealProgress(prev => {
+        if (prev >= 15) {
+          if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+          return 15;
+        }
+        return prev + 1;
+      });
+    }, 200);
 
     // Start AI analysis
     try {
@@ -216,12 +265,12 @@ export default function HeroSection() {
       );
       
       clearTimeout(timeoutId);
+      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         console.error("AI analysis error:", response.status, errorData);
         setAiError(errorData.error || "Kunde inte analysera webbplatsen. Försök igen.");
-        if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
         setRealProgress(100);
         setTimeout(() => setPhase("results"), 500);
         return;
@@ -232,39 +281,16 @@ export default function HeroSection() {
       if (data?.success && data?.analysis) {
         console.log("AI analysis complete:", data.analysis);
         setAiAnalysis(data.analysis);
-        
-        // Add real insights from analysis
-        if (data.analysis.targetAudience) {
-          setStreamingInsights(prev => [...prev, {
-            id: "real-1",
-            icon: User,
-            category: "Målgrupp",
-            text: data.analysis.targetAudience
-          }]);
-        }
-        if (data.analysis.buyerRoles?.length > 0) {
-          setStreamingInsights(prev => [...prev, {
-            id: "real-2",
-            icon: User,
-            category: "Köproller",
-            text: data.analysis.buyerRoles.join(", ")
-          }]);
-        }
-        if (data.analysis.painPoints?.length > 0) {
-          data.analysis.painPoints.slice(0, 2).forEach((pp: string, i: number) => {
-            setStreamingInsights(prev => [...prev, {
-              id: `real-pp-${i}`,
-              icon: Lightbulb,
-              category: "Pain Point",
-              text: pp
-            }]);
-          });
-        }
+        setStreamingInsights([]); // Clear loading message
+        revealFindings(data.analysis);
       } else if (data?.error) {
         console.error("AI error:", data.error);
         setAiError(data.error);
+        setRealProgress(100);
+        setTimeout(() => setPhase("results"), 500);
       }
     } catch (err) {
+      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
       if (err instanceof Error && err.name === 'AbortError') {
         console.error("AI call timed out");
         setAiError("Analysen tog för lång tid. Försök igen.");
@@ -272,10 +298,8 @@ export default function HeroSection() {
         console.error("AI call failed:", err);
         setAiError("Ett fel uppstod vid analysen. Försök igen.");
       }
-    } finally {
-      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
       setRealProgress(100);
-      setTimeout(() => setPhase("results"), 800);
+      setTimeout(() => setPhase("results"), 500);
     }
   };
 
@@ -412,123 +436,89 @@ export default function HeroSection() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="max-w-3xl mx-auto"
+              className="max-w-2xl mx-auto"
             >
-              <div className="text-center mb-8">
-                <h2 className="text-2xl md:text-3xl font-bold mb-2">Analyserar er webbplats...</h2>
-                <p className="text-muted-foreground">{currentPhaseText}</p>
+              <div className="text-center mb-6">
+                <h2 className="text-2xl md:text-3xl font-bold mb-2">
+                  {analysisComplete ? "Analys klar!" : "Analyserar er webbplats..."}
+                </h2>
               </div>
 
-              {/* Real progress bar */}
-              <div className="mb-8">
-                <div className="h-3 bg-card rounded-full overflow-hidden border border-border">
+              {/* Progress bar */}
+              <div className="mb-6">
+                <div className="h-2 bg-card rounded-full overflow-hidden border border-border">
                   <motion.div
-                    className="h-full bg-gradient-to-r from-primary to-primary/70 rounded-full"
+                    className="h-full bg-primary rounded-full"
                     initial={{ width: "0%" }}
                     animate={{ width: `${realProgress}%` }}
-                    transition={{ duration: 0.2, ease: "linear" }}
+                    transition={{ duration: 0.3, ease: "easeOut" }}
                   />
                 </div>
-                <div className="flex justify-between mt-2">
-                  <p className="text-sm text-muted-foreground">AI-analys pågår</p>
-                  <p className="text-sm font-medium text-primary">{realProgress}%</p>
-                </div>
+                <p className="text-sm text-muted-foreground text-center mt-2">{realProgress}%</p>
               </div>
 
-              {/* Streaming insights - machine-like display */}
-              <div className="relative bg-card/30 rounded-2xl border border-border p-6 overflow-hidden">
-                {/* Scanning line effect */}
-                <motion.div
-                  className="absolute left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary to-transparent"
-                  animate={{ top: ["0%", "100%"] }}
-                  transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                />
-                
-                <div className="space-y-1 max-h-[300px] overflow-hidden relative">
-                  <AnimatePresence mode="popLayout">
-                    {streamingInsights.slice(-8).map((insight, index) => {
-                      const Icon = insight.icon;
-                      const isLatest = index === streamingInsights.slice(-8).length - 1;
-                      
-                      return (
-                        <motion.div
-                          key={insight.id}
-                          initial={{ opacity: 0, x: -50, height: 0 }}
-                          animate={{ 
-                            opacity: isLatest ? 1 : 0.5 - (index * 0.05), 
-                            x: 0, 
-                            height: "auto" 
-                          }}
-                          exit={{ opacity: 0, x: 50, height: 0 }}
-                          transition={{ 
-                            duration: 0.4,
-                            type: "spring",
-                            stiffness: 100
-                          }}
-                          className={`flex items-center gap-3 py-2 px-3 rounded-lg ${
-                            isLatest ? "bg-primary/10 border border-primary/20" : ""
-                          }`}
-                        >
-                          <div className={`p-1.5 rounded-md ${
-                            isLatest ? "bg-primary/20" : "bg-card/50"
-                          }`}>
-                            <Icon className={`w-4 h-4 ${
-                              isLatest ? "text-primary" : "text-muted-foreground"
-                            }`} />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <span className={`text-xs font-medium uppercase tracking-wider ${
-                              isLatest ? "text-primary" : "text-muted-foreground"
-                            }`}>
-                              {insight.category}
-                            </span>
-                            <p className={`text-sm truncate ${
-                              isLatest ? "text-foreground" : "text-muted-foreground"
-                            }`}>
-                              {insight.text}
-                            </p>
-                          </div>
-                          {isLatest && (
-                            <motion.div
-                              animate={{ opacity: [1, 0.3, 1] }}
-                              transition={{ duration: 1, repeat: Infinity }}
-                              className="w-2 h-2 rounded-full bg-primary"
-                            />
-                          )}
-                        </motion.div>
-                      );
-                    })}
-                  </AnimatePresence>
-                  
-                  {streamingInsights.length === 0 && (
-                    <div className="flex items-center justify-center py-8">
+              {/* Findings stream - shows real data as it comes in */}
+              <div className="relative bg-card/30 rounded-xl border border-border p-4 min-h-[180px]">
+                <AnimatePresence mode="popLayout">
+                  {streamingInsights.map((insight, index) => {
+                    const Icon = insight.icon;
+                    const isLatest = index === streamingInsights.length - 1;
+                    
+                    return (
                       <motion.div
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                        className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full"
-                      />
-                    </div>
-                  )}
-                </div>
+                        key={insight.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: isLatest ? 1 : 0.4, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.3 }}
+                        className={`flex items-center gap-3 py-2 px-3 rounded-lg mb-1 ${
+                          isLatest ? "bg-primary/10" : ""
+                        }`}
+                      >
+                        <div className={`p-1.5 rounded-md shrink-0 ${
+                          isLatest ? "bg-primary/20" : "bg-card/50"
+                        }`}>
+                          <Icon className={`w-4 h-4 ${
+                            isLatest ? "text-primary" : "text-muted-foreground"
+                          }`} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <span className={`text-xs font-medium uppercase tracking-wider ${
+                            isLatest ? "text-primary" : "text-muted-foreground/70"
+                          }`}>
+                            {insight.category}
+                          </span>
+                          <p className={`text-sm truncate ${
+                            isLatest ? "text-foreground" : "text-muted-foreground"
+                          }`}>
+                            {insight.text}
+                          </p>
+                        </div>
+                        {isLatest && !analysisComplete && (
+                          <motion.div
+                            animate={{ opacity: [1, 0.3, 1] }}
+                            transition={{ duration: 0.8, repeat: Infinity }}
+                            className="w-2 h-2 rounded-full bg-primary shrink-0"
+                          />
+                        )}
+                        {isLatest && analysisComplete && (
+                          <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
+                        )}
+                      </motion.div>
+                    );
+                  })}
+                </AnimatePresence>
                 
-                {/* Gradient fade at bottom */}
-                <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-card/30 to-transparent pointer-events-none" />
-              </div>
-
-              {/* Status indicators */}
-              <div className="flex justify-center gap-6 mt-6">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Search className="w-4 h-4" />
-                  <span>Research</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <User className="w-4 h-4" />
-                  <span>Målgrupp</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Lightbulb className="w-4 h-4" />
-                  <span>Insikter</span>
-                </div>
+                {streamingInsights.length === 0 && (
+                  <div className="flex items-center justify-center py-8">
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                      className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full"
+                    />
+                    <span className="ml-3 text-sm text-muted-foreground">Ansluter...</span>
+                  </div>
+                )}
               </div>
             </motion.div>
           )}
