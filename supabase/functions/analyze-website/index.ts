@@ -119,26 +119,36 @@ serve(async (req) => {
     if (step === "audience") {
       // Step 1: Quick audience & roles analysis
       systemPrompt = `Du är en strateg på B2B-företaget Buyr. Analysera webbplatsen och identifiera ENDAST:
-1. Om det är B2B eller B2C
-2. Verksamhetstyp (tjänst/produkt/SaaS/konsult)
-3. Primär målgrupp (kort beskrivning, max 15 ord)
-4. Köproller (max 4 stycken)
+
+KRITISKT: Identifiera först företagets KÄRNVERKSAMHET – den primära tjänsten/produkten som genererar huvuddelen av intäkterna. 
+Ignorera sekundära erbjudanden, sidotjänster, och "bi-sysslor". All analys ska fokusera på kärnverksamheten.
+
+1. Kärnverksamhet (vad är företagets huvudsakliga erbjudande – max 10 ord)
+2. Om det är B2B eller B2C
+3. Verksamhetstyp (tjänst/produkt/SaaS/konsult)
+4. Primär målgrupp för kärnverksamheten (kort beskrivning, max 15 ord)
+5. Köproller för kärnverksamheten (max 4 stycken)
 
 Returnera ENDAST JSON:
 {
+  "coreOffering": "Företagets huvudsakliga erbjudande",
   "isB2B": true | false,
   "businessType": "tjänst" | "produkt/tillverkning" | "SaaS" | "konsult/byrå" | "B2C",
   "targetAudience": "Kort beskrivning",
   "buyerRoles": ["Roll 1", "Roll 2"]
 }`;
-      expectedFields = ["isB2B", "businessType", "targetAudience", "buyerRoles"];
+      expectedFields = ["coreOffering", "isB2B", "businessType", "targetAudience", "buyerRoles"];
       
     } else if (step === "questions") {
       // Step 2: Pain points and questions
       systemPrompt = `Du är en strateg på B2B-företaget Buyr. Analysera webbplatsen och identifiera ENDAST:
-1. Köparnas viktigaste frågor före köp (max 4)
-2. Pain points (max 3)
-3. Oro och risker köparen har (max 3)
+
+KRITISKT: Fokusera på företagets KÄRNVERKSAMHET – den primära tjänsten/produkten. 
+Ignorera sekundära erbjudanden och sidotjänster. Alla frågor och pain points ska relatera till kärnverksamheten.
+
+1. Köparnas viktigaste frågor före köp av KÄRNPRODUKTEN/TJÄNSTEN (max 4)
+2. Pain points relaterade till kärnverksamheten (max 3)
+3. Oro och risker köparen har kring kärnverksamheten (max 3)
 
 Returnera ENDAST JSON:
 {
@@ -151,7 +161,14 @@ Returnera ENDAST JSON:
     } else if (step === "opportunities") {
       // Step 3: Self-service opportunities
       systemPrompt = `Du är en strateg på B2B-företaget Buyr, expert på self-service som säljstrategi.
-Analysera webbplatsen och rekommendera 1-6 self-service-verktyg som skapar affärsvärde.
+
+KRITISKT – FOKUSERA PÅ KÄRNVERKSAMHETEN:
+1. Identifiera först företagets HUVUDSAKLIGA affärsområde – den tjänst/produkt som är central för verksamheten.
+2. Alla self-service-rekommendationer MÅSTE relatera till denna kärnverksamhet.
+3. IGNORERA sekundära erbjudanden, bi-sysslor, och sidotjänster helt.
+4. Om sajten har flera affärsområden, välj det som verkar generera mest intäkter eller har störst strategiskt fokus.
+
+Analysera webbplatsen och rekommendera 1-6 self-service-verktyg för KÄRNVERKSAMHETEN.
 
 VIKTIGT: En priskalkylator (pricing) är nästan ALLTID det mest relevanta verktyget för B2B-företag. 
 Den ska ALLTID inkluderas om företaget inte redan har en synlig prissättning på sajten.
@@ -167,19 +184,20 @@ Self-service-typer:
 
 Returnera ENDAST JSON:
 {
+  "coreOffering": "Kärnverksamheten som analysen baseras på (max 10 ord)",
   "recommended": "pricing" | "assessment" | "selector" | "configurator" | "scheduling" | "other",
   "reasoning": "Kort förklaring (max 30 ord)",
   "opportunities": [
     {
       "type": "pricing" | "assessment" | "selector" | "configurator" | "scheduling" | "other",
       "title": "Verktygets namn",
-      "description": "Vad det löser (max 20 ord)",
+      "description": "Vad det löser för kärnverksamheten (max 20 ord)",
       "potentialValue": "high" | "medium" | "low",
       "fit": 0.0-1.0
     }
   ]
 }`;
-      expectedFields = ["recommended", "reasoning", "opportunities"];
+      expectedFields = ["coreOffering", "recommended", "reasoning", "opportunities"];
       
     } else {
       // Full analysis (fallback)
