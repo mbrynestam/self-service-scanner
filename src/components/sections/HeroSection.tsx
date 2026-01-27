@@ -715,7 +715,7 @@ export default function HeroSection() {
                 <Button
                   variant="hero"
                   size="xl"
-                  onClick={handleProceedToForm}
+                  onClick={() => setPhase("form")}
                   className="min-w-[300px]"
                 >
                   <Calendar className="w-5 h-5 mr-2" />
@@ -727,13 +727,13 @@ export default function HeroSection() {
           )}
 
           {/* PHASE: FORM */}
-          {phase === "form" && selectedOpportunity && (
+          {phase === "form" && (
             <motion.div
               key="form"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="max-w-2xl mx-auto"
+              className="max-w-lg mx-auto"
             >
               <button
                 onClick={() => setPhase("results")}
@@ -743,44 +743,36 @@ export default function HeroSection() {
               </button>
 
               <div className="bg-card/50 rounded-2xl border border-border p-8">
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center">
-                    <selectedOpportunity.icon className="w-7 h-7 text-primary" />
+                <div className="text-center mb-6">
+                  <div className="w-14 h-14 mx-auto rounded-xl bg-primary/10 flex items-center justify-center mb-4">
+                    <Calendar className="w-7 h-7 text-primary" />
                   </div>
-                  <div>
-                    <h2 className="text-xl font-bold">{selectedOpportunity.title}</h2>
-                    <p className="text-muted-foreground">{selectedOpportunity.description}</p>
-                  </div>
-                </div>
-
-                <div className="bg-primary/5 rounded-xl p-4 mb-8 border border-primary/20">
-                  <p className="text-foreground">
-                    Vi tar fram en AI-prototyp som visar hur detta self-service-verktyg skulle kunna fungera för er. Det tar dagar – inte månader.
+                  <h2 className="text-2xl font-bold mb-2">Boka strategimöte</h2>
+                  <p className="text-muted-foreground">
+                    Vi går igenom era möjligheter och visar exempel på hur verktyget kan se ut.
                   </p>
                 </div>
 
                 <form onSubmit={handleFormSubmit} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm text-muted-foreground mb-1 block">Namn</label>
-                      <Input
-                        required
-                        value={formData.name}
-                        onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                        placeholder="Ditt namn"
-                        className="bg-background"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm text-muted-foreground mb-1 block">Företag</label>
-                      <Input
-                        required
-                        value={formData.company}
-                        onChange={(e) => setFormData(prev => ({ ...prev, company: e.target.value }))}
-                        placeholder="Ert företag"
-                        className="bg-background"
-                      />
-                    </div>
+                  <div>
+                    <label className="text-sm text-muted-foreground mb-1 block">Namn</label>
+                    <Input
+                      required
+                      value={formData.name}
+                      onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                      placeholder="Ditt namn"
+                      className="bg-background"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm text-muted-foreground mb-1 block">Roll</label>
+                    <Input
+                      required
+                      value={formData.role}
+                      onChange={(e) => setFormData(prev => ({ ...prev, role: e.target.value }))}
+                      placeholder="T.ex. Marknadschef, VD"
+                      className="bg-background"
+                    />
                   </div>
                   <div>
                     <label className="text-sm text-muted-foreground mb-1 block">E-post</label>
@@ -793,26 +785,30 @@ export default function HeroSection() {
                       className="bg-background"
                     />
                   </div>
-                  <div>
-                    <label className="text-sm text-muted-foreground mb-1 block">Roll</label>
-                    <Input
-                      value={formData.role}
-                      onChange={(e) => setFormData(prev => ({ ...prev, role: e.target.value }))}
-                      placeholder="T.ex. Marknadschef, VD"
-                      className="bg-background"
-                    />
-                  </div>
 
-                  <div className="flex flex-col sm:flex-row gap-3 pt-4">
-                    <Button type="submit" variant="hero" size="lg" className="flex-1">
-                      <Calendar className="w-5 h-5 mr-2" />
-                      Boka genomgång & få prototyp
-                    </Button>
-                    <Button type="submit" variant="heroOutline" size="lg" className="flex-1">
-                      Skicka prototypen till mig
+                  <div className="pt-4">
+                    <Button type="submit" variant="hero" size="lg" className="w-full">
+                      Skicka
+                      <ArrowRight className="w-5 h-5 ml-2" />
                     </Button>
                   </div>
                 </form>
+
+                <div className="mt-6 pt-6 border-t border-border text-center">
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Eller boka tid direkt i kalendern
+                  </p>
+                  <a
+                    href="https://calendly.com/buyr"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-primary hover:underline font-medium"
+                  >
+                    <Calendar className="w-4 h-4" />
+                    Öppna Calendly
+                    <ArrowRight className="w-4 h-4" />
+                  </a>
+                </div>
               </div>
             </motion.div>
           )}
