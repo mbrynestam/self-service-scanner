@@ -207,19 +207,33 @@ export default function HeroSection() {
 
   const runAnalysis = async (websiteUrl: string) => {
     startTimeRef.current = Date.now();
-    let currentProgress = 0;
     
-    // Smooth progress that never stalls - always moves forward
+    // Show progressive "teaser" insights while waiting for AI
+    const teaserInsights: StreamingInsight[] = [
+      { id: "scan", icon: Search, category: "Skannar", text: websiteUrl.replace(/^https?:\/\//, "").split("/")[0] },
+      { id: "detect", icon: Target, category: "Identifierar", text: "verksamhetstyp..." },
+      { id: "buyers", icon: Users, category: "Analyserar", text: "köproller..." },
+      { id: "pain", icon: AlertTriangle, category: "Hittar", text: "pain points..." },
+    ];
+    
+    // Stream teasers immediately during fetch
+    teaserInsights.forEach((insight, index) => {
+      setTimeout(() => {
+        if (phase === "analyzing" && !aiAnalysis) {
+          setStreamingInsights(prev => [...prev, insight]);
+          setRealProgress(Math.min(15 + index * 18, 75));
+        }
+      }, 800 + index * 1200);
+    });
+    
+    // Smooth background progress
     const smoothProgress = () => {
       progressIntervalRef.current = setInterval(() => {
         setRealProgress(prev => {
-          // Never stall more than 1 second at any point
-          const increment = prev < 30 ? 3 : prev < 60 ? 2 : prev < 85 ? 1.5 : 0.5;
-          const next = Math.min(prev + increment, 88);
-          currentProgress = next;
-          return next;
+          const increment = prev < 30 ? 2 : prev < 60 ? 1.5 : prev < 80 ? 1 : 0.3;
+          return Math.min(prev + increment, 85);
         });
-      }, 400);
+      }, 500);
     };
     
     smoothProgress();
@@ -262,15 +276,18 @@ export default function HeroSection() {
         console.log("AI analysis complete:", data.analysis);
         setAiAnalysis(data.analysis);
         
-        // Build findings and stream them as flying badges
+        // Clear teasers and show real findings immediately
+        setStreamingInsights([]);
+        
+        // Build findings and show them rapidly
         const findings = buildFindings(data.analysis);
         
-        // Stream findings rapidly - 150ms intervals for snappy feel
+        // Show real findings quickly - 120ms intervals
         findings.forEach((finding, index) => {
           setTimeout(() => {
             setStreamingInsights(prev => [...prev, finding]);
-            setRealProgress(92 + (index + 1) * (8 / findings.length));
-          }, index * 150);
+            setRealProgress(88 + (index + 1) * (12 / findings.length));
+          }, index * 120);
         });
 
         // Complete after findings shown - add pause so user can read insights
@@ -443,17 +460,19 @@ export default function HeroSection() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="max-w-2xl mx-auto"
+              className="max-w-3xl mx-auto text-center"
             >
-              <div className="text-center mb-6">
-                <h2 className="text-2xl md:text-3xl font-bold mb-2">
-                  {analysisComplete ? "Analys klar!" : "Analyserar er webbplats..."}
-                </h2>
-              </div>
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                {analysisComplete ? "Analys klar!" : "Analyserar er webbplats..."}
+              </h2>
+              
+              <p className="text-muted-foreground mb-8">
+                {analysisComplete ? "Vi har hittat följande insikter:" : "AI:n undersöker er köpresa och identifierar möjligheter"}
+              </p>
 
-              {/* Progress bar */}
-              <div className="mb-6">
-                <div className="h-2 bg-card rounded-full overflow-hidden border border-border">
+              {/* Progress bar - slim and elegant */}
+              <div className="max-w-md mx-auto mb-12">
+                <div className="h-1.5 bg-card rounded-full overflow-hidden">
                   <motion.div
                     className="h-full bg-primary rounded-full"
                     initial={{ width: "0%" }}
@@ -461,52 +480,61 @@ export default function HeroSection() {
                     transition={{ duration: 0.3, ease: "easeOut" }}
                   />
                 </div>
-                <p className="text-sm text-muted-foreground text-center mt-2">{realProgress}%</p>
               </div>
 
-              {/* Flying badges - real findings streaming across */}
-              <div className="relative overflow-hidden rounded-xl bg-card/30 border border-border p-4 h-[120px]">
-                <AnimatePresence>
-                  {streamingInsights.map((insight, index) => {
+              {/* Large flying badges - no container, free floating */}
+              <div className="flex flex-wrap justify-center gap-3 min-h-[140px]">
+                <AnimatePresence mode="popLayout">
+                  {streamingInsights.map((insight) => {
                     const Icon = insight.icon;
                     return (
                       <motion.div
                         key={insight.id}
-                        initial={{ opacity: 0, x: -100, scale: 0.8 }}
+                        initial={{ opacity: 0, scale: 0.5, y: 30 }}
                         animate={{ 
                           opacity: 1, 
-                          x: 0, 
-                          scale: 1,
-                          transition: { type: "spring", stiffness: 300, damping: 25 }
+                          scale: 1, 
+                          y: 0,
+                          transition: { type: "spring", stiffness: 400, damping: 20 }
                         }}
-                        exit={{ opacity: 0, x: 100, scale: 0.8 }}
-                        className="absolute left-4 right-4"
-                        style={{ top: `${20 + index * 24}px` }}
+                        exit={{ opacity: 0, scale: 0.8, y: -20 }}
+                        className="inline-flex items-center gap-3 px-5 py-3 rounded-full bg-primary/10 border border-primary/30"
                       >
-                        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
-                          <Icon className="w-3.5 h-3.5 text-primary" />
-                          <span className="text-xs font-medium text-primary">{insight.category}:</span>
-                          <span className="text-xs text-foreground">{insight.text}</span>
-                          <motion.div
-                            animate={{ opacity: [1, 0.4, 1] }}
-                            transition={{ duration: 0.6, repeat: Infinity }}
-                            className="w-1.5 h-1.5 rounded-full bg-primary"
-                          />
+                        <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                          <Icon className="w-4 h-4 text-primary" />
                         </div>
+                        <div className="text-left">
+                          <span className="text-xs font-medium text-primary uppercase tracking-wider block">{insight.category}</span>
+                          <span className="text-sm text-foreground font-medium">{insight.text}</span>
+                        </div>
+                        {!analysisComplete && (
+                          <motion.div
+                            animate={{ opacity: [1, 0.3, 1] }}
+                            transition={{ duration: 0.5, repeat: Infinity }}
+                            className="w-2 h-2 rounded-full bg-primary ml-1"
+                          />
+                        )}
+                        {analysisComplete && (
+                          <CheckCircle2 className="w-4 h-4 text-primary ml-1" />
+                        )}
                       </motion.div>
                     );
                   })}
                 </AnimatePresence>
                 
                 {streamingInsights.length === 0 && (
-                  <div className="flex items-center justify-center h-full gap-3">
+                  <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="flex items-center gap-3 text-muted-foreground"
+                  >
                     <motion.div
                       animate={{ rotate: 360 }}
                       transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                      className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full"
+                      className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full"
                     />
-                    <span className="text-sm text-muted-foreground">Skannar webbplatsen...</span>
-                  </div>
+                    <span>Ansluter till AI...</span>
+                  </motion.div>
                 )}
               </div>
             </motion.div>
