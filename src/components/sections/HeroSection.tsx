@@ -149,15 +149,35 @@ export default function HeroSection() {
     const aiPromise = (async () => {
       try {
         console.log("Starting AI analysis for:", websiteUrl);
-        const { data, error } = await supabase.functions.invoke('analyze-website', {
-          body: { url: websiteUrl }
-        });
         
-        if (error) {
-          console.error("AI analysis error:", error);
-          setAiError("Kunde inte analysera webbplatsen. Försök igen.");
+        // Use fetch with longer timeout instead of supabase.functions.invoke
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
+        
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-website`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+              'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            },
+            body: JSON.stringify({ url: websiteUrl }),
+            signal: controller.signal,
+          }
+        );
+        
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          console.error("AI analysis error:", response.status, errorData);
+          setAiError(errorData.error || "Kunde inte analysera webbplatsen. Försök igen.");
           return null;
         }
+        
+        const data = await response.json();
         
         if (data?.success && data?.analysis) {
           console.log("AI analysis complete:", data.analysis);
@@ -171,8 +191,13 @@ export default function HeroSection() {
         }
         return null;
       } catch (err) {
-        console.error("AI call failed:", err);
-        setAiError("Ett fel uppstod vid analysen. Försök igen.");
+        if (err instanceof Error && err.name === 'AbortError') {
+          console.error("AI call timed out");
+          setAiError("Analysen tog för lång tid. Försök igen.");
+        } else {
+          console.error("AI call failed:", err);
+          setAiError("Ett fel uppstod vid analysen. Försök igen.");
+        }
         return null;
       } finally {
         aiCallComplete = true;
