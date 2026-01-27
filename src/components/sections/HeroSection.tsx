@@ -116,14 +116,7 @@ const opportunities: Opportunity[] = [
   }
 ];
 
-function shortenText(text: string, max = 60) {
-  const t = (text || "").replace(/\s+/g, " ").trim();
-  if (t.length <= max) return t;
-  // Prefer cutting at sentence boundary
-  const firstSentence = t.split(/(?<=[.!?])\s/)[0]?.trim();
-  if (firstSentence && firstSentence.length >= 12 && firstSentence.length <= max) return firstSentence;
-  return `${t.slice(0, max - 1).trim()}…`;
-}
+// No longer truncating - show full short descriptions
 
 // Insight types for the streaming display
 interface StreamingInsight {
@@ -644,41 +637,50 @@ export default function HeroSection() {
               </div>
 
 
-              <p className="text-muted-foreground text-center mb-6">
+              <p className="text-muted-foreground text-center mb-4">
                 Exempel på vad som är möjligt – inte rekommendationer på vad ni ska bygga.
               </p>
 
-              <div className="w-full overflow-x-auto pb-2 -mx-2 px-2 mb-8">
-                <div className="flex gap-3 min-w-min">
-                  {getDisplayOpportunities().map((opp, index) => {
-                    const Icon = opp.icon;
-                    const shortDesc = shortenText(opp.description, 56);
-                    return (
-                      <motion.div
-                        key={opp.id}
-                        initial={{ opacity: 0, x: 18 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.25 + index * 0.08 }}
-                        className="relative flex-shrink-0 w-[240px] h-[140px] rounded-xl bg-card/50 border border-border hover:border-primary/40 transition-all duration-200 p-3"
-                      >
-                        <div className="flex items-start gap-3 h-full">
-                          <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                            <Icon className="w-4 h-4 text-primary" />
-                          </div>
-                          <div className="flex-1 min-w-0 flex flex-col h-full">
+              {/* Scroll indicator */}
+              <div className="flex items-center justify-center gap-2 mb-3 text-muted-foreground">
+                <span className="text-xs">Svep för fler idéer</span>
+                <ArrowRight className="w-3 h-3 animate-pulse" />
+              </div>
+
+              <div className="relative w-full mb-8">
+                {/* Right fade gradient to indicate more content */}
+                <div className="absolute right-0 top-0 bottom-2 w-12 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
+                
+                <div className="w-full overflow-x-auto pb-2 -mx-2 px-2 scrollbar-hide">
+                  <div className="flex gap-3 min-w-min pr-8">
+                    {getDisplayOpportunities().slice(0, 10).map((opp, index) => {
+                      const Icon = opp.icon;
+                      return (
+                        <motion.div
+                          key={opp.id || index}
+                          initial={{ opacity: 0, x: 18 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.2 + index * 0.06 }}
+                          className="relative flex-shrink-0 w-[200px] rounded-xl bg-card/50 border border-border hover:border-primary/40 transition-all duration-200 p-3"
+                        >
+                          <div className="flex flex-col h-full">
                             {/* Tool type badge */}
-                            <span className="inline-block text-[10px] font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary mb-1 w-fit">
+                            <span className="inline-block text-[10px] font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary mb-2 w-fit">
                               {toolTypeLabels[opp.toolType || opp.id] || "Annat"}
                             </span>
-                            <h3 className="text-sm font-semibold text-foreground leading-snug mb-1 truncate">
+                            
+                            {/* Title - always fully visible */}
+                            <h3 className="text-sm font-semibold text-foreground leading-tight mb-2">
                               {opp.title}
                             </h3>
-                            <p className="text-xs text-muted-foreground leading-snug mb-2">
-                              {shortDesc}
+                            
+                            {/* Description - short but complete */}
+                            <p className="text-xs text-muted-foreground leading-snug mb-3 flex-1">
+                              {opp.description}
                             </p>
 
-                            {/* Value dots: 1-3 dots for low/medium/high */}
-                            <div className="mt-auto flex items-center justify-between gap-2">
+                            {/* Value dots */}
+                            <div className="flex items-center justify-between gap-2 mt-auto">
                               <span className="text-[10px] text-muted-foreground">Affärsvärde</span>
                               <div className="flex gap-1">
                                 {(() => {
@@ -695,14 +697,14 @@ export default function HeroSection() {
                               </div>
                             </div>
                           </div>
-                        </div>
 
-                        {index === 0 && (
-                          <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-primary/10 via-transparent to-transparent pointer-events-none" />
-                        )}
-                      </motion.div>
-                    );
-                  })}
+                          {index === 0 && (
+                            <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-primary/10 via-transparent to-transparent pointer-events-none" />
+                          )}
+                        </motion.div>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
 

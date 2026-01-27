@@ -168,30 +168,35 @@ KRITISKT – FOKUSERA PÅ KÄRNVERKSAMHETEN:
 3. IGNORERA sekundära erbjudanden, bi-sysslor, och sidotjänster helt.
 4. Om sajten har flera affärsområden, välj det som verkar generera mest intäkter eller har störst strategiskt fokus.
 
-Analysera webbplatsen och rekommendera 1-6 self-service-verktyg för KÄRNVERKSAMHETEN.
+Analysera webbplatsen och rekommendera 3-10 self-service-verktyg för KÄRNVERKSAMHETEN.
+Ge MINST 5 förslag om möjligt, max 10.
 
 VIKTIGT: En priskalkylator (pricing) är nästan ALLTID det mest relevanta verktyget för B2B-företag. 
 Den ska ALLTID inkluderas om företaget inte redan har en synlig prissättning på sajten.
 Priskalkylator bör typiskt vara det första alternativet i listan.
 
 Self-service-typer:
-1. pricing: Priskalkylator/ROI-kalkylator - Låter köparen förstå kostnader och värde innan kontakt
-2. assessment: Självtest/behovsanalys - Hjälper köparen kvalificera sig själv
-3. selector: Lösningsväljare/produktguide - Guidar till rätt produkt/tjänst
-4. configurator: Produktkonfigurator - Låter köparen bygga sin lösning
-5. scheduling: Bokningsverktyg - Enkel mötesbokning
-6. other: Annat verktyg - För idéer som inte passar ovan
+1. pricing: Priskalkylator/ROI-kalkylator
+2. assessment: Självtest/behovsanalys
+3. selector: Lösningsväljare/produktguide
+4. configurator: Produktkonfigurator
+5. scheduling: Bokningsverktyg
+6. other: Annat verktyg
+
+FORMAT FÖR VARJE FÖRSLAG:
+- "title": Kort, tydligt namn (3-6 ord, ALDRIG avhugget)
+- "description": En komplett mening som förklarar värdet (10-20 ord, ALDRIG avhuggen med "...")
 
 Returnera ENDAST JSON:
 {
-  "coreOffering": "Kärnverksamheten som analysen baseras på (max 10 ord)",
+  "coreOffering": "Kärnverksamheten (max 10 ord)",
   "recommended": "pricing" | "assessment" | "selector" | "configurator" | "scheduling" | "other",
   "reasoning": "Kort förklaring (max 30 ord)",
   "opportunities": [
     {
       "type": "pricing" | "assessment" | "selector" | "configurator" | "scheduling" | "other",
-      "title": "Verktygets namn",
-      "description": "Vad det löser för kärnverksamheten (max 20 ord)",
+      "title": "Kort, tydligt namn",
+      "description": "En komplett mening om värdet för köparen.",
       "potentialValue": "high" | "medium" | "low",
       "fit": 0.0-1.0
     }
