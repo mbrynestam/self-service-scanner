@@ -3,6 +3,7 @@ import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { ArrowRight, Check, Layers, Zap, BarChart3, Users } from "lucide-react";
+import roiGraph from "@/assets/roi-graph.jpg";
 
 const features = [
   {
@@ -147,20 +148,30 @@ export default function Losning() {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="gradient-border rounded-2xl p-8 card-gradient"
+              className="relative rounded-2xl overflow-hidden"
             >
-              <div className="text-center mb-8">
-                <p className="text-muted-foreground mb-2">Genomsnittlig ROI</p>
-                <p className="font-display text-6xl font-bold gradient-text">324%</p>
-              </div>
-              <div className="grid grid-cols-2 gap-6">
-                <div className="text-center">
-                  <p className="font-display text-3xl font-bold text-foreground mb-1">40%</p>
-                  <p className="text-sm text-muted-foreground">Kortare säljcykel</p>
+              {/* Graph background image */}
+              <img 
+                src={roiGraph} 
+                alt="ROI growth graph" 
+                className="w-full h-auto rounded-2xl"
+              />
+              
+              {/* Overlay with stats */}
+              <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/40 to-transparent flex flex-col justify-end p-8">
+                <div className="text-center mb-6">
+                  <p className="text-muted-foreground text-sm mb-1">Genomsnittlig ROI</p>
+                  <p className="font-display text-5xl md:text-6xl font-bold gradient-text">324%</p>
                 </div>
-                <div className="text-center">
-                  <p className="font-display text-3xl font-bold text-foreground mb-1">3x</p>
-                  <p className="text-sm text-muted-foreground">Fler kvalificerade leads</p>
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="text-center bg-card/60 backdrop-blur-sm rounded-xl p-4">
+                    <p className="font-display text-2xl md:text-3xl font-bold text-foreground mb-1">40%</p>
+                    <p className="text-xs md:text-sm text-muted-foreground">Kortare säljcykel</p>
+                  </div>
+                  <div className="text-center bg-card/60 backdrop-blur-sm rounded-xl p-4">
+                    <p className="font-display text-2xl md:text-3xl font-bold text-foreground mb-1">10x</p>
+                    <p className="text-xs md:text-sm text-muted-foreground">Fler kvalificerade leads</p>
+                  </div>
                 </div>
               </div>
             </motion.div>
