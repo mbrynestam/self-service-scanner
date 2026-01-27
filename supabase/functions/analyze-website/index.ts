@@ -5,6 +5,85 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Simple HTML to text extraction
+function extractTextFromHtml(html: string): string {
+  // Remove script and style tags with their content
+  let text = html.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '');
+  text = text.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
+  text = text.replace(/<noscript[^>]*>[\s\S]*?<\/noscript>/gi, '');
+  
+  // Remove HTML comments
+  text = text.replace(/<!--[\s\S]*?-->/g, '');
+  
+  // Replace common block elements with newlines
+  text = text.replace(/<\/(div|p|h[1-6]|li|tr|section|article|header|footer|nav|aside)>/gi, '\n');
+  text = text.replace(/<br\s*\/?>/gi, '\n');
+  
+  // Remove all remaining HTML tags
+  text = text.replace(/<[^>]+>/g, ' ');
+  
+  // Decode HTML entities
+  text = text.replace(/&nbsp;/g, ' ');
+  text = text.replace(/&amp;/g, '&');
+  text = text.replace(/&lt;/g, '<');
+  text = text.replace(/&gt;/g, '>');
+  text = text.replace(/&quot;/g, '"');
+  text = text.replace(/&#39;/g, "'");
+  text = text.replace(/&auml;/g, 'ä');
+  text = text.replace(/&ouml;/g, 'ö');
+  text = text.replace(/&aring;/g, 'å');
+  text = text.replace(/&Auml;/g, 'Ä');
+  text = text.replace(/&Ouml;/g, 'Ö');
+  text = text.replace(/&Aring;/g, 'Å');
+  
+  // Clean up whitespace
+  text = text.replace(/\s+/g, ' ');
+  text = text.replace(/\n\s+/g, '\n');
+  text = text.replace(/\n+/g, '\n');
+  
+  return text.trim();
+}
+
+async function scrapeWebsite(url: string): Promise<string> {
+  try {
+    // Ensure URL has protocol
+    let fullUrl = url;
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      fullUrl = 'https://' + url;
+    }
+
+    console.log("Fetching website:", fullUrl);
+    
+    const response = await fetch(fullUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'sv-SE,sv;q=0.9,en;q=0.8',
+      },
+    });
+
+    if (!response.ok) {
+      console.error("Failed to fetch website:", response.status, response.statusText);
+      return "";
+    }
+
+    const html = await response.text();
+    const text = extractTextFromHtml(html);
+    
+    // Limit text length to avoid token limits (approx 8000 chars)
+    const maxLength = 8000;
+    if (text.length > maxLength) {
+      return text.substring(0, maxLength) + "...";
+    }
+    
+    console.log("Extracted text length:", text.length);
+    return text;
+  } catch (error) {
+    console.error("Error scraping website:", error);
+    return "";
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -26,6 +105,12 @@ serve(async (req) => {
     }
 
     console.log("Analyzing website:", url);
+
+    // Scrape the website content
+    const websiteContent = await scrapeWebsite(url);
+    const hasContent = websiteContent.length > 100;
+    
+    console.log("Website content scraped:", hasContent ? "success" : "failed or minimal content");
 
     const systemPrompt = `Du är en IMPACT-strateg expert på Endless Customers, They Ask, You Answer, The Big 5 och self-service som säljstrategi.
 Ditt jobb är att analysera B2B-webbplatser ur köparens perspektiv och identifiera vilka self-service-verktyg som skapar mest affärsvärde.
@@ -56,6 +141,7 @@ TON & REGLER:
 - Var diagnostisk, konkret och affärsnära.
 - Undvik fluff och generiska råd.
 - Gör rimliga antaganden när information saknas, men var tydlig.
+- Basera din analys på det faktiska innehållet från webbplatsen när det är tillgängligt.
 
 Returnera ENDAST JSON med följande struktur:
 {
@@ -83,6 +169,13 @@ Returnera ENDAST JSON med följande struktur:
 
 Returnera ENDAST JSON, ingen annan text.`;
 
+    // Build user message with scraped content if available
+    let userMessage = `Analysera denna webbplats och rekommendera det bästa self-service verktyget: ${url}`;
+    
+    if (hasContent) {
+      userMessage += `\n\nHär är det extraherade textinnehållet från webbplatsen:\n\n${websiteContent}`;
+    }
+
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -90,10 +183,10 @@ Returnera ENDAST JSON, ingen annan text.`;
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "openai/gpt-5",
+        model: "google/gemini-3-flash-preview",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: `Analysera denna webbplats och rekommendera det bästa self-service verktyget: ${url}` }
+          { role: "user", content: userMessage }
         ],
         temperature: 0.7,
       }),
@@ -136,6 +229,13 @@ Returnera ENDAST JSON, ingen annan text.`;
       console.error("Failed to parse AI response:", parseError);
       // Fallback to default analysis
       analysis = {
+        isB2B: true,
+        businessType: "tjänst",
+        targetAudience: "B2B-företag som vill effektivisera sin verksamhet",
+        buyerRoles: ["VD", "Marknadschef"],
+        painPoints: ["Svårt att jämföra alternativ", "Oklara priser"],
+        buyerQuestions: ["Vad kostar det?", "Passar detta för oss?"],
+        concerns: ["ROI osäkerhet", "Implementeringstid"],
         recommended: "pricing",
         confidence: 0.7,
         reasoning: "Baserat på webbplatsens innehåll verkar en priskalkylator vara det mest lämpliga verktyget.",
@@ -145,6 +245,7 @@ Returnera ENDAST JSON, ingen annan text.`;
             title: "Interaktiv priskalkylator",
             description: "Låt era besökare beräkna kostnader direkt på webbplatsen.",
             potentialValue: "Högt",
+            businessValuePercent: 35,
             fit: 0.8
           },
           {
@@ -152,6 +253,7 @@ Returnera ENDAST JSON, ingen annan text.`;
             title: "Behovsanalys",
             description: "Hjälp besökare förstå sina behov innan de kontaktar er.",
             potentialValue: "Medium",
+            businessValuePercent: 25,
             fit: 0.6
           },
           {
@@ -159,6 +261,7 @@ Returnera ENDAST JSON, ingen annan text.`;
             title: "Produktkonfigurator",
             description: "Låt kunder bygga sin egen lösning.",
             potentialValue: "Högt",
+            businessValuePercent: 30,
             fit: 0.7
           }
         ]
@@ -166,7 +269,7 @@ Returnera ENDAST JSON, ingen annan text.`;
     }
 
     return new Response(
-      JSON.stringify({ success: true, analysis }),
+      JSON.stringify({ success: true, analysis, hasScrapedContent: hasContent }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
