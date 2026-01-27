@@ -423,92 +423,9 @@ export default function HeroSection() {
   };
 
   return (
-    <section className="relative h-[90vh] max-h-[90vh] flex items-center overflow-y-auto overflow-x-hidden bg-background py-12">
+    <section className="relative min-h-[90vh] flex items-center overflow-y-auto overflow-x-hidden bg-background py-12">
       {/* Glow Effect */}
       <div className="hero-glow top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-      
-      {/* Pulsing rings animation - more visible */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden">
-        {[...Array(5)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute rounded-full border-2 border-primary/25"
-            initial={{ width: 80, height: 80, opacity: 0 }}
-            animate={{
-              width: [80 + i * 160, 300 + i * 200, 80 + i * 160],
-              height: [80 + i * 160, 300 + i * 200, 80 + i * 160],
-              opacity: [0.1, 0.35, 0.1],
-            }}
-            transition={{
-              duration: 4 + i * 0.5,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: i * 0.7,
-            }}
-          />
-        ))}
-      </div>
-
-      {/* Fingerprint / Interactive dot graphic - positioned to the side */}
-      <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[500px] h-[500px] pointer-events-none hidden lg:flex items-center justify-center opacity-40">
-        {/* Concentric fingerprint rings */}
-        {[...Array(7)].map((_, i) => (
-          <motion.div
-            key={`ring-${i}`}
-            className="absolute rounded-full border border-primary/40"
-            style={{
-              width: `${60 + i * 50}px`,
-              height: `${60 + i * 50}px`,
-            }}
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: [0.2, 0.5, 0.2], scale: [0.95, 1.05, 0.95] }}
-            transition={{ 
-              duration: 3 + i * 0.3, 
-              repeat: Infinity, 
-              delay: i * 0.2,
-              ease: "easeInOut"
-            }}
-          />
-        ))}
-        
-        {/* Interactive pulsing dots */}
-        {[...Array(16)].map((_, i) => {
-          const angle = (i * 22.5 * Math.PI) / 180;
-          const radius = 80 + (i % 4) * 45;
-          return (
-            <motion.div
-              key={`dot-${i}`}
-              className="absolute w-2.5 h-2.5 rounded-full bg-primary"
-              style={{
-                left: `calc(50% + ${Math.cos(angle) * radius}px)`,
-                top: `calc(50% + ${Math.sin(angle) * radius}px)`,
-                transform: "translate(-50%, -50%)",
-              }}
-              initial={{ opacity: 0, scale: 0 }}
-              animate={{ 
-                opacity: [0.3, 0.9, 0.3], 
-                scale: [0.7, 1.3, 0.7],
-              }}
-              transition={{
-                duration: 2.5,
-                repeat: Infinity,
-                delay: i * 0.12,
-                ease: "easeInOut"
-              }}
-            />
-          );
-        })}
-        
-        {/* Center glow */}
-        <motion.div
-          className="absolute w-20 h-20 rounded-full bg-primary/30 blur-2xl"
-          animate={{ 
-            scale: [1, 1.4, 1], 
-            opacity: [0.4, 0.7, 0.4] 
-          }}
-          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-        />
-      </div>
 
       <div className="container mx-auto px-4 lg:px-8 relative z-10">
         <AnimatePresence mode="wait">
@@ -577,6 +494,70 @@ export default function HeroSection() {
               >
                 Helt gratis • Inga förpliktelser • Tar cirka 30 sekunder
               </motion.p>
+
+              {/* Fingerprint / Interactive dot graphic - centered below text */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.8, delay: 0.6 }}
+                className="relative w-64 h-64 mx-auto mt-10 pointer-events-none"
+              >
+                {/* Concentric fingerprint rings */}
+                {[...Array(5)].map((_, i) => (
+                  <motion.div
+                    key={`ring-${i}`}
+                    className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-primary/30"
+                    style={{
+                      width: `${40 + i * 40}px`,
+                      height: `${40 + i * 40}px`,
+                    }}
+                    animate={{ opacity: [0.2, 0.5, 0.2], scale: [0.95, 1.05, 0.95] }}
+                    transition={{ 
+                      duration: 3 + i * 0.3, 
+                      repeat: Infinity, 
+                      delay: i * 0.15,
+                      ease: "easeInOut"
+                    }}
+                  />
+                ))}
+                
+                {/* Interactive pulsing dots */}
+                {[...Array(12)].map((_, i) => {
+                  const angle = (i * 30 * Math.PI) / 180;
+                  const radius = 50 + (i % 3) * 30;
+                  return (
+                    <motion.div
+                      key={`dot-${i}`}
+                      className="absolute w-2 h-2 rounded-full bg-primary"
+                      style={{
+                        left: `calc(50% + ${Math.cos(angle) * radius}px)`,
+                        top: `calc(50% + ${Math.sin(angle) * radius}px)`,
+                        transform: "translate(-50%, -50%)",
+                      }}
+                      animate={{ 
+                        opacity: [0.3, 0.9, 0.3], 
+                        scale: [0.7, 1.3, 0.7],
+                      }}
+                      transition={{
+                        duration: 2.5,
+                        repeat: Infinity,
+                        delay: i * 0.1,
+                        ease: "easeInOut"
+                      }}
+                    />
+                  );
+                })}
+                
+                {/* Center glow */}
+                <motion.div
+                  className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-primary/20 blur-xl"
+                  animate={{ 
+                    scale: [1, 1.4, 1], 
+                    opacity: [0.3, 0.6, 0.3] 
+                  }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                />
+              </motion.div>
             </motion.div>
           )}
 
