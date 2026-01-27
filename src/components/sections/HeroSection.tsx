@@ -636,31 +636,22 @@ export default function HeroSection() {
 
 
               <p className="text-muted-foreground text-center mb-6">
-                Välj det alternativ som passar er bäst:
+                Exempel på vad som är möjligt – inte rekommendationer på vad ni ska bygga.
               </p>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
                 {getDisplayOpportunities().map((opp, index) => {
                   const Icon = opp.icon;
-                  const isSelected = selectedOpportunity?.id === opp.id;
                   return (
-                    <motion.button
+                    <motion.div
                       key={opp.id}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.3 + index * 0.1 }}
-                      whileHover={{ scale: 1.03 }}
-                      onClick={() => handleOpportunitySelect(opp)}
-                      className={`group p-6 rounded-2xl bg-card/50 text-left transition-all duration-300 border-2 ${
-                        isSelected 
-                          ? "border-primary ring-2 ring-primary/20" 
-                          : "border-transparent hover:border-primary"
-                      }`}
+                      className="p-6 rounded-2xl bg-card/50 border border-border"
                     >
                       <div className="flex items-start gap-4">
-                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
-                          isSelected ? "bg-primary/20" : "bg-primary/10 group-hover:bg-primary/20"
-                        }`}>
+                        <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                           <Icon className="w-6 h-6 text-primary" />
                         </div>
                         <div className="flex-1 min-w-0">
@@ -668,9 +659,7 @@ export default function HeroSection() {
                           <span className="inline-block text-xs font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary mb-2">
                             {toolTypeLabels[opp.toolType || opp.id] || "Annat"}
                           </span>
-                          <h3 className={`text-lg font-semibold mb-2 transition-colors ${
-                            isSelected ? "text-primary" : "text-foreground group-hover:text-primary"
-                          }`}>
+                          <h3 className="text-lg font-semibold mb-2 text-foreground">
                             {opp.title}
                           </h3>
                           <p className="text-base text-muted-foreground mb-4">
@@ -694,17 +683,24 @@ export default function HeroSection() {
                             </div>
                           </div>
                         </div>
-                        {/* Always reserve space for checkmark to prevent layout shift */}
-                        <div className="w-6 h-6 shrink-0 flex items-center justify-center">
-                          {isSelected && (
-                            <CheckCircle2 className="w-6 h-6 text-primary" />
-                          )}
-                        </div>
                       </div>
-                    </motion.button>
+                    </motion.div>
                   );
                 })}
               </div>
+
+              {/* Explanatory text */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+                className="text-center mb-8"
+              >
+                <p className="text-muted-foreground max-w-xl mx-auto">
+                  Vilket verktyg som är rätt att bygga beror på er säljprocess, era mål och er interna mognad.
+                  Det avgörs bäst tillsammans.
+                </p>
+              </motion.div>
 
               {/* CTA Button */}
               <motion.div
@@ -713,20 +709,19 @@ export default function HeroSection() {
                 transition={{ delay: 0.6 }}
                 className="text-center"
               >
+                <p className="text-sm text-muted-foreground mb-4">
+                  Se exempel på hur detta kan se ut i praktiken
+                </p>
                 <Button
                   variant="hero"
                   size="xl"
                   onClick={handleProceedToForm}
-                  disabled={!selectedOpportunity}
                   className="min-w-[300px]"
                 >
-                  <Sparkles className="w-5 h-5 mr-2" />
-                  Se en gratis prototyp
+                  <Calendar className="w-5 h-5 mr-2" />
+                  Boka strategimöte
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
-                <p className="text-sm text-muted-foreground mt-4">
-                  Helt utan kostnad • Ingen bindning
-                </p>
               </motion.div>
             </motion.div>
           )}
