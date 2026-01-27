@@ -125,22 +125,45 @@ export default function HeroSection() {
       const variation = baseTime * 0.3 * (Math.random() * 2 - 1);
       const duration = Math.max(800, baseTime + variation);
       
-      // Animate progress from 0 to 100 over the duration
-      const progressInterval = 50; // Update every 50ms
-      const progressIncrement = 100 / (duration / progressInterval);
+      // Generate random pause points (2-4 pauses per step)
+      const numPauses = 2 + Math.floor(Math.random() * 3);
+      const pausePoints = Array.from({ length: numPauses }, () => 
+        15 + Math.floor(Math.random() * 70) // Pause between 15% and 85%
+      ).sort((a, b) => a - b);
+      
       let currentProgress = 0;
+      let isPaused = false;
+      let pauseIndex = 0;
       
       const progressTimer = setInterval(() => {
-        currentProgress += progressIncrement;
+        if (isPaused) return;
+        
+        // Check if we should pause
+        if (pauseIndex < pausePoints.length && currentProgress >= pausePoints[pauseIndex]) {
+          isPaused = true;
+          pauseIndex++;
+          // Pause for 200-600ms
+          const pauseDuration = 200 + Math.random() * 400;
+          setTimeout(() => {
+            isPaused = false;
+          }, pauseDuration);
+          return;
+        }
+        
+        // Variable speed: sometimes fast, sometimes slow
+        const speedVariation = 0.5 + Math.random() * 1.5;
+        const baseIncrement = 100 / (duration / 50);
+        currentProgress += baseIncrement * speedVariation;
+        
         if (currentProgress >= 100) {
           currentProgress = 100;
           clearInterval(progressTimer);
         }
         setStepProgress(Math.min(100, Math.round(currentProgress)));
-      }, progressInterval);
+      }, 50);
       
       step++;
-      setTimeout(advanceStep, duration);
+      setTimeout(advanceStep, duration + (numPauses * 300)); // Account for pauses
     };
     
     advanceStep();
