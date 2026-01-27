@@ -64,21 +64,21 @@ export default function ScannerStep5({ focusArea, suggestionIndex, onReset }: Sc
 
   if (isSubmitted) {
     return (
-      <div className="flex flex-col items-center text-center max-w-md mx-auto px-4 py-8">
+      <div className="flex flex-col items-center text-center max-w-md mx-auto px-4 py-4">
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ type: "spring" }}
-          className="w-20 h-20 rounded-full bg-primary/20 flex items-center justify-center mb-6"
+          className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center mb-4"
         >
-          <CheckCircle2 className="w-10 h-10 text-primary" />
+          <CheckCircle2 className="w-7 h-7 text-primary" />
         </motion.div>
         
         <motion.h2
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="text-2xl font-bold mb-3"
+          className="text-xl font-bold mb-2"
         >
           {mode === "meeting" ? "Bokat!" : "På väg!"}
         </motion.h2>
@@ -87,14 +87,14 @@ export default function ScannerStep5({ focusArea, suggestionIndex, onReset }: Sc
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="text-muted-foreground mb-8"
+          className="text-sm text-muted-foreground mb-5"
         >
           {mode === "meeting"
             ? "Vi kontaktar dig inom kort för att boka in en genomgång av er prototyp."
             : "Prototypen skickas till din mail inom några dagar."}
         </motion.p>
 
-        <Button variant="outline" onClick={onReset}>
+        <Button variant="outline" size="sm" onClick={onReset}>
           Gör en ny analys
         </Button>
       </div>
@@ -107,19 +107,19 @@ export default function ScannerStep5({ focusArea, suggestionIndex, onReset }: Sc
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-center mb-6"
+        className="text-center mb-4"
       >
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
-          <Sparkles className="w-4 h-4" />
+        <div className="inline-flex items-center gap-2 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium mb-3">
+          <Sparkles className="w-3 h-3" />
           {suggestionTitle}
         </div>
         
-        <h2 className="text-2xl md:text-3xl font-bold mb-3">
-          Vill du se en klickbar prototyp för detta på er webbplats?
+        <h2 className="text-xl md:text-2xl font-bold mb-2">
+          Vill du se en klickbar prototyp?
         </h2>
         
-        <p className="text-muted-foreground">
-          Vi tar fram en AI-prototyp som visar hur detta self-service-verktyg skulle kunna fungera för er. Det tar dagar – inte månader.
+        <p className="text-sm text-muted-foreground">
+          Vi tar fram en AI-prototyp som visar hur detta verktyg kan fungera för er.
         </p>
       </motion.div>
 
@@ -129,22 +129,22 @@ export default function ScannerStep5({ focusArea, suggestionIndex, onReset }: Sc
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="w-full space-y-3"
+          className="w-full space-y-2"
         >
           <button
             onClick={() => setMode("meeting")}
-            className="w-full p-5 bg-card rounded-xl border border-transparent hover:border-primary transition-all duration-300 text-left group"
+            className="w-full p-4 bg-card rounded-lg border border-transparent hover:border-primary transition-all duration-300 text-left group"
           >
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                <Calendar className="w-6 h-6 text-primary" />
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                <Calendar className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <h3 className="font-semibold group-hover:text-primary transition-colors">
+                <h3 className="text-sm font-semibold group-hover:text-primary transition-colors">
                   Boka genomgång & få prototyp
                 </h3>
-                <p className="text-sm text-muted-foreground">
-                  Vi visar prototypen live och diskuterar nästa steg
+                <p className="text-xs text-muted-foreground">
+                  Vi visar prototypen live
                 </p>
               </div>
             </div>
@@ -152,18 +152,18 @@ export default function ScannerStep5({ focusArea, suggestionIndex, onReset }: Sc
 
           <button
             onClick={() => setMode("email")}
-            className="w-full p-5 bg-card rounded-xl border border-transparent hover:border-primary/50 transition-all duration-300 text-left group"
+            className="w-full p-4 bg-card rounded-lg border border-transparent hover:border-primary/50 transition-all duration-300 text-left group"
           >
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center group-hover:bg-secondary/80 transition-colors">
-                <Mail className="w-6 h-6 text-muted-foreground" />
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center group-hover:bg-secondary/80 transition-colors">
+                <Mail className="w-5 h-5 text-muted-foreground" />
               </div>
               <div>
-                <h3 className="font-semibold group-hover:text-foreground transition-colors text-muted-foreground">
+                <h3 className="text-sm font-semibold group-hover:text-foreground transition-colors text-muted-foreground">
                   Skicka prototypen till mig
                 </h3>
-                <p className="text-sm text-muted-foreground">
-                  Få prototypen skickad direkt till din mail
+                <p className="text-xs text-muted-foreground">
+                  Få den direkt till din mail
                 </p>
               </div>
             </div>
@@ -177,12 +177,12 @@ export default function ScannerStep5({ focusArea, suggestionIndex, onReset }: Sc
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           onSubmit={handleSubmit}
-          className="w-full space-y-4"
+          className="w-full space-y-3"
         >
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="name" className="flex items-center gap-2">
-                <User className="w-4 h-4 text-muted-foreground" />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <Label htmlFor="name" className="text-xs flex items-center gap-1">
+                <User className="w-3 h-3 text-muted-foreground" />
                 Namn *
               </Label>
               <Input
@@ -191,12 +191,13 @@ export default function ScannerStep5({ focusArea, suggestionIndex, onReset }: Sc
                 onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                 placeholder="Anna Andersson"
                 required
+                className="h-9 text-sm"
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="company" className="flex items-center gap-2">
-                <Building className="w-4 h-4 text-muted-foreground" />
+            <div className="space-y-1">
+              <Label htmlFor="company" className="text-xs flex items-center gap-1">
+                <Building className="w-3 h-3 text-muted-foreground" />
                 Företag *
               </Label>
               <Input
@@ -205,42 +206,48 @@ export default function ScannerStep5({ focusArea, suggestionIndex, onReset }: Sc
                 onChange={(e) => setFormData(prev => ({ ...prev, company: e.target.value }))}
                 placeholder="Företaget AB"
                 required
+                className="h-9 text-sm"
               />
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="email" className="flex items-center gap-2">
-              <Mail className="w-4 h-4 text-muted-foreground" />
-              E-post *
-            </Label>
-            <Input
-              id="email"
-              type="email"
-              value={formData.email}
-              onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-              placeholder="anna@foretaget.se"
-              required
-            />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <Label htmlFor="email" className="text-xs flex items-center gap-1">
+                <Mail className="w-3 h-3 text-muted-foreground" />
+                E-post *
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                placeholder="anna@foretaget.se"
+                required
+                className="h-9 text-sm"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <Label htmlFor="role" className="text-xs flex items-center gap-1">
+                <Briefcase className="w-3 h-3 text-muted-foreground" />
+                Roll
+              </Label>
+              <Input
+                id="role"
+                value={formData.role}
+                onChange={(e) => setFormData(prev => ({ ...prev, role: e.target.value }))}
+                placeholder="Marknadschef"
+                className="h-9 text-sm"
+              />
+            </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="role" className="flex items-center gap-2">
-              <Briefcase className="w-4 h-4 text-muted-foreground" />
-              Roll
-            </Label>
-            <Input
-              id="role"
-              value={formData.role}
-              onChange={(e) => setFormData(prev => ({ ...prev, role: e.target.value }))}
-              placeholder="Marknadschef"
-            />
-          </div>
-
-          <div className="flex gap-3 pt-4">
+          <div className="flex gap-2 pt-2">
             <Button
               type="button"
               variant="outline"
+              size="sm"
               onClick={() => setMode(null)}
               className="flex-1"
             >
@@ -249,6 +256,7 @@ export default function ScannerStep5({ focusArea, suggestionIndex, onReset }: Sc
             <Button
               type="submit"
               variant="hero"
+              size="sm"
               disabled={isSubmitting}
               className="flex-1"
             >
@@ -256,13 +264,13 @@ export default function ScannerStep5({ focusArea, suggestionIndex, onReset }: Sc
                 "Skickar..."
               ) : mode === "meeting" ? (
                 <>
-                  <Calendar className="w-4 h-4 mr-2" />
-                  Boka genomgång
+                  <Calendar className="w-3 h-3 mr-1" />
+                  Boka
                 </>
               ) : (
                 <>
-                  <Mail className="w-4 h-4 mr-2" />
-                  Skicka prototyp
+                  <Mail className="w-3 h-3 mr-1" />
+                  Skicka
                 </>
               )}
             </Button>
@@ -275,7 +283,7 @@ export default function ScannerStep5({ focusArea, suggestionIndex, onReset }: Sc
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.4 }}
-        className="flex items-center justify-center gap-4 mt-8 text-xs text-muted-foreground"
+        className="flex items-center justify-center gap-3 mt-4 text-[10px] text-muted-foreground"
       >
         <span>🔒 GDPR-säkert</span>
         <span>•</span>

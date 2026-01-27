@@ -100,61 +100,56 @@ export default function ScannerStep4({ focusArea, url, onSelectSuggestion }: Sca
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-center mb-8"
+        className="text-center mb-5"
       >
-        <h2 className="text-2xl md:text-3xl font-bold mb-3">
+        <h2 className="text-xl md:text-2xl font-bold mb-2">
           Här är de starkaste self-service-möjligheterna för er
         </h2>
-        <p className="text-muted-foreground">
+        <p className="text-sm text-muted-foreground">
           Baserat på analysen av <span className="text-foreground font-medium">{domain}</span>
         </p>
       </motion.div>
 
       {/* Suggestion cards */}
-      <div className="w-full space-y-4">
+      <div className="w-full space-y-3">
         {suggestions.map((suggestion, index) => (
           <motion.div
             key={index}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 + index * 0.15 }}
-            className="group relative bg-card rounded-2xl border border-transparent hover:border-primary/30 transition-all duration-300 overflow-hidden"
+            transition={{ delay: 0.1 + index * 0.1 }}
+            className="group relative bg-card rounded-xl border border-transparent hover:border-primary/30 transition-all duration-300 overflow-hidden"
           >
             {/* Rank badge */}
-            <div className="absolute top-4 left-4 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-              <span className="text-sm font-bold text-primary">#{index + 1}</span>
+            <div className="absolute top-3 left-3 w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
+              <span className="text-xs font-bold text-primary">#{index + 1}</span>
             </div>
 
-            <div className="p-6 pl-16">
-              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+            <div className="p-4 pl-12">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                 <div className="flex-1">
-                  <h3 className="text-xl font-semibold mb-2">{suggestion.title}</h3>
+                  <h3 className="text-base font-semibold mb-1">{suggestion.title}</h3>
                   
                   {/* Value indicator */}
-                  <div className="flex items-center gap-2 mb-3">
-                    <TrendingUp className={`w-4 h-4 ${valueColors[suggestion.value]}`} />
-                    <span className={`text-sm font-medium ${valueColors[suggestion.value]}`}>
-                      Förväntat affärsvärde: {suggestion.value}
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className={`w-3 h-3 ${valueColors[suggestion.value]}`} />
+                    <span className={`text-xs font-medium ${valueColors[suggestion.value]}`}>
+                      {suggestion.value}
                     </span>
-                  </div>
-
-                  {/* Reason */}
-                  <div className="flex items-start gap-2 text-muted-foreground">
-                    <Info className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                    <p className="text-sm">{suggestion.reason}</p>
+                    <span className="text-xs text-muted-foreground hidden md:inline">• {suggestion.reason}</span>
                   </div>
                 </div>
 
                 {/* CTA buttons */}
-                <div className="flex flex-col gap-2 md:ml-4">
+                <div className="flex-shrink-0">
                   <Button
                     variant="hero"
-                    size="default"
+                    size="sm"
                     onClick={() => onSelectSuggestion(index)}
                     className="whitespace-nowrap"
                   >
-                    Se hur detta kan fungera
-                    <ArrowRight className="w-4 h-4 ml-2" />
+                    Visa mer
+                    <ArrowRight className="w-3 h-3 ml-1" />
                   </Button>
                 </div>
               </div>
@@ -172,10 +167,10 @@ export default function ScannerStep4({ focusArea, url, onSelectSuggestion }: Sca
       <motion.p
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.6 }}
-        className="text-sm text-muted-foreground text-center mt-8"
+        transition={{ delay: 0.4 }}
+        className="text-xs text-muted-foreground text-center mt-5"
       >
-        Analysen baseras på best practices för B2B self-service och er bransch
+        Baserat på best practices för B2B self-service
       </motion.p>
     </div>
   );

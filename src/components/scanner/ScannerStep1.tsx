@@ -43,9 +43,9 @@ export default function ScannerStep1({ onSubmit }: ScannerStep1Props) {
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         transition={{ type: "spring", delay: 0.1 }}
-        className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center mb-6"
+        className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-4"
       >
-        <Sparkles className="w-10 h-10 text-primary" />
+        <Sparkles className="w-7 h-7 text-primary" />
       </motion.div>
 
       {/* Heading */}
@@ -53,7 +53,7 @@ export default function ScannerStep1({ onSubmit }: ScannerStep1Props) {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="text-2xl md:text-3xl font-bold mb-4"
+        className="text-xl md:text-2xl font-bold mb-2"
       >
         Se vilka self-service-möjligheter som finns på er webbplats
       </motion.h2>
@@ -63,7 +63,7 @@ export default function ScannerStep1({ onSubmit }: ScannerStep1Props) {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="text-muted-foreground mb-8 text-lg"
+        className="text-muted-foreground mb-6 text-base"
       >
         Vår AI analyserar hur era köpare kan få mer kontroll i köpresan.
       </motion.p>
@@ -110,7 +110,7 @@ export default function ScannerStep1({ onSubmit }: ScannerStep1Props) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.6 }}
-        className="text-sm text-muted-foreground mt-6"
+        className="text-xs text-muted-foreground mt-4"
       >
         Tar cirka 30 sekunder • Helt gratis • Inga förpliktelser
       </motion.p>

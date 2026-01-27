@@ -56,7 +56,7 @@ export default function ScannerStep2({ url, onComplete }: ScannerStep2Props) {
   return (
     <div className="flex flex-col items-center text-center max-w-xl mx-auto px-4">
       {/* Animated orb */}
-      <div className="relative w-32 h-32 mb-8">
+      <div className="relative w-24 h-24 mb-6">
         {/* Outer glow rings */}
         <motion.div
           className="absolute inset-0 rounded-full bg-primary/20"
@@ -119,8 +119,8 @@ export default function ScannerStep2({ url, onComplete }: ScannerStep2Props) {
       </motion.div>
 
       {/* Progress bar */}
-      <div className="w-full max-w-xs mb-8">
-        <div className="h-2 bg-muted rounded-full overflow-hidden">
+      <div className="w-full max-w-xs mb-6">
+        <div className="h-1.5 bg-muted rounded-full overflow-hidden">
           <motion.div
             className="h-full bg-primary rounded-full"
             initial={{ width: 0 }}
@@ -131,7 +131,7 @@ export default function ScannerStep2({ url, onComplete }: ScannerStep2Props) {
       </div>
 
       {/* Current step text */}
-      <div className="h-16">
+      <div className="h-12">
         {!isComplete ? (
           analysisSteps.map((step, index) => (
             <motion.div
@@ -164,18 +164,18 @@ export default function ScannerStep2({ url, onComplete }: ScannerStep2Props) {
         initial={{ opacity: 0 }}
         animate={{ opacity: currentStep >= 2 ? 0.6 : 0 }}
         transition={{ delay: 0.5 }}
-        className="mt-8 grid grid-cols-3 gap-4 text-center"
+        className="mt-6 grid grid-cols-3 gap-4 text-center"
       >
         <div>
-          <div className="text-2xl font-bold text-primary">12</div>
-          <div className="text-xs text-muted-foreground">sidor analyserade</div>
+          <div className="text-xl font-bold text-primary">12</div>
+          <div className="text-xs text-muted-foreground">sidor</div>
         </div>
         <div>
-          <div className="text-2xl font-bold text-primary">8</div>
+          <div className="text-xl font-bold text-primary">8</div>
           <div className="text-xs text-muted-foreground">friktionspunkter</div>
         </div>
         <div>
-          <div className="text-2xl font-bold text-primary">4</div>
+          <div className="text-xl font-bold text-primary">4</div>
           <div className="text-xs text-muted-foreground">möjligheter</div>
         </div>
       </motion.div>

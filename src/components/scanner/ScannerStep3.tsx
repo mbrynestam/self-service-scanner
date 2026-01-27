@@ -40,7 +40,7 @@ export default function ScannerStep3({ onSelect }: ScannerStep3Props) {
       <motion.h2
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-2xl md:text-3xl font-bold text-center mb-3"
+        className="text-xl md:text-2xl font-bold text-center mb-2"
       >
         Vilket område är mest relevant för er just nu?
       </motion.h2>
@@ -49,13 +49,13 @@ export default function ScannerStep3({ onSelect }: ScannerStep3Props) {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="text-muted-foreground text-center mb-8"
+        className="text-muted-foreground text-center mb-5 text-sm"
       >
         Välj det som bäst matchar era köpares behov
       </motion.p>
 
       {/* Focus area cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full">
         {focusAreas.map((area, index) => (
           <motion.button
             key={area.id}
@@ -65,18 +65,18 @@ export default function ScannerStep3({ onSelect }: ScannerStep3Props) {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => onSelect(area.id)}
-            className="group relative p-6 bg-card rounded-2xl border border-transparent hover:border-primary transition-all duration-300 text-left"
+            className="group relative p-4 bg-card rounded-xl border border-transparent hover:border-primary transition-all duration-300 text-left"
           >
             {/* Icon */}
-            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-              <area.icon className="w-6 h-6 text-primary" />
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-3 group-hover:bg-primary/20 transition-colors">
+              <area.icon className="w-5 h-5 text-primary" />
             </div>
 
             {/* Content */}
-            <h3 className="text-lg font-semibold mb-2 group-hover:text-primary transition-colors">
+            <h3 className="text-base font-semibold mb-1 group-hover:text-primary transition-colors">
               {area.title}
             </h3>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               {area.description}
             </p>
 
