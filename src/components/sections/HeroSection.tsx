@@ -55,7 +55,7 @@ interface Opportunity {
   title: string;
   description: string;
   value: string;
-  businessValuePercent?: number;
+  potentialValue?: string;
 }
 
 const opportunities: Opportunity[] = [
@@ -372,8 +372,8 @@ export default function HeroSection() {
           icon: iconMap[aiOpp.type] || Target,
           title: aiOpp.title,
           description: aiOpp.description,
-          value: aiOpp.potentialValue,
-          businessValuePercent: aiOpp.businessValuePercent
+          value: aiOpp.potentialValue || "medium",
+          potentialValue: aiOpp.potentialValue
         };
       });
     }
@@ -715,25 +715,30 @@ export default function HeroSection() {
                           <Icon className="w-6 h-6 text-primary" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h3 className={`font-semibold mb-1 transition-colors ${
+                          <h3 className={`text-lg font-semibold mb-2 transition-colors ${
                             isSelected ? "text-primary" : "text-foreground group-hover:text-primary"
                           }`}>
                             {opp.title}
                           </h3>
-                          <p className="text-sm text-muted-foreground mb-3">
+                          <p className="text-base text-muted-foreground mb-4">
                             {opp.description}
                           </p>
-                          <div className="flex items-center gap-2 flex-wrap">
-                            {opp.businessValuePercent ? (
-                              <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary flex items-center gap-1">
-                                <TrendingUp className="w-3 h-3" />
-                                +{opp.businessValuePercent}% affärsvärde
-                              </span>
-                            ) : (
-                              <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary">
-                                {opp.value}
-                              </span>
-                            )}
+                          {/* Value dots: 1-3 dots for low/medium/high */}
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm text-muted-foreground">Affärsvärde:</span>
+                            <div className="flex gap-1">
+                              {(() => {
+                                const value = opp.value?.toLowerCase() || opp.potentialValue?.toLowerCase() || "";
+                                const dots = value.includes("high") || value.includes("högt") || value.includes("mycket") ? 3 
+                                  : value.includes("medium") || value.includes("medel") ? 2 : 1;
+                                return Array.from({ length: 3 }).map((_, i) => (
+                                  <div 
+                                    key={i} 
+                                    className={`w-2.5 h-2.5 rounded-full ${i < dots ? "bg-primary" : "bg-muted"}`} 
+                                  />
+                                ));
+                              })()}
+                            </div>
                           </div>
                         </div>
                         {/* Always reserve space for checkmark to prevent layout shift */}
