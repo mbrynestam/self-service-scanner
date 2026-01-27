@@ -74,10 +74,9 @@ const opportunities: Opportunity[] = [
 ];
 
 const analysisMessages = [
-  { icon: Brain, text: "Analyserar er köpresa…" },
-  { icon: Target, text: "Identifierar friktion för köpare…" },
-  { icon: Sparkles, text: "Tolkar vanliga frågor och behov…" },
-  { icon: CheckCircle2, text: "Genererar self-service-möjligheter…" }
+  { icon: Brain, text: "Analyserar er verksamhet…", baseDuration: 1500 },
+  { icon: Target, text: "Identifierar idealkunders köpresa, pain points, vanliga frågor, oro, friktion, motstånd, tveksamhet, rädsla och behov av self-service…", baseDuration: 4000 },
+  { icon: Sparkles, text: "Tar fram förslag på rekommenderade self-service-verktyg…", baseDuration: 2000 }
 ];
 
 export default function HeroSection() {
@@ -110,14 +109,25 @@ export default function HeroSection() {
 
   const runAnalysis = () => {
     let step = 0;
-    const interval = setInterval(() => {
-      step++;
-      setAnalysisStep(step);
+    
+    const advanceStep = () => {
       if (step >= analysisMessages.length) {
-        clearInterval(interval);
         setTimeout(() => setPhase("results"), 800);
+        return;
       }
-    }, 1500);
+      
+      setAnalysisStep(step);
+      
+      // Get base duration and add random variation (±30%)
+      const baseTime = analysisMessages[step]?.baseDuration || 1500;
+      const variation = baseTime * 0.3 * (Math.random() * 2 - 1);
+      const duration = Math.max(800, baseTime + variation);
+      
+      step++;
+      setTimeout(advanceStep, duration);
+    };
+    
+    advanceStep();
   };
 
   const handleOpportunityClick = (opp: Opportunity) => {
