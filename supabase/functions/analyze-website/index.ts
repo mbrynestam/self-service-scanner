@@ -112,7 +112,7 @@ serve(async (req) => {
     
     console.log("Website content scraped:", hasContent ? "success" : "failed or minimal content");
 
-    const systemPrompt = `Du är en IMPACT-strateg expert på Endless Customers, They Ask, You Answer, The Big 5 och self-service som säljstrategi.
+    const systemPrompt = `Du är en strateg på B2B-företaget Buyr, expert på self-service som säljstrategi.
 Ditt jobb är att analysera B2B-webbplatser ur köparens perspektiv och identifiera vilka self-service-verktyg som skapar mest affärsvärde.
 
 ARBETSFLÖDE:
