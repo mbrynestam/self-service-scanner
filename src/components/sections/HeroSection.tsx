@@ -17,10 +17,21 @@ import {
   ArrowRight,
   Loader2,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  TrendingUp,
+  HelpCircle,
+  AlertTriangle,
+  UserCheck
 } from "lucide-react";
 
 interface AIAnalysis {
+  isB2B: boolean;
+  businessType: string;
+  targetAudience: string;
+  buyerRoles: string[];
+  painPoints: string[];
+  buyerQuestions: string[];
+  concerns: string[];
   recommended: FocusArea;
   confidence: number;
   reasoning: string;
@@ -29,6 +40,7 @@ interface AIAnalysis {
     title: string;
     description: string;
     potentialValue: string;
+    businessValuePercent?: number;
     fit: number;
   }>;
 }
@@ -41,6 +53,7 @@ interface Opportunity {
   title: string;
   description: string;
   value: string;
+  businessValuePercent?: number;
 }
 
 const opportunities: Opportunity[] = [
@@ -251,7 +264,8 @@ export default function HeroSection() {
           icon: iconMap[aiOpp.type] || Target,
           title: aiOpp.title,
           description: aiOpp.description,
-          value: aiOpp.potentialValue
+          value: aiOpp.potentialValue,
+          businessValuePercent: aiOpp.businessValuePercent
         };
       });
     }
@@ -267,6 +281,13 @@ export default function HeroSection() {
       setPhase("form");
     }
   };
+
+  // Check if we have extended analysis data
+  const hasExtendedAnalysis = aiAnalysis && (
+    aiAnalysis.targetAudience || 
+    (aiAnalysis.buyerRoles && aiAnalysis.buyerRoles.length > 0) ||
+    (aiAnalysis.painPoints && aiAnalysis.painPoints.length > 0)
+  );
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -434,7 +455,7 @@ export default function HeroSection() {
               exit={{ opacity: 0, y: -20 }}
               className="max-w-5xl mx-auto"
             >
-              <div className="text-center mb-10">
+              <div className="text-center mb-8">
                 <motion.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
@@ -451,15 +472,84 @@ export default function HeroSection() {
                   </p>
                 )}
                 {aiError && (
-                  <div className="flex items-center justify-center gap-2 text-amber-500 mb-4">
+                  <div className="flex items-center justify-center gap-2 text-destructive mb-4">
                     <AlertCircle className="w-5 h-5" />
                     <p className="text-sm">{aiError} Vi visar standardförslag istället.</p>
                   </div>
                 )}
-                <p className="text-muted-foreground text-lg">
-                  Välj det alternativ som passar er bäst.
-                </p>
               </div>
+
+              {/* Extended Analysis Insights */}
+              {hasExtendedAnalysis && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="mb-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
+                >
+                  {/* Target Audience */}
+                  {aiAnalysis?.targetAudience && (
+                    <div className="p-4 rounded-xl bg-card/50 border border-border">
+                      <div className="flex items-center gap-2 mb-2">
+                        <UserCheck className="w-4 h-4 text-primary" />
+                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Målgrupp</span>
+                      </div>
+                      <p className="text-sm text-foreground">{aiAnalysis.targetAudience}</p>
+                    </div>
+                  )}
+
+                  {/* Buyer Roles */}
+                  {aiAnalysis?.buyerRoles && aiAnalysis.buyerRoles.length > 0 && (
+                    <div className="p-4 rounded-xl bg-card/50 border border-border">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Users className="w-4 h-4 text-primary" />
+                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Köproller</span>
+                      </div>
+                      <div className="flex flex-wrap gap-1">
+                        {aiAnalysis.buyerRoles.slice(0, 4).map((role, i) => (
+                          <span key={i} className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                            {role}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Pain Points */}
+                  {aiAnalysis?.painPoints && aiAnalysis.painPoints.length > 0 && (
+                    <div className="p-4 rounded-xl bg-card/50 border border-border">
+                      <div className="flex items-center gap-2 mb-2">
+                        <AlertTriangle className="w-4 h-4 text-primary" />
+                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Pain Points</span>
+                      </div>
+                      <ul className="text-sm text-foreground space-y-1">
+                        {aiAnalysis.painPoints.slice(0, 3).map((point, i) => (
+                          <li key={i} className="truncate">• {point}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* Buyer Questions / Concerns */}
+                  {aiAnalysis?.concerns && aiAnalysis.concerns.length > 0 && (
+                    <div className="p-4 rounded-xl bg-card/50 border border-border">
+                      <div className="flex items-center gap-2 mb-2">
+                        <HelpCircle className="w-4 h-4 text-primary" />
+                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Oro & Frågor</span>
+                      </div>
+                      <ul className="text-sm text-foreground space-y-1">
+                        {aiAnalysis.concerns.slice(0, 3).map((concern, i) => (
+                          <li key={i} className="truncate">• {concern}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </motion.div>
+              )}
+
+              <p className="text-muted-foreground text-center mb-6">
+                Välj det alternativ som passar er bäst:
+              </p>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
                 {getDisplayOpportunities().map((opp, index) => {
@@ -470,7 +560,7 @@ export default function HeroSection() {
                       key={opp.id}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.1 }}
+                      transition={{ delay: 0.3 + index * 0.1 }}
                       whileHover={{ scale: 1.03 }}
                       onClick={() => handleOpportunitySelect(opp)}
                       className={`group p-6 rounded-2xl bg-card/50 text-left transition-all duration-300 ${
@@ -494,10 +584,17 @@ export default function HeroSection() {
                           <p className="text-sm text-muted-foreground mb-3">
                             {opp.description}
                           </p>
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary">
-                              Affärsvärde: {opp.value}
-                            </span>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            {opp.businessValuePercent ? (
+                              <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary flex items-center gap-1">
+                                <TrendingUp className="w-3 h-3" />
+                                +{opp.businessValuePercent}% affärsvärde
+                              </span>
+                            ) : (
+                              <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary">
+                                {opp.value}
+                              </span>
+                            )}
                           </div>
                         </div>
                         {isSelected && (
