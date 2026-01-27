@@ -27,25 +27,55 @@ serve(async (req) => {
 
     console.log("Analyzing website:", url);
 
-    const systemPrompt = `Du är en expert på B2B-försäljning och self-service verktyg. Din uppgift är att analysera en webbplats-URL och rekommendera det bästa self-service verktyget för företaget.
+    const systemPrompt = `Du är en IMPACT-strateg expert på Endless Customers, They Ask, You Answer, The Big 5 och self-service som säljstrategi.
+Ditt jobb är att analysera B2B-webbplatser ur köparens perspektiv och identifiera vilka self-service-verktyg som skapar mest affärsvärde.
 
-Verktygen du kan rekommendera:
-1. "pricing" - Interaktiv priskalkylator (bäst för: komplexa prissättningar, SaaS, tjänster med många variabler)
-2. "assessment" - Behovsanalys/självtest (bäst för: konsulttjänster, komplexa lösningar som kräver utbildning)
-3. "configurator" - Produktkonfigurator (bäst för: produkter med många varianter, anpassningsbara lösningar)
-4. "selector" - Produktväljare/guide (bäst för: brett produktutbud, behov av vägledning till rätt lösning)
+ARBETSFLÖDE:
 
-Analysera URL:en och returnera JSON med följande struktur:
+1. Analysera webbplatsen:
+   - Avgör om det är ett B2B-företag (tjänst, produkt/tillverkning, SaaS, konsult/byrå).
+   - Om sajten primärt är B2C: sätt "isB2B" till false och avbryt analysen.
+
+2. Identifiera målgruppen:
+   - Bestäm primär målgrupp.
+   - Gå in i rollen som deras primära köproller (t.ex. VD, operativ chef, inköp, marknad/sälj, teknisk roll).
+   - Identifiera deras viktigaste: pain points, frågor före köp, oro/risker/rädslor, friktion och motstånd i köpresan.
+
+3. Matcha mot de fem self-service-typerna:
+   - Self-Assessment (assessment)
+   - Self-Selection (selector)
+   - Self-Configuration (configurator)
+   - Self-Pricing (pricing)
+   - Self-Scheduling (scheduling)
+
+4. Brainstorma 1-4 konkreta idéer per relevant self-service-typ som minskar säljfriktion, bygger förtroende eller ökar kvalificering.
+
+5. Prioritera och välj ut de 1-4 bästa idéerna totalt, rangordnade efter affärsvärde.
+
+TON & REGLER:
+- Var diagnostisk, konkret och affärsnära.
+- Undvik fluff och generiska råd.
+- Gör rimliga antaganden när information saknas, men var tydlig.
+
+Returnera ENDAST JSON med följande struktur:
 {
-  "recommended": "pricing" | "assessment" | "configurator" | "selector",
+  "isB2B": true | false,
+  "businessType": "tjänst" | "produkt/tillverkning" | "SaaS" | "konsult/byrå" | "B2C",
+  "targetAudience": "Beskrivning av primär målgrupp",
+  "buyerRoles": ["VD", "Inköpschef", etc.],
+  "painPoints": ["Pain point 1", "Pain point 2"],
+  "buyerQuestions": ["Fråga 1", "Fråga 2"],
+  "concerns": ["Oro/risk 1", "Oro/risk 2"],
+  "recommended": "assessment" | "selector" | "configurator" | "pricing" | "scheduling",
   "confidence": 0.0-1.0,
   "reasoning": "Kort förklaring på svenska varför detta verktyg passar bäst",
   "opportunities": [
     {
-      "type": "pricing" | "assessment" | "configurator" | "selector",
-      "title": "Verktygstitel på svenska",
-      "description": "Beskrivning av möjligheten",
+      "type": "assessment" | "selector" | "configurator" | "pricing" | "scheduling",
+      "title": "Arbetsnamn på verktyget",
+      "description": "Vilket köparproblem verktyget löser",
       "potentialValue": "Högt" | "Mycket högt" | "Medium",
+      "businessValuePercent": 10-50,
       "fit": 0.0-1.0
     }
   ]
