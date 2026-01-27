@@ -1,56 +1,420 @@
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Calculator, Calendar } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { 
+  Globe, 
+  Sparkles, 
+  Calculator, 
+  Brain, 
+  Puzzle, 
+  Target, 
+  Users, 
+  FileCheck,
+  Calendar,
+  ArrowRight,
+  Loader2,
+  CheckCircle2
+} from "lucide-react";
+
+type FocusArea = "pricing" | "assessment" | "configurator" | "selector" | "onboarding" | "partner";
+
+interface Opportunity {
+  id: FocusArea;
+  icon: React.ElementType;
+  title: string;
+  description: string;
+  value: string;
+}
+
+const opportunities: Opportunity[] = [
+  {
+    id: "pricing",
+    icon: Calculator,
+    title: "Interaktiv priskalkylator",
+    description: "Låt köpare förstå budget innan dialog",
+    value: "Mycket högt"
+  },
+  {
+    id: "assessment",
+    icon: Brain,
+    title: "Självtest för behovsanalys",
+    description: "Hjälp köpare förstå sitt behov",
+    value: "Högt"
+  },
+  {
+    id: "configurator",
+    icon: Puzzle,
+    title: "Produktkonfigurator",
+    description: "Låt köpare bygga sin lösning",
+    value: "Högt"
+  },
+  {
+    id: "selector",
+    icon: Target,
+    title: "Lösningsväljare",
+    description: "Guida köpare till rätt alternativ",
+    value: "Medel-Högt"
+  },
+  {
+    id: "onboarding",
+    icon: FileCheck,
+    title: "Self-service onboarding",
+    description: "Automatisera kunduppstart",
+    value: "Medel"
+  },
+  {
+    id: "partner",
+    icon: Users,
+    title: "Partner-verktyg",
+    description: "Digitalisera partnerprocesser",
+    value: "Medel"
+  }
+];
+
+const analysisMessages = [
+  { icon: Brain, text: "Analyserar er köpresa…" },
+  { icon: Target, text: "Identifierar friktion för köpare…" },
+  { icon: Sparkles, text: "Tolkar vanliga frågor och behov…" },
+  { icon: CheckCircle2, text: "Genererar self-service-möjligheter…" }
+];
 
 export default function HeroSection() {
+  const [phase, setPhase] = useState<"input" | "analyzing" | "results" | "form">("input");
+  const [url, setUrl] = useState("");
+  const [error, setError] = useState("");
+  const [analysisStep, setAnalysisStep] = useState(0);
+  const [selectedOpportunity, setSelectedOpportunity] = useState<Opportunity | null>(null);
+  const [formData, setFormData] = useState({ name: "", company: "", email: "", role: "" });
+
+  const handleUrlSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    let validUrl = url.trim();
+    if (!validUrl) {
+      setError("Ange en webbadress");
+      return;
+    }
+    if (!validUrl.startsWith("http://") && !validUrl.startsWith("https://")) {
+      validUrl = "https://" + validUrl;
+    }
+    try {
+      new URL(validUrl);
+      setError("");
+      setPhase("analyzing");
+      runAnalysis();
+    } catch {
+      setError("Ange en giltig webbadress");
+    }
+  };
+
+  const runAnalysis = () => {
+    let step = 0;
+    const interval = setInterval(() => {
+      step++;
+      setAnalysisStep(step);
+      if (step >= analysisMessages.length) {
+        clearInterval(interval);
+        setTimeout(() => setPhase("results"), 800);
+      }
+    }, 1500);
+  };
+
+  const handleOpportunityClick = (opp: Opportunity) => {
+    setSelectedOpportunity(opp);
+    setPhase("form");
+  };
+
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Here you would submit the form data
+    console.log("Form submitted:", { ...formData, opportunity: selectedOpportunity?.id, url });
+    alert("Tack! Vi återkommer inom kort.");
+  };
+
   return (
-    <section className="relative min-h-[90vh] flex items-center overflow-hidden bg-background">
+    <section className="relative min-h-screen flex items-center overflow-hidden bg-background py-20">
       {/* Glow Effect */}
       <div className="hero-glow top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
 
       <div className="container mx-auto px-4 lg:px-8 relative z-10">
-        <div className="max-w-4xl">
-          <motion.h1
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="font-display text-4xl md:text-5xl lg:text-7xl font-bold leading-tight mb-6 text-foreground"
-          >
-            Så vinner du affärer när köparen vill{" "}
-            <span className="gradient-text">köpa själv.</span>
-          </motion.h1>
+        <AnimatePresence mode="wait">
+          {/* PHASE: INPUT */}
+          {phase === "input" && (
+            <motion.div
+              key="input"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="max-w-3xl mx-auto text-center"
+            >
+              <motion.h1
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+                className="font-display text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6 text-foreground"
+              >
+                Se vilka self-service-möjligheter som finns på{" "}
+                <span className="gradient-text">er webbplats</span>
+              </motion.h1>
 
-          <motion.p
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl"
-          >
-            För B2B-ledare som vill modernisera köpresan med digital kontroll,
-            transparens och tillit.
-          </motion.p>
+              <motion.p
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.1 }}
+                className="text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto"
+              >
+                Vår AI analyserar hur era köpare kan få mer kontroll i köpresan – på 60 sekunder.
+              </motion.p>
 
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="flex flex-col sm:flex-row gap-4"
-          >
-            <Button variant="hero" size="xl" asChild>
-              <Link to="/priser">
-                <Calculator className="mr-2" size={18} />
-                Räkna ut pris nu
-              </Link>
-            </Button>
-            <Button variant="heroOutline" size="xl" asChild>
-              <Link to="/kontakt">
-                <Calendar className="mr-2" size={18} />
-                Boka strategisamtal
-              </Link>
-            </Button>
-          </motion.div>
-        </div>
+              <motion.form
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                onSubmit={handleUrlSubmit}
+                className="max-w-xl mx-auto space-y-4"
+              >
+                <div className="relative">
+                  <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  <Input
+                    type="text"
+                    value={url}
+                    onChange={(e) => {
+                      setUrl(e.target.value);
+                      setError("");
+                    }}
+                    placeholder="www.ertforetag.se"
+                    className="pl-12 h-14 text-lg bg-card border-border focus:border-primary"
+                  />
+                </div>
+                
+                {error && <p className="text-destructive text-sm">{error}</p>}
+
+                <Button type="submit" variant="hero" size="xl" className="w-full">
+                  <Sparkles className="w-5 h-5 mr-2" />
+                  Analysera min webbplats
+                </Button>
+              </motion.form>
+
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
+                className="text-sm text-muted-foreground mt-6"
+              >
+                Helt gratis • Inga förpliktelser • Tar cirka 30 sekunder
+              </motion.p>
+            </motion.div>
+          )}
+
+          {/* PHASE: ANALYZING */}
+          {phase === "analyzing" && (
+            <motion.div
+              key="analyzing"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="max-w-2xl mx-auto text-center"
+            >
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                className="w-20 h-20 mx-auto mb-8 rounded-2xl bg-primary/10 flex items-center justify-center"
+              >
+                <Loader2 className="w-10 h-10 text-primary" />
+              </motion.div>
+
+              <h2 className="text-2xl md:text-3xl font-bold mb-8">Analyserar er webbplats...</h2>
+
+              <div className="space-y-4">
+                {analysisMessages.map((msg, index) => {
+                  const Icon = msg.icon;
+                  const isActive = index === analysisStep;
+                  const isDone = index < analysisStep;
+                  
+                  return (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0.3 }}
+                      animate={{ 
+                        opacity: isDone || isActive ? 1 : 0.3,
+                        scale: isActive ? 1.02 : 1
+                      }}
+                      className={`flex items-center gap-4 p-4 rounded-xl transition-colors ${
+                        isActive ? "bg-primary/10 border border-primary/30" : 
+                        isDone ? "bg-card/50" : "bg-card/20"
+                      }`}
+                    >
+                      <Icon className={`w-5 h-5 ${isDone ? "text-primary" : isActive ? "text-primary" : "text-muted-foreground"}`} />
+                      <span className={isDone || isActive ? "text-foreground" : "text-muted-foreground"}>
+                        {msg.text}
+                      </span>
+                      {isDone && <CheckCircle2 className="w-5 h-5 text-primary ml-auto" />}
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )}
+
+          {/* PHASE: RESULTS */}
+          {phase === "results" && (
+            <motion.div
+              key="results"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="max-w-5xl mx-auto"
+            >
+              <div className="text-center mb-10">
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-primary/10 flex items-center justify-center"
+                >
+                  <CheckCircle2 className="w-8 h-8 text-primary" />
+                </motion.div>
+                <h2 className="text-2xl md:text-4xl font-bold mb-4">
+                  Klar! Här är era <span className="gradient-text">self-service-möjligheter</span>
+                </h2>
+                <p className="text-muted-foreground text-lg">
+                  Klicka på ett alternativ för att se hur det kan fungera för er.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {opportunities.map((opp, index) => {
+                  const Icon = opp.icon;
+                  return (
+                    <motion.button
+                      key={opp.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      whileHover={{ scale: 1.03 }}
+                      onClick={() => handleOpportunityClick(opp)}
+                      className="group p-6 rounded-2xl bg-card/50 border border-transparent hover:border-primary text-left transition-all duration-300"
+                    >
+                      <div className="flex items-start gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
+                          <Icon className="w-6 h-6 text-primary" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-foreground mb-1 group-hover:text-primary transition-colors">
+                            {opp.title}
+                          </h3>
+                          <p className="text-sm text-muted-foreground mb-3">
+                            {opp.description}
+                          </p>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary">
+                              Affärsvärde: {opp.value}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="mt-4 flex items-center text-sm text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span>Se hur det fungerar</span>
+                        <ArrowRight className="w-4 h-4 ml-2" />
+                      </div>
+                    </motion.button>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )}
+
+          {/* PHASE: FORM */}
+          {phase === "form" && selectedOpportunity && (
+            <motion.div
+              key="form"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="max-w-2xl mx-auto"
+            >
+              <button
+                onClick={() => setPhase("results")}
+                className="text-muted-foreground hover:text-foreground mb-6 flex items-center gap-2 text-sm"
+              >
+                ← Tillbaka till möjligheter
+              </button>
+
+              <div className="bg-card/50 rounded-2xl border border-border p-8">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <selectedOpportunity.icon className="w-7 h-7 text-primary" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold">{selectedOpportunity.title}</h2>
+                    <p className="text-muted-foreground">{selectedOpportunity.description}</p>
+                  </div>
+                </div>
+
+                <div className="bg-primary/5 rounded-xl p-4 mb-8 border border-primary/20">
+                  <p className="text-foreground">
+                    Vi tar fram en AI-prototyp som visar hur detta self-service-verktyg skulle kunna fungera för er. Det tar dagar – inte månader.
+                  </p>
+                </div>
+
+                <form onSubmit={handleFormSubmit} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm text-muted-foreground mb-1 block">Namn</label>
+                      <Input
+                        required
+                        value={formData.name}
+                        onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                        placeholder="Ditt namn"
+                        className="bg-background"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm text-muted-foreground mb-1 block">Företag</label>
+                      <Input
+                        required
+                        value={formData.company}
+                        onChange={(e) => setFormData(prev => ({ ...prev, company: e.target.value }))}
+                        placeholder="Ert företag"
+                        className="bg-background"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-sm text-muted-foreground mb-1 block">E-post</label>
+                    <Input
+                      type="email"
+                      required
+                      value={formData.email}
+                      onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                      placeholder="din@email.se"
+                      className="bg-background"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm text-muted-foreground mb-1 block">Roll</label>
+                    <Input
+                      value={formData.role}
+                      onChange={(e) => setFormData(prev => ({ ...prev, role: e.target.value }))}
+                      placeholder="T.ex. Marknadschef, VD"
+                      className="bg-background"
+                    />
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                    <Button type="submit" variant="hero" size="lg" className="flex-1">
+                      <Calendar className="w-5 h-5 mr-2" />
+                      Boka genomgång & få prototyp
+                    </Button>
+                    <Button type="submit" variant="heroOutline" size="lg" className="flex-1">
+                      Skicka prototypen till mig
+                    </Button>
+                  </div>
+                </form>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Bottom Gradient Fade */}
