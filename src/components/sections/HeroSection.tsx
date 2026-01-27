@@ -1,9 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { supabase } from "@/integrations/supabase/client";
 import { 
   Globe, 
   Sparkles, 
@@ -13,15 +12,17 @@ import {
   Target, 
   Users, 
   FileCheck,
-  Calendar,
   ArrowRight,
-  Loader2,
   CheckCircle2,
   AlertCircle,
   TrendingUp,
-  HelpCircle,
+  Search,
+  User,
+  Lightbulb,
   AlertTriangle,
-  UserCheck
+  HelpCircle,
+  UserCheck,
+  Calendar
 } from "lucide-react";
 
 interface AIAnalysis {
@@ -101,22 +102,27 @@ const opportunities: Opportunity[] = [
   }
 ];
 
-const analysisMessages = [
-  { icon: Brain, text: "Analyserar er verksamhet…", baseDuration: 1500 },
-  { icon: Target, text: "Identifierar idealkunders köpresa, pain points, vanliga frågor, oro, friktion, motstånd, tveksamhet, rädsla och behov av self-service…", baseDuration: 4000 },
-  { icon: Sparkles, text: "Tar fram förslag på rekommenderade self-service-verktyg…", baseDuration: 2000 }
-];
+// Insight types for the streaming display
+interface StreamingInsight {
+  id: string;
+  icon: React.ElementType;
+  category: string;
+  text: string;
+}
 
 export default function HeroSection() {
   const [phase, setPhase] = useState<"input" | "analyzing" | "results" | "form">("input");
   const [url, setUrl] = useState("");
   const [error, setError] = useState("");
-  const [analysisStep, setAnalysisStep] = useState(0);
-  const [stepProgress, setStepProgress] = useState(0);
+  const [realProgress, setRealProgress] = useState(0);
   const [selectedOpportunity, setSelectedOpportunity] = useState<Opportunity | null>(null);
   const [formData, setFormData] = useState({ name: "", company: "", email: "", role: "" });
   const [aiAnalysis, setAiAnalysis] = useState<AIAnalysis | null>(null);
   const [aiError, setAiError] = useState<string | null>(null);
+  const [streamingInsights, setStreamingInsights] = useState<StreamingInsight[]>([]);
+  const [currentPhaseText, setCurrentPhaseText] = useState("Ansluter till AI...");
+  const startTimeRef = useRef<number>(0);
+  const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleUrlSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -133,6 +139,8 @@ export default function HeroSection() {
       setError("");
       setAiError(null);
       setAiAnalysis(null);
+      setRealProgress(0);
+      setStreamingInsights([]);
       setPhase("analyzing");
       runAnalysis(validUrl);
     } catch {
@@ -141,133 +149,134 @@ export default function HeroSection() {
   };
 
   const runAnalysis = async (websiteUrl: string) => {
-    let step = 0;
-    let aiCallComplete = false;
-    let aiResult: AIAnalysis | null = null;
+    startTimeRef.current = Date.now();
+    const expectedDuration = 15000; // Expected ~15 seconds
     
-    // Start AI analysis in background
-    const aiPromise = (async () => {
-      try {
-        console.log("Starting AI analysis for:", websiteUrl);
-        
-        // Use fetch with longer timeout instead of supabase.functions.invoke
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
-        
-        const response = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-website`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-              'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-            },
-            body: JSON.stringify({ url: websiteUrl }),
-            signal: controller.signal,
-          }
-        );
-        
-        clearTimeout(timeoutId);
-        
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          console.error("AI analysis error:", response.status, errorData);
-          setAiError(errorData.error || "Kunde inte analysera webbplatsen. Försök igen.");
-          return null;
-        }
-        
-        const data = await response.json();
-        
-        if (data?.success && data?.analysis) {
-          console.log("AI analysis complete:", data.analysis);
-          aiResult = data.analysis;
-          setAiAnalysis(data.analysis);
-          return data.analysis;
-        } else if (data?.error) {
-          console.error("AI error:", data.error);
-          setAiError(data.error);
-          return null;
-        }
-        return null;
-      } catch (err) {
-        if (err instanceof Error && err.name === 'AbortError') {
-          console.error("AI call timed out");
-          setAiError("Analysen tog för lång tid. Försök igen.");
-        } else {
-          console.error("AI call failed:", err);
-          setAiError("Ett fel uppstod vid analysen. Försök igen.");
-        }
-        return null;
-      } finally {
-        aiCallComplete = true;
+    // Simulate progressive insights while waiting for AI
+    const simulatedInsights: StreamingInsight[] = [
+      { id: "1", icon: Search, category: "Research", text: "Läser in webbplatsens innehåll..." },
+      { id: "2", icon: Search, category: "Research", text: "Analyserar verksamhetsbeskrivning..." },
+      { id: "3", icon: User, category: "Målgrupp", text: "Identifierar primär målgrupp..." },
+      { id: "4", icon: User, category: "Köproller", text: "Kartlägger beslutsfattare..." },
+      { id: "5", icon: Lightbulb, category: "Pain Points", text: "Identifierar smärtpunkter..." },
+      { id: "6", icon: AlertTriangle, category: "Oro", text: "Analyserar köparens oro och risker..." },
+      { id: "7", icon: HelpCircle, category: "Frågor", text: "Identifierar vanliga frågor före köp..." },
+      { id: "8", icon: Lightbulb, category: "Möjligheter", text: "Tar fram self-service-förslag..." },
+    ];
+
+    let insightIndex = 0;
+    let currentProgress = 0;
+    
+    // Progress timer that updates based on actual elapsed time
+    progressIntervalRef.current = setInterval(() => {
+      const elapsed = Date.now() - startTimeRef.current;
+      // Progress goes up to 90% during the wait, then jumps to 100% when complete
+      currentProgress = Math.min(90, (elapsed / expectedDuration) * 90);
+      setRealProgress(Math.round(currentProgress));
+      
+      // Update phase text based on progress
+      if (currentProgress < 20) {
+        setCurrentPhaseText("Hämtar webbplatsinnehåll...");
+      } else if (currentProgress < 50) {
+        setCurrentPhaseText("Analyserar målgrupp och köpresa...");
+      } else if (currentProgress < 80) {
+        setCurrentPhaseText("Identifierar pain points och oro...");
+      } else {
+        setCurrentPhaseText("Genererar rekommendationer...");
       }
-    })();
-    
-    const advanceStep = () => {
-      if (step >= analysisMessages.length) {
-        // Wait for AI to complete before showing results
-        const checkAiComplete = () => {
-          if (aiCallComplete) {
-            setTimeout(() => setPhase("results"), 800);
-          } else {
-            setTimeout(checkAiComplete, 200);
-          }
-        };
-        checkAiComplete();
+      
+      // Add new insights at certain progress points
+      const targetInsightCount = Math.floor((currentProgress / 90) * simulatedInsights.length);
+      while (insightIndex < targetInsightCount && insightIndex < simulatedInsights.length) {
+        const insight = simulatedInsights[insightIndex];
+        setStreamingInsights(prev => [...prev, insight]);
+        insightIndex++;
+      }
+    }, 100);
+
+    // Start AI analysis
+    try {
+      console.log("Starting AI analysis for:", websiteUrl);
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000);
+      
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-website`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+          body: JSON.stringify({ url: websiteUrl }),
+          signal: controller.signal,
+        }
+      );
+      
+      clearTimeout(timeoutId);
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error("AI analysis error:", response.status, errorData);
+        setAiError(errorData.error || "Kunde inte analysera webbplatsen. Försök igen.");
+        if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+        setRealProgress(100);
+        setTimeout(() => setPhase("results"), 500);
         return;
       }
       
-      setAnalysisStep(step);
-      setStepProgress(0);
+      const data = await response.json();
       
-      // Get base duration and add random variation (±30%)
-      const baseTime = analysisMessages[step]?.baseDuration || 1500;
-      const variation = baseTime * 0.3 * (Math.random() * 2 - 1);
-      const duration = Math.max(800, baseTime + variation);
-      
-      // Generate random pause points (2-4 pauses per step)
-      const numPauses = 2 + Math.floor(Math.random() * 3);
-      const pausePoints = Array.from({ length: numPauses }, () => 
-        15 + Math.floor(Math.random() * 70) // Pause between 15% and 85%
-      ).sort((a, b) => a - b);
-      
-      let currentProgress = 0;
-      let isPaused = false;
-      let pauseIndex = 0;
-      
-      const progressTimer = setInterval(() => {
-        if (isPaused) return;
+      if (data?.success && data?.analysis) {
+        console.log("AI analysis complete:", data.analysis);
+        setAiAnalysis(data.analysis);
         
-        // Check if we should pause
-        if (pauseIndex < pausePoints.length && currentProgress >= pausePoints[pauseIndex]) {
-          isPaused = true;
-          pauseIndex++;
-          // Pause for 200-600ms
-          const pauseDuration = 200 + Math.random() * 400;
-          setTimeout(() => {
-            isPaused = false;
-          }, pauseDuration);
-          return;
+        // Add real insights from analysis
+        if (data.analysis.targetAudience) {
+          setStreamingInsights(prev => [...prev, {
+            id: "real-1",
+            icon: User,
+            category: "Målgrupp",
+            text: data.analysis.targetAudience
+          }]);
         }
-        
-        // Variable speed: sometimes fast, sometimes slow
-        const speedVariation = 0.5 + Math.random() * 1.5;
-        const baseIncrement = 100 / (duration / 50);
-        currentProgress += baseIncrement * speedVariation;
-        
-        if (currentProgress >= 100) {
-          currentProgress = 100;
-          clearInterval(progressTimer);
+        if (data.analysis.buyerRoles?.length > 0) {
+          setStreamingInsights(prev => [...prev, {
+            id: "real-2",
+            icon: User,
+            category: "Köproller",
+            text: data.analysis.buyerRoles.join(", ")
+          }]);
         }
-        setStepProgress(Math.min(100, Math.round(currentProgress)));
-      }, 50);
-      
-      step++;
-      setTimeout(advanceStep, duration + (numPauses * 300)); // Account for pauses
-    };
-    
-    advanceStep();
+        if (data.analysis.painPoints?.length > 0) {
+          data.analysis.painPoints.slice(0, 2).forEach((pp: string, i: number) => {
+            setStreamingInsights(prev => [...prev, {
+              id: `real-pp-${i}`,
+              icon: Lightbulb,
+              category: "Pain Point",
+              text: pp
+            }]);
+          });
+        }
+      } else if (data?.error) {
+        console.error("AI error:", data.error);
+        setAiError(data.error);
+      }
+    } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') {
+        console.error("AI call timed out");
+        setAiError("Analysen tog för lång tid. Försök igen.");
+      } else {
+        console.error("AI call failed:", err);
+        setAiError("Ett fel uppstod vid analysen. Försök igen.");
+      }
+    } finally {
+      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+      setRealProgress(100);
+      setTimeout(() => setPhase("results"), 800);
+    }
   };
 
   // Build opportunities list based on AI analysis or fallback to default
@@ -403,70 +412,123 @@ export default function HeroSection() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="max-w-2xl mx-auto text-center"
+              className="max-w-3xl mx-auto"
             >
-              <h2 className="text-2xl md:text-3xl font-bold mb-8">Analyserar er webbplats...</h2>
-
-              {/* Overall progress bar */}
-              <div className="mb-8">
-                <div className="h-2 bg-card rounded-full overflow-hidden">
-                  <motion.div
-                    className="h-full bg-primary rounded-full"
-                    initial={{ width: "0%" }}
-                    animate={{ 
-                      width: `${((analysisStep / analysisMessages.length) * 100) + (stepProgress / analysisMessages.length)}%` 
-                    }}
-                    transition={{ duration: 0.1 }}
-                  />
-                </div>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Totalt: {Math.round(((analysisStep / analysisMessages.length) * 100) + (stepProgress / analysisMessages.length))}%
-                </p>
+              <div className="text-center mb-8">
+                <h2 className="text-2xl md:text-3xl font-bold mb-2">Analyserar er webbplats...</h2>
+                <p className="text-muted-foreground">{currentPhaseText}</p>
               </div>
 
-              <div className="space-y-4">
-                {analysisMessages.map((msg, index) => {
-                  const Icon = msg.icon;
-                  const isActive = index === analysisStep;
-                  const isDone = index < analysisStep;
-                  const currentStepProgress = isActive ? stepProgress : isDone ? 100 : 0;
+              {/* Real progress bar */}
+              <div className="mb-8">
+                <div className="h-3 bg-card rounded-full overflow-hidden border border-border">
+                  <motion.div
+                    className="h-full bg-gradient-to-r from-primary to-primary/70 rounded-full"
+                    initial={{ width: "0%" }}
+                    animate={{ width: `${realProgress}%` }}
+                    transition={{ duration: 0.2, ease: "linear" }}
+                  />
+                </div>
+                <div className="flex justify-between mt-2">
+                  <p className="text-sm text-muted-foreground">AI-analys pågår</p>
+                  <p className="text-sm font-medium text-primary">{realProgress}%</p>
+                </div>
+              </div>
+
+              {/* Streaming insights - machine-like display */}
+              <div className="relative bg-card/30 rounded-2xl border border-border p-6 overflow-hidden">
+                {/* Scanning line effect */}
+                <motion.div
+                  className="absolute left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary to-transparent"
+                  animate={{ top: ["0%", "100%"] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                />
+                
+                <div className="space-y-1 max-h-[300px] overflow-hidden relative">
+                  <AnimatePresence mode="popLayout">
+                    {streamingInsights.slice(-8).map((insight, index) => {
+                      const Icon = insight.icon;
+                      const isLatest = index === streamingInsights.slice(-8).length - 1;
+                      
+                      return (
+                        <motion.div
+                          key={insight.id}
+                          initial={{ opacity: 0, x: -50, height: 0 }}
+                          animate={{ 
+                            opacity: isLatest ? 1 : 0.5 - (index * 0.05), 
+                            x: 0, 
+                            height: "auto" 
+                          }}
+                          exit={{ opacity: 0, x: 50, height: 0 }}
+                          transition={{ 
+                            duration: 0.4,
+                            type: "spring",
+                            stiffness: 100
+                          }}
+                          className={`flex items-center gap-3 py-2 px-3 rounded-lg ${
+                            isLatest ? "bg-primary/10 border border-primary/20" : ""
+                          }`}
+                        >
+                          <div className={`p-1.5 rounded-md ${
+                            isLatest ? "bg-primary/20" : "bg-card/50"
+                          }`}>
+                            <Icon className={`w-4 h-4 ${
+                              isLatest ? "text-primary" : "text-muted-foreground"
+                            }`} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <span className={`text-xs font-medium uppercase tracking-wider ${
+                              isLatest ? "text-primary" : "text-muted-foreground"
+                            }`}>
+                              {insight.category}
+                            </span>
+                            <p className={`text-sm truncate ${
+                              isLatest ? "text-foreground" : "text-muted-foreground"
+                            }`}>
+                              {insight.text}
+                            </p>
+                          </div>
+                          {isLatest && (
+                            <motion.div
+                              animate={{ opacity: [1, 0.3, 1] }}
+                              transition={{ duration: 1, repeat: Infinity }}
+                              className="w-2 h-2 rounded-full bg-primary"
+                            />
+                          )}
+                        </motion.div>
+                      );
+                    })}
+                  </AnimatePresence>
                   
-                  return (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0.3 }}
-                      animate={{ 
-                        opacity: isDone || isActive ? 1 : 0.3,
-                        scale: isActive ? 1.02 : 1
-                      }}
-                      className={`p-4 rounded-xl transition-colors ${
-                        isActive ? "bg-primary/10 border border-primary/30" : 
-                        isDone ? "bg-card/50" : "bg-card/20"
-                      }`}
-                    >
-                      <div className="flex items-center gap-4 mb-2">
-                        <Icon className={`w-5 h-5 shrink-0 ${isDone ? "text-primary" : isActive ? "text-primary" : "text-muted-foreground"}`} />
-                        <span className={`text-left flex-1 ${isDone || isActive ? "text-foreground" : "text-muted-foreground"}`}>
-                          {msg.text}
-                        </span>
-                        <span className={`text-sm font-medium shrink-0 ${isActive ? "text-primary" : isDone ? "text-primary" : "text-muted-foreground"}`}>
-                          {currentStepProgress}%
-                        </span>
-                        {isDone && <CheckCircle2 className="w-5 h-5 text-primary shrink-0" />}
-                      </div>
-                      {(isActive || isDone) && (
-                        <div className="h-1.5 bg-card/50 rounded-full overflow-hidden ml-9">
-                          <motion.div
-                            className="h-full bg-primary rounded-full"
-                            initial={{ width: "0%" }}
-                            animate={{ width: `${currentStepProgress}%` }}
-                            transition={{ duration: 0.1 }}
-                          />
-                        </div>
-                      )}
-                    </motion.div>
-                  );
-                })}
+                  {streamingInsights.length === 0 && (
+                    <div className="flex items-center justify-center py-8">
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                        className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full"
+                      />
+                    </div>
+                  )}
+                </div>
+                
+                {/* Gradient fade at bottom */}
+                <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-card/30 to-transparent pointer-events-none" />
+              </div>
+
+              {/* Status indicators */}
+              <div className="flex justify-center gap-6 mt-6">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Search className="w-4 h-4" />
+                  <span>Research</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <User className="w-4 h-4" />
+                  <span>Målgrupp</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Lightbulb className="w-4 h-4" />
+                  <span>Insikter</span>
+                </div>
               </div>
             </motion.div>
           )}
