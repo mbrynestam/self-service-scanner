@@ -10,6 +10,7 @@ import UseCases from "./pages/UseCases";
 import Priser from "./pages/Priser";
 import OmOss from "./pages/OmOss";
 import Kontakt from "./pages/Kontakt";
+import Embed from "./pages/Embed";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
           <Route path="/priser" element={<Priser />} />
           <Route path="/om-oss" element={<OmOss />} />
           <Route path="/kontakt" element={<Kontakt />} />
+          <Route path="/embed" element={<Embed />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
