@@ -60,54 +60,52 @@ export default function ScannerStep4({ focusArea, url, onSelectSuggestion }: Sca
         </h2>
       </motion.div>
 
-      {/* Horizontal scrollable cards */}
-      <div className="w-full overflow-x-auto pb-2 -mx-2 px-2">
-        <div className="flex gap-3 min-w-min">
-          {suggestions.map((suggestion, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.05 + index * 0.08 }}
-              className="flex-shrink-0 w-[200px] bg-card rounded-lg border border-border hover:border-primary/40 transition-all duration-200 p-3 relative"
-            >
-              {/* Rank badge */}
-              <div className="absolute -top-2 -left-2 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
-                <span className="text-[10px] font-bold text-primary-foreground">{index + 1}</span>
+      {/* Grid layout */}
+      <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        {suggestions.map((suggestion, index) => (
+          <motion.div
+            key={index}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 + index * 0.08 }}
+            className="bg-card rounded-lg border border-border hover:border-primary/40 transition-all duration-200 p-3 relative"
+          >
+            {/* Rank badge */}
+            <div className="absolute -top-2 -left-2 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+              <span className="text-[10px] font-bold text-primary-foreground">{index + 1}</span>
+            </div>
+
+            <div className="flex flex-col h-full">
+              <h3 className="text-sm font-semibold mb-1 pr-4">{suggestion.title}</h3>
+              
+              <div className="flex items-center gap-1 mb-2">
+                <TrendingUp className={`w-3 h-3 ${valueColors[suggestion.value]}`} />
+                <span className={`text-[10px] font-medium ${valueColors[suggestion.value]}`}>
+                  {suggestion.value}
+                </span>
               </div>
 
-              <div className="flex flex-col h-full">
-                <h3 className="text-sm font-semibold mb-1 pr-4">{suggestion.title}</h3>
-                
-                <div className="flex items-center gap-1 mb-2">
-                  <TrendingUp className={`w-3 h-3 ${valueColors[suggestion.value]}`} />
-                  <span className={`text-[10px] font-medium ${valueColors[suggestion.value]}`}>
-                    {suggestion.value}
-                  </span>
-                </div>
+              <p className="text-[11px] text-muted-foreground mb-3 flex-1">
+                {suggestion.shortReason}
+              </p>
 
-                <p className="text-[11px] text-muted-foreground mb-3 flex-1">
-                  {suggestion.shortReason}
-                </p>
+              <Button
+                variant="hero"
+                size="sm"
+                onClick={() => onSelectSuggestion(index)}
+                className="w-full h-7 text-xs"
+              >
+                Välj
+                <ArrowRight className="w-3 h-3 ml-1" />
+              </Button>
+            </div>
 
-                <Button
-                  variant="hero"
-                  size="sm"
-                  onClick={() => onSelectSuggestion(index)}
-                  className="w-full h-7 text-xs"
-                >
-                  Välj
-                  <ArrowRight className="w-3 h-3 ml-1" />
-                </Button>
-              </div>
-
-              {/* Highlight for top suggestion */}
-              {index === 0 && (
-                <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-primary/10 via-transparent to-transparent pointer-events-none" />
-              )}
-            </motion.div>
-          ))}
-        </div>
+            {/* Highlight for top suggestion */}
+            {index === 0 && (
+              <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-primary/10 via-transparent to-transparent pointer-events-none" />
+            )}
+          </motion.div>
+        ))}
       </div>
 
       {/* Bottom note */}
