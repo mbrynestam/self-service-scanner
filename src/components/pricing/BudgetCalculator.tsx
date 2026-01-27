@@ -45,7 +45,7 @@ const implementationTypes = [
     priceRange: "25 000 – 50 000 kr",
     minPrice: 25000,
     maxPrice: 50000,
-    description: "Snabb, vibekodad, funktion före perfektion",
+    description: "Snabb leverans, kodad med AI, enklare integrationer",
   },
   {
     id: "custom" as const,
@@ -54,16 +54,16 @@ const implementationTypes = [
     priceRange: "50 000 – 200 000 kr",
     minPrice: 50000,
     maxPrice: 200000,
-    description: "Mer robust, fler integrationer",
+    description: "Byggs utifrån prototypen, kodas manuellt, fler integrationsmöjligheter",
   },
   {
     id: "self" as const,
     icon: Users,
-    label: "Bygga själva / med annan partner",
-    priceRange: "100 000 – 500 000 kr",
-    minPrice: 100000,
-    maxPrice: 500000,
-    description: "Ni får underlag och prototyp att arbeta vidare med",
+    label: "Bygga själva",
+    priceRange: null,
+    minPrice: 0,
+    maxPrice: 0,
+    description: "Arbeta vidare med projektet på egen hand",
   },
 ];
 
