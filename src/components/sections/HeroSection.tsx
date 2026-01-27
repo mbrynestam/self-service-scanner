@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
+import confetti from "canvas-confetti";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
@@ -277,6 +278,15 @@ export default function HeroSection() {
         setTimeout(() => {
           setAnalysisComplete(true);
           setRealProgress(100);
+          
+          // Trigger confetti celebration
+          confetti({
+            particleCount: 80,
+            spread: 70,
+            origin: { y: 0.6 },
+            colors: ['#74F5A1', '#22c55e', '#10b981', '#34d399']
+          });
+          
           setTimeout(() => setPhase("results"), 500);
         }, findings.length * 400 + 300);
         
