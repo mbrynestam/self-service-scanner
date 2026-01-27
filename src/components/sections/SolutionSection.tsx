@@ -1,7 +1,9 @@
 import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useRef } from "react";
-import { Check, Sparkles } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Check, Sparkles, ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const features = [
   "Interaktiva priskalkylatorer och ROI-räknare",
@@ -58,6 +60,20 @@ export default function SolutionSection() {
                 </motion.li>
               ))}
             </ul>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.4, delay: 0.8 }}
+              className="mt-8"
+            >
+              <Button variant="outline" size="lg" asChild>
+                <Link to="/use-cases">
+                  Se fler use cases
+                  <ArrowRight className="ml-2 w-4 h-4" />
+                </Link>
+              </Button>
+            </motion.div>
           </motion.div>
 
           <motion.div
