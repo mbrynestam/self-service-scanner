@@ -650,10 +650,10 @@ export default function HeroSection() {
                       transition={{ delay: 0.3 + index * 0.1 }}
                       whileHover={{ scale: 1.03 }}
                       onClick={() => handleOpportunitySelect(opp)}
-                      className={`group p-6 rounded-2xl bg-card/50 text-left transition-all duration-300 ${
+                      className={`group p-6 rounded-2xl bg-card/50 text-left transition-all duration-300 border-2 ${
                         isSelected 
-                          ? "border-2 border-primary ring-2 ring-primary/20" 
-                          : "border border-transparent hover:border-primary"
+                          ? "border-primary ring-2 ring-primary/20" 
+                          : "border-transparent hover:border-primary"
                       }`}
                     >
                       <div className="flex items-start gap-4">
@@ -662,7 +662,7 @@ export default function HeroSection() {
                         }`}>
                           <Icon className="w-6 h-6 text-primary" />
                         </div>
-                        <div className="flex-1">
+                        <div className="flex-1 min-w-0">
                           <h3 className={`font-semibold mb-1 transition-colors ${
                             isSelected ? "text-primary" : "text-foreground group-hover:text-primary"
                           }`}>
@@ -684,9 +684,12 @@ export default function HeroSection() {
                             )}
                           </div>
                         </div>
-                        {isSelected && (
-                          <CheckCircle2 className="w-6 h-6 text-primary shrink-0" />
-                        )}
+                        {/* Always reserve space for checkmark to prevent layout shift */}
+                        <div className="w-6 h-6 shrink-0 flex items-center justify-center">
+                          {isSelected && (
+                            <CheckCircle2 className="w-6 h-6 text-primary" />
+                          )}
+                        </div>
                       </div>
                     </motion.button>
                   );
