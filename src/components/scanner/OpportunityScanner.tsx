@@ -60,7 +60,7 @@ export default function OpportunityScanner({ onClose, embedded = false }: Opport
   };
 
   return (
-    <div className={`w-full ${embedded ? '' : 'min-h-[600px]'} relative`}>
+    <div className={`w-full ${embedded ? '' : 'min-h-[500px]'} max-h-[800px] overflow-y-auto relative`}>
       {/* Back button */}
       {step > 1 && step < 5 && (
         <motion.div
