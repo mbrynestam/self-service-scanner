@@ -265,16 +265,15 @@ export default function HeroSection() {
         // Build findings and stream them as flying badges
         const findings = buildFindings(data.analysis);
         
-        // Stream findings one by one with flying animation
+        // Stream findings rapidly - 150ms intervals for snappy feel
         findings.forEach((finding, index) => {
           setTimeout(() => {
             setStreamingInsights(prev => [...prev, finding]);
-            // Smooth progress towards 100%
-            setRealProgress(90 + (index + 1) * (10 / findings.length));
-          }, index * 400);
+            setRealProgress(92 + (index + 1) * (8 / findings.length));
+          }, index * 150);
         });
 
-        // Complete after all findings shown
+        // Complete quickly after findings shown
         setTimeout(() => {
           setAnalysisComplete(true);
           setRealProgress(100);
@@ -287,8 +286,8 @@ export default function HeroSection() {
             colors: ['#74F5A1', '#22c55e', '#10b981', '#34d399']
           });
           
-          setTimeout(() => setPhase("results"), 500);
-        }, findings.length * 400 + 300);
+          setTimeout(() => setPhase("results"), 400);
+        }, findings.length * 150 + 200);
         
       } else if (data?.error) {
         console.error("AI error:", data.error);
