@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Buyr Scanner - Web Component Demo</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 2rem;
+      background: #1a1a1a;
+      min-height: 100vh;
+    }
+    h1 {
+      color: white;
+      font-family: system-ui, sans-serif;
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Buyr Scanner Web Component Demo</h1>
+    
+    <!-- The custom web component -->
+    <buyr-scanner></buyr-scanner>
+  </div>
+
+  <!-- 
+    To use this web component on your site, include these script and style tags:
+    
+    <script type="module" src="https://buyr-tools.lovable.app/buyr-scanner.es.js"></script>
+    <link rel="stylesheet" href="https://buyr-tools.lovable.app/buyr-scanner.css">
+    
+    Then use the custom element:
+    <buyr-scanner></buyr-scanner>
+  -->
+  
+  <!-- For development/demo, load from the main app -->
+  <script type="module">
+    // This imports the web component definition
+    import '/src/web-component.tsx';
+  </script>
+</body>
+</html>
