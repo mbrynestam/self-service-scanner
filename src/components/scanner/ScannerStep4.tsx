@@ -1,5 +1,6 @@
-import { motion } from "framer-motion";
-import { TrendingUp, ArrowRight, Info } from "lucide-react";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { TrendingUp, ArrowRight, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { FocusArea } from "./OpportunityScanner";
 
@@ -93,6 +94,11 @@ const valueColors = {
 export default function ScannerStep4({ focusArea, url, onSelectSuggestion }: ScannerStep4Props) {
   const suggestions = suggestionsByArea[focusArea];
   const domain = url.replace(/^https?:\/\//, "").split("/")[0];
+  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+
+  const toggleExpand = (index: number) => {
+    setExpandedIndex(expandedIndex === index ? null : index);
+  };
 
   return (
     <div className="flex flex-col items-center max-w-3xl mx-auto px-4">
@@ -100,59 +106,83 @@ export default function ScannerStep4({ focusArea, url, onSelectSuggestion }: Sca
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-center mb-5"
+        className="text-center mb-4"
       >
-        <h2 className="text-xl md:text-2xl font-bold mb-2">
-          Här är de starkaste self-service-möjligheterna för er
+        <h2 className="text-lg md:text-xl font-bold mb-1">
+          Self-service-möjligheter för er
         </h2>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-xs text-muted-foreground">
           Baserat på analysen av <span className="text-foreground font-medium">{domain}</span>
         </p>
       </motion.div>
 
-      {/* Suggestion cards */}
-      <div className="w-full space-y-3">
+      {/* Suggestion cards - compact */}
+      <div className="w-full space-y-2">
         {suggestions.map((suggestion, index) => (
           <motion.div
             key={index}
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 + index * 0.1 }}
-            className="group relative bg-card rounded-xl border border-transparent hover:border-primary/30 transition-all duration-300 overflow-hidden"
+            transition={{ delay: 0.05 + index * 0.08 }}
+            className="group relative bg-card rounded-lg border border-transparent hover:border-primary/30 transition-all duration-300 overflow-hidden"
           >
-            {/* Rank badge */}
-            <div className="absolute top-3 left-3 w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
-              <span className="text-xs font-bold text-primary">#{index + 1}</span>
-            </div>
+            <div className="p-3 pl-10">
+              {/* Rank badge */}
+              <div className="absolute top-3 left-3 w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center">
+                <span className="text-[10px] font-bold text-primary">#{index + 1}</span>
+              </div>
 
-            <div className="p-4 pl-12">
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                <div className="flex-1">
-                  <h3 className="text-base font-semibold mb-1">{suggestion.title}</h3>
-                  
-                  {/* Value indicator */}
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <TrendingUp className={`w-3 h-3 ${valueColors[suggestion.value]}`} />
-                    <span className={`text-xs font-medium ${valueColors[suggestion.value]}`}>
-                      {suggestion.value}
-                    </span>
-                    <span className="text-xs text-muted-foreground hidden md:inline">• {suggestion.reason}</span>
+                    <h3 className="text-sm font-semibold truncate">{suggestion.title}</h3>
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      <TrendingUp className={`w-3 h-3 ${valueColors[suggestion.value]}`} />
+                      <span className={`text-[10px] font-medium ${valueColors[suggestion.value]}`}>
+                        {suggestion.value}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
-                {/* CTA buttons */}
-                <div className="flex-shrink-0">
+                {/* Action buttons */}
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => toggleExpand(index)}
+                    className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+                  >
+                    <ChevronDown className={`w-4 h-4 transition-transform ${expandedIndex === index ? 'rotate-180' : ''}`} />
+                  </Button>
                   <Button
                     variant="hero"
                     size="sm"
                     onClick={() => onSelectSuggestion(index)}
-                    className="whitespace-nowrap"
+                    className="h-7 text-xs px-2"
                   >
-                    Visa mer
+                    Välj
                     <ArrowRight className="w-3 h-3 ml-1" />
                   </Button>
                 </div>
               </div>
+
+              {/* Expandable description */}
+              <AnimatePresence>
+                {expandedIndex === index && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="overflow-hidden"
+                  >
+                    <p className="text-xs text-muted-foreground mt-2 pt-2 border-t border-border/50">
+                      {suggestion.reason}
+                    </p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             {/* Subtle highlight for top suggestion */}
@@ -167,8 +197,8 @@ export default function ScannerStep4({ focusArea, url, onSelectSuggestion }: Sca
       <motion.p
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.4 }}
-        className="text-xs text-muted-foreground text-center mt-5"
+        transition={{ delay: 0.3 }}
+        className="text-[10px] text-muted-foreground text-center mt-3"
       >
         Baserat på best practices för B2B self-service
       </motion.p>
