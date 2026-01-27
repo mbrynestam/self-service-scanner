@@ -254,45 +254,135 @@ Returnera ENDAST JSON, ingen annan text.`;
       userMessage += `\n\nWebbplatsinnehåll:\n\n${limitedContent}`;
     }
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userMessage }
-        ],
-        temperature: 0.5,
-      }),
-    });
+    // Retry logic for AI calls
+    let content: string | null = null;
+    let lastError: Error | null = null;
+    const maxRetries = 2;
 
-    if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Rate limit exceeded, please try again later." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${LOVABLE_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "google/gemini-2.5-flash",
+            messages: [
+              { role: "system", content: systemPrompt },
+              { role: "user", content: userMessage }
+            ],
+            temperature: 0.5,
+          }),
+        });
+
+        if (!response.ok) {
+          if (response.status === 429) {
+            return new Response(
+              JSON.stringify({ error: "Rate limit exceeded, please try again later." }),
+              { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
+          }
+          if (response.status === 402) {
+            return new Response(
+              JSON.stringify({ error: "Payment required, please add funds." }),
+              { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
+          }
+          const errorText = await response.text();
+          console.error("AI gateway error:", response.status, errorText);
+          lastError = new Error(`AI gateway error: ${response.status}`);
+          continue;
+        }
+
+        const data = await response.json();
+        content = data.choices?.[0]?.message?.content;
+
+        if (content && content.trim().length > 10) {
+          break; // Success
+        }
+        
+        console.warn(`Attempt ${attempt + 1}: Empty or minimal AI response, retrying...`);
+        lastError = new Error("Empty AI response");
+      } catch (err) {
+        console.error(`Attempt ${attempt + 1} failed:`, err);
+        lastError = err instanceof Error ? err : new Error("Unknown error");
       }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "Payment required, please add funds." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+      
+      // Wait before retry
+      if (attempt < maxRetries) {
+        await new Promise(resolve => setTimeout(resolve, 500 * (attempt + 1)));
       }
-      const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
-      throw new Error(`AI gateway error: ${response.status}`);
     }
 
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content;
-
-    if (!content) {
-      throw new Error("No content in AI response");
+    if (!content || content.trim().length < 10) {
+      console.error("All AI attempts failed, using fallback for step:", step);
+      // Use fallback response based on step
+      let fallbackAnalysis;
+      if (step === "audience") {
+        fallbackAnalysis = {
+          isB2B: true,
+          businessType: "tjänst",
+          targetAudience: "B2B-företag",
+          buyerRoles: ["VD", "Marknadschef", "Inköpschef"]
+        };
+      } else if (step === "questions") {
+        fallbackAnalysis = {
+          buyerQuestions: ["Vad kostar det?", "Hur fungerar det?", "Passar detta för oss?"],
+          painPoints: ["Svårt att jämföra alternativ", "Otydliga priser"],
+          concerns: ["ROI osäkerhet", "Implementeringstid"]
+        };
+      } else if (step === "opportunities") {
+        fallbackAnalysis = {
+          recommended: "pricing",
+          reasoning: "En priskalkylator hjälper köpare förstå investeringen tidigt.",
+          opportunities: [
+            {
+              type: "pricing",
+              title: "Priskalkylator",
+              description: "Låter besökare estimera kostnaden baserat på deras behov.",
+              potentialValue: "high",
+              fit: 0.9
+            },
+            {
+              type: "assessment",
+              title: "Behovsanalys",
+              description: "Hjälp besökare förstå om lösningen passar dem.",
+              potentialValue: "high",
+              fit: 0.85
+            }
+          ]
+        };
+      } else {
+        fallbackAnalysis = {
+          isB2B: true,
+          businessType: "tjänst",
+          targetAudience: "B2B-företag",
+          buyerRoles: ["VD", "Marknadschef"],
+          painPoints: ["Otydlig prissättning"],
+          buyerQuestions: ["Vad kostar det?"],
+          concerns: ["ROI osäkerhet"],
+          recommended: "pricing",
+          confidence: 0.7,
+          reasoning: "Priskalkylator är ofta det mest efterfrågade verktyget.",
+          opportunities: [
+            {
+              type: "pricing",
+              title: "Priskalkylator",
+              description: "Beräkna kostnader direkt.",
+              potentialValue: "Högt",
+              businessValuePercent: 35,
+              fit: 0.85
+            }
+          ]
+        };
+      }
+      
+      return new Response(
+        JSON.stringify({ success: true, analysis: fallbackAnalysis, step: step || "full", hasScrapedContent: hasContent, fallback: true }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     console.log("AI response for step", step || "full", ":", content.substring(0, 200));
