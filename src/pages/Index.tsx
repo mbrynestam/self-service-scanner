@@ -1,8 +1,8 @@
 import Layout from "@/components/layout/Layout";
 import HeroSection from "@/components/sections/HeroSection";
 import ProblemSection from "@/components/sections/ProblemSection";
-import SolutionSection from "@/components/sections/SolutionSection";
-import UseCasesSection from "@/components/sections/UseCasesSection";
+import SelfServiceSection from "@/components/sections/SelfServiceSection";
+import ResultsSection from "@/components/sections/ResultsSection";
 import ProcessSection from "@/components/sections/ProcessSection";
 import DifferentiatorsSection from "@/components/sections/DifferentiatorsSection";
 import SocialProofSection from "@/components/sections/SocialProofSection";
@@ -14,8 +14,8 @@ export default function Index() {
     <Layout>
       <HeroSection />
       <ProblemSection />
-      <SolutionSection />
-      <UseCasesSection />
+      <SelfServiceSection />
+      <ResultsSection />
       <ProcessSection />
       <DifferentiatorsSection />
       <SocialProofSection />

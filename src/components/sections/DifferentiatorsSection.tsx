@@ -39,9 +39,9 @@ export default function DifferentiatorsSection() {
             animate={isInView ? { opacity: 1, x: 0 } : {}}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold mb-6">
+            <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold mb-6 text-foreground">
               Varför företag väljer{" "}
-              <span className="gradient-text">oss</span>
+              <span className="gradient-text">Buyr</span>
             </h2>
             <p className="text-lg text-muted-foreground">
               Vi kombinerar djup B2B-kompetens med modern teknik och AI för att

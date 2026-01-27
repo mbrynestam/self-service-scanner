@@ -49,7 +49,7 @@ export default function ProcessSection() {
           transition={{ duration: 0.6 }}
           className="text-center max-w-3xl mx-auto mb-16"
         >
-          <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold mb-6">
+          <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold mb-6 text-foreground">
             Från idé till lansering på{" "}
             <span className="gradient-text">rekordtid</span>
           </h2>

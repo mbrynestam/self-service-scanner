@@ -3,7 +3,7 @@ import { useInView } from "framer-motion";
 import { useRef } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { Calculator, Calendar } from "lucide-react";
 
 export default function CTASection() {
   const ref = useRef(null);
@@ -27,26 +27,27 @@ export default function CTASection() {
           </div>
 
           <div className="relative z-10">
-            <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold mb-6">
-              Redo att låta köpare{" "}
-              <span className="gradient-text">utforska på egna villkor</span>?
+            <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold mb-6 text-foreground">
+              Redo att ge dina köpare{" "}
+              <span className="gradient-text">kontroll</span>?
             </h2>
             
             <p className="text-lg text-muted-foreground mb-10 max-w-2xl mx-auto">
-              Boka en demo och se hur vi kan hjälpa er bygga self-service verktyg
-              som accelererar säljcykeln och ökar konverteringen.
+              Boka ett strategisamtal och se hur Buyr kan hjälpa er bygga self-service 
+              verktyg som accelererar säljcykeln och ökar konverteringen.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button variant="hero" size="xl" asChild>
-                <Link to="/kontakt">
-                  Boka demo
-                  <ArrowRight className="ml-2" />
+                <Link to="/priser">
+                  <Calculator className="mr-2" size={18} />
+                  Räkna ut pris nu
                 </Link>
               </Button>
               <Button variant="heroOutline" size="xl" asChild>
-                <Link to="/priser">
-                  Se priser
+                <Link to="/kontakt">
+                  <Calendar className="mr-2" size={18} />
+                  Boka strategisamtal
                 </Link>
               </Button>
             </div>
