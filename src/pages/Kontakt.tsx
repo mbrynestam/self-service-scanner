@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Layout from "@/components/layout/Layout";
-import { Mail, Phone, MapPin, Calendar, Send } from "lucide-react";
+import { Calendar, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +12,25 @@ import { supabase } from "@/integrations/supabase/client";
 export default function Kontakt() {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    // Load Calendly widget CSS
+    const link = document.createElement('link');
+    link.href = 'https://assets.calendly.com/assets/external/widget.css';
+    link.rel = 'stylesheet';
+    document.head.appendChild(link);
+
+    // Load Calendly widget script
+    const script = document.createElement('script');
+    script.src = 'https://assets.calendly.com/assets/external/widget.js';
+    script.async = true;
+    document.body.appendChild(script);
+
+    return () => {
+      document.head.removeChild(link);
+      document.body.removeChild(script);
+    };
+  }, []);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -249,7 +268,17 @@ export default function Kontakt() {
                       Välj en tid som passar dig för ett 30-minuters samtal där
                       vi går igenom era möjligheter.
                     </p>
-                    <Button variant="outline" size="lg">
+                    <Button 
+                      variant="outline" 
+                      size="lg"
+                      onClick={() => {
+                        if (typeof window !== 'undefined' && (window as any).Calendly) {
+                          (window as any).Calendly.initPopupWidget({
+                            url: 'https://calendly.com/magnus-43/30min'
+                          });
+                        }
+                      }}
+                    >
                       Se lediga tider
                     </Button>
                   </div>
