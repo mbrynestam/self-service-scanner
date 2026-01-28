@@ -13,8 +13,8 @@ const startLevels = [
     icon: Target,
     label: "Förstå möjligheterna",
     name: "Self-Service Opportunity Sprint",
-    price: 29000,
-    priceLabel: "29 000 kr",
+    price: 25000,
+    priceLabel: "25 000 kr",
     description: "Identifiera var self-service skapar mest värde i er köpresa.",
     allowsAiBuilt: false,
   },
@@ -23,8 +23,8 @@ const startLevels = [
     icon: Zap,
     label: "Ta fram och testa en lösning",
     name: "Self-Service Prototype Sprint",
-    price: 49000,
-    priceLabel: "49 000 kr",
+    price: 45000,
+    priceLabel: "45 000 kr",
     description: "Se hur en konkret lösning kan fungera med klickbar prototyp.",
     recommended: true,
     allowsAiBuilt: true,
@@ -34,21 +34,16 @@ const startLevels = [
     icon: Rocket,
     label: "Ta ett större grepp",
     name: "Innovation Sprint",
-    price: 79000,
-    priceLabel: "från 79 000 kr",
+    price: 75000,
+    priceLabel: "från 75 000 kr",
     description: "För mer avancerade eller affärskritiska initiativ.",
     allowsAiBuilt: false,
   },
 ];
 
-// Complexity levels for AI-built version (only available with prototype sprint)
-const aiBuiltComplexityLevels = [
-  { value: 0, label: "Mycket enkel", price: 12500 },
-  { value: 1, label: "Enkel", price: 25000 },
-  { value: 2, label: "Standard", price: 50000 },
-  { value: 3, label: "Avancerad", price: 75000 },
-  { value: 4, label: "Mycket komplex", price: 100000 },
-];
+// Complexity price range for AI-built version (continuous slider)
+const AI_BUILT_MIN_PRICE = 12500;
+const AI_BUILT_MAX_PRICE = 100000;
 
 const implementationTypes = [
   {
@@ -100,13 +95,11 @@ const secondaryImplementationTypes = [
 export default function BudgetCalculator() {
   const [startLevel, setStartLevel] = useState<StartLevel>(null);
   const [implementationType, setImplementationType] = useState<ImplementationType>(null);
-  const [complexityIndex, setComplexityIndex] = useState(1); // Default to "Enkel"
+  const [complexityValue, setComplexityValue] = useState(25000); // Default price
 
   const selectedStart = startLevels.find((s) => s.id === startLevel);
   const selectedImplementation = implementationTypes.find((i) => i.id === implementationType) 
     || secondaryImplementationTypes.find((i) => i.id === implementationType);
-  
-  const selectedComplexity = aiBuiltComplexityLevels[complexityIndex];
 
   // Check if AI-built option is available (only for prototype sprint)
   const canSelectAiBuilt = selectedStart?.allowsAiBuilt === true;
@@ -117,7 +110,7 @@ export default function BudgetCalculator() {
   };
 
   const getAiBuiltPrice = () => {
-    return selectedComplexity.price;
+    return complexityValue;
   };
 
   const getTotalRange = () => {
@@ -197,7 +190,7 @@ export default function BudgetCalculator() {
                       key={level.id}
                       onClick={() => {
                         setStartLevel(level.id);
-                        setComplexityIndex(1);
+                        setComplexityValue(25000);
                         // Reset implementation type if AI-built was selected but new sprint doesn't allow it
                         if (implementationType === "ai-built" && !level.allowsAiBuilt) {
                           setImplementationType(null);
@@ -291,8 +284,13 @@ export default function BudgetCalculator() {
                             <Sparkles className={cn("w-5 h-5", implementationType === "ai-built" ? "text-primary" : "text-muted-foreground")} />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-foreground mb-1">Snabb AI-byggd version</p>
-                            <p className="text-sm text-muted-foreground">Snabb leverans, kodad med AI, enklare integrationer</p>
+                            <div className="flex items-center gap-2 mb-1">
+                              <p className="font-semibold text-foreground">Snabb AI-byggd version</p>
+                              <span className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+                                Bestäm senare
+                              </span>
+                            </div>
+                            <p className="text-sm text-muted-foreground">Fullt fungerande lösning. Snabb leverans. Kodad med AI. Enklare integrationer.</p>
                           </div>
                           <div
                             className={cn(
@@ -320,30 +318,21 @@ export default function BudgetCalculator() {
                             </p>
                             <div className="space-y-4">
                               <Slider
-                                value={[complexityIndex]}
-                                onValueChange={(value) => setComplexityIndex(value[0])}
-                                max={4}
-                                min={0}
-                                step={1}
+                                value={[complexityValue]}
+                                onValueChange={(value) => setComplexityValue(value[0])}
+                                max={AI_BUILT_MAX_PRICE}
+                                min={AI_BUILT_MIN_PRICE}
+                                step={500}
                                 className="w-full"
                               />
                               <div className="flex justify-between text-xs text-muted-foreground">
-                                {aiBuiltComplexityLevels.map((level) => (
-                                  <span 
-                                    key={level.value}
-                                    className={cn(
-                                      "transition-colors text-center",
-                                      complexityIndex === level.value && "text-primary font-medium"
-                                    )}
-                                  >
-                                    {level.label}
-                                  </span>
-                                ))}
+                                <span>Enklare</span>
+                                <span>Mer komplex</span>
                               </div>
                               <div className="text-center pt-2">
                                 <p className="text-xs text-muted-foreground">Uppskattad kostnad</p>
                                 <p className="font-display text-xl font-bold text-primary">
-                                  {formatPrice(selectedComplexity.price)}
+                                  {formatPrice(complexityValue)}
                                 </p>
                               </div>
                             </div>
@@ -465,7 +454,7 @@ export default function BudgetCalculator() {
                       </div>
                       <p className="text-sm font-medium text-foreground mb-2">
                         {implementationType === "ai-built" 
-                          ? `Snabb AI-byggd version (${selectedComplexity.label.toLowerCase()})`
+                          ? "Snabb AI-byggd version"
                           : selectedImplementation?.label}
                       </p>
                       <p className="font-display text-2xl font-bold text-muted-foreground">
