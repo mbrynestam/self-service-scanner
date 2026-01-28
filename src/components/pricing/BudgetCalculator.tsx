@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Target, Zap, Rocket, Sparkles, Wrench, Users, Check, ArrowRight, Calculator } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Slider } from "@/components/ui/slider";
 
 type StartLevel = "opportunity" | "prototype" | "innovation" | null;
 type ImplementationType = "ai-built" | "custom" | "self" | null;
@@ -37,15 +38,21 @@ const startLevels = [
   },
 ];
 
+const complexityLevels = [
+  { value: 0, label: "Mycket enkelt", price: 12500 },
+  { value: 1, label: "Enkelt", price: 25000 },
+  { value: 2, label: "Standard", price: 50000 },
+  { value: 3, label: "Avancerat", price: 75000 },
+  { value: 4, label: "Mycket komplex", price: 100000 },
+];
+
 const implementationTypes = [
   {
     id: "ai-built" as const,
     icon: Sparkles,
     label: "Snabb AI-byggd version",
-    priceRange: "25 000 – 50 000 kr",
-    minPrice: 25000,
-    maxPrice: 50000,
     description: "Snabb leverans, kodad med AI, enklare integrationer",
+    hasSlider: true,
   },
   {
     id: "custom" as const,
@@ -70,23 +77,43 @@ const implementationTypes = [
 export default function BudgetCalculator() {
   const [startLevel, setStartLevel] = useState<StartLevel>(null);
   const [implementationType, setImplementationType] = useState<ImplementationType>(null);
+  const [complexityIndex, setComplexityIndex] = useState(2); // Default to "Standard"
 
   const selectedStart = startLevels.find((s) => s.id === startLevel);
   const selectedImplementation = implementationTypes.find((i) => i.id === implementationType);
+  const selectedComplexity = complexityLevels[complexityIndex];
+
+  const getAiBuiltPrice = () => {
+    return selectedComplexity.price;
+  };
 
   const getTotalRange = () => {
     if (!selectedStart) return null;
+    
+    if (implementationType === "ai-built") {
+      const aiPrice = getAiBuiltPrice();
+      return {
+        min: selectedStart.price + aiPrice,
+        max: selectedStart.price + aiPrice,
+        showImplementation: true,
+        isSinglePrice: true,
+      };
+    }
+    
     if (!selectedImplementation || !selectedImplementation.minPrice) {
       return {
         min: selectedStart.price,
         max: selectedStart.price,
         showImplementation: false,
+        isSinglePrice: true,
       };
     }
+    
     return {
       min: selectedStart.price + selectedImplementation.minPrice,
       max: selectedStart.price + selectedImplementation.maxPrice,
       showImplementation: true,
+      isSinglePrice: false,
     };
   };
 
@@ -203,44 +230,93 @@ export default function BudgetCalculator() {
                     const Icon = impl.icon;
                     const isSelected = implementationType === impl.id;
                     return (
-                      <button
-                        key={impl.id}
-                        onClick={() => setImplementationType(impl.id)}
-                        className={cn(
-                          "w-full text-left p-4 md:p-5 rounded-xl border-2 transition-all duration-200",
-                          isSelected
-                            ? "border-primary bg-primary/5"
-                            : "border-border hover:border-primary/40 bg-secondary/30"
+                      <div key={impl.id}>
+                        <button
+                          onClick={() => setImplementationType(impl.id)}
+                          className={cn(
+                            "w-full text-left p-4 md:p-5 rounded-xl border-2 transition-all duration-200",
+                            isSelected
+                              ? "border-primary bg-primary/5"
+                              : "border-border hover:border-primary/40 bg-secondary/30"
+                          )}
+                        >
+                          <div className="flex items-start gap-4">
+                            <div
+                              className={cn(
+                                "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
+                                isSelected ? "bg-primary/20" : "bg-secondary"
+                              )}
+                            >
+                              <Icon className={cn("w-5 h-5", isSelected ? "text-primary" : "text-muted-foreground")} />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-semibold text-foreground mb-1">{impl.label}</p>
+                              <p className="text-sm text-muted-foreground mb-2">{impl.description}</p>
+                              {impl.priceRange && (
+                                <p className="text-sm font-medium text-foreground/80">
+                                  Typiskt: {impl.priceRange}
+                                </p>
+                              )}
+                              {impl.hasSlider && isSelected && (
+                                <p className="text-sm font-medium text-primary">
+                                  {formatPrice(getAiBuiltPrice())}
+                                </p>
+                              )}
+                            </div>
+                            <div
+                              className={cn(
+                                "w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-1",
+                                isSelected ? "border-primary bg-primary" : "border-muted-foreground/30"
+                              )}
+                            >
+                              {isSelected && <Check className="w-3 h-3 text-primary-foreground" />}
+                            </div>
+                          </div>
+                        </button>
+
+                        {/* Complexity Slider for AI-built */}
+                        {impl.hasSlider && isSelected && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="mt-4 ml-14 mr-4 p-4 bg-secondary/30 rounded-xl border border-border"
+                          >
+                            <p className="text-sm font-medium text-foreground mb-4">
+                              Hur komplex är lösningen?
+                            </p>
+                            <div className="space-y-4">
+                              <Slider
+                                value={[complexityIndex]}
+                                onValueChange={(value) => setComplexityIndex(value[0])}
+                                max={4}
+                                min={0}
+                                step={1}
+                                className="w-full"
+                              />
+                              <div className="flex justify-between text-xs text-muted-foreground">
+                                {complexityLevels.map((level) => (
+                                  <span 
+                                    key={level.value}
+                                    className={cn(
+                                      "transition-colors",
+                                      complexityIndex === level.value && "text-primary font-medium"
+                                    )}
+                                  >
+                                    {level.label}
+                                  </span>
+                                ))}
+                              </div>
+                              <div className="text-center pt-2">
+                                <p className="text-xs text-muted-foreground">Uppskattad kostnad</p>
+                                <p className="font-display text-xl font-bold text-primary">
+                                  {formatPrice(selectedComplexity.price)}
+                                </p>
+                              </div>
+                            </div>
+                          </motion.div>
                         )}
-                      >
-                        <div className="flex items-start gap-4">
-                          <div
-                            className={cn(
-                              "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
-                              isSelected ? "bg-primary/20" : "bg-secondary"
-                            )}
-                          >
-                            <Icon className={cn("w-5 h-5", isSelected ? "text-primary" : "text-muted-foreground")} />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-foreground mb-1">{impl.label}</p>
-                            <p className="text-sm text-muted-foreground mb-2">{impl.description}</p>
-                            {impl.priceRange && (
-                              <p className="text-sm font-medium text-foreground/80">
-                                Typiskt: {impl.priceRange}
-                              </p>
-                            )}
-                          </div>
-                          <div
-                            className={cn(
-                              "w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-1",
-                              isSelected ? "border-primary bg-primary" : "border-muted-foreground/30"
-                            )}
-                          >
-                            {isSelected && <Check className="w-3 h-3 text-primary-foreground" />}
-                          </div>
-                        </div>
-                      </button>
+                      </div>
                     );
                   })}
                 </div>
@@ -286,14 +362,19 @@ export default function BudgetCalculator() {
                   </div>
 
                   {/* Total range */}
-                  {totalRange && totalRange.showImplementation && selectedImplementation && (
+                  {totalRange && totalRange.showImplementation && (
                     <div className="bg-primary/10 rounded-xl p-4 border border-primary/20">
                       <p className="text-sm text-muted-foreground mb-1">Möjlig total investering</p>
                       <p className="text-xs text-muted-foreground mb-2">
-                        (Sprint + {selectedImplementation.label.toLowerCase()})
+                        (Sprint + {implementationType === "ai-built" 
+                          ? `AI-byggd (${selectedComplexity.label.toLowerCase()})` 
+                          : selectedImplementation?.label.toLowerCase()})
                       </p>
                       <p className="font-display text-2xl font-bold text-foreground">
-                        {formatPrice(totalRange.min)} – {formatPrice(totalRange.max)}
+                        {totalRange.isSinglePrice 
+                          ? formatPrice(totalRange.min)
+                          : `${formatPrice(totalRange.min)} – ${formatPrice(totalRange.max)}`
+                        }
                       </p>
                     </div>
                   )}
