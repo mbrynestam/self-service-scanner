@@ -10,10 +10,19 @@ import ScannerStep5 from "./ScannerStep5";
 
 export type FocusArea = "pricing" | "assessment" | "configurator" | "selector";
 
+export interface Opportunity {
+  type: string;
+  title: string;
+  description: string;
+  potentialValue: string;
+  fit: number;
+}
+
 export interface ScannerState {
   url: string;
   focusArea: FocusArea | null;
   selectedSuggestion: number | null;
+  opportunities: Opportunity[];
 }
 
 interface OpportunityScannerProps {
@@ -27,6 +36,7 @@ export default function OpportunityScanner({ onClose, embedded = false }: Opport
     url: "",
     focusArea: null,
     selectedSuggestion: null,
+    opportunities: [],
   });
 
   const handleUrlSubmit = (url: string) => {
@@ -34,7 +44,10 @@ export default function OpportunityScanner({ onClose, embedded = false }: Opport
     setStep(2);
   };
 
-  const handleAnalysisComplete = () => {
+  const handleAnalysisComplete = (opportunities?: Opportunity[]) => {
+    if (opportunities) {
+      setState(prev => ({ ...prev, opportunities }));
+    }
     setStep(3);
   };
 
@@ -56,7 +69,7 @@ export default function OpportunityScanner({ onClose, embedded = false }: Opport
 
   const handleReset = () => {
     setStep(1);
-    setState({ url: "", focusArea: null, selectedSuggestion: null });
+    setState({ url: "", focusArea: null, selectedSuggestion: null, opportunities: [] });
   };
 
   return (
@@ -163,6 +176,8 @@ export default function OpportunityScanner({ onClose, embedded = false }: Opport
             <ScannerStep5
               focusArea={state.focusArea!}
               suggestionIndex={state.selectedSuggestion!}
+              url={state.url}
+              opportunities={state.opportunities}
               onReset={handleReset}
             />
           </motion.div>
