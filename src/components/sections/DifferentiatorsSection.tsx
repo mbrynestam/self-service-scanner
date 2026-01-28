@@ -1,4 +1,3 @@
-import { motion, useInView } from "framer-motion";
 import { useRef, useState } from "react";
 import { Zap, Brain, FlaskConical, TrendingUp, Clock, Users, Lightbulb, Rocket, ChevronRight } from "lucide-react";
 
@@ -52,34 +51,21 @@ function BuyerNetworkGraphic() {
     <div className="flex items-center justify-center gap-2 mt-4">
       <div className="flex items-center">
         {[...Array(4)].map((_, i) => (
-          <motion.div
+          <div
             key={i}
             className="w-8 h-8 rounded-full bg-secondary border-2 border-background flex items-center justify-center -ml-2 first:ml-0"
-            initial={{ opacity: 0, scale: 0 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: i * 0.1 }}
           >
             <Users className="w-3 h-3 text-muted-foreground" />
-          </motion.div>
+          </div>
         ))}
       </div>
-      <motion.div 
-        className="flex items-center gap-1"
-        initial={{ opacity: 0, x: -10 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 0.5 }}
-      >
+      <div className="flex items-center gap-1">
         <div className="w-8 h-0.5 bg-primary" />
         <ChevronRight className="w-4 h-4 text-primary" />
-      </motion.div>
-      <motion.div
-        className="w-10 h-10 rounded-full bg-primary/20 border-2 border-primary flex items-center justify-center"
-        initial={{ opacity: 0, scale: 0 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.6 }}
-      >
+      </div>
+      <div className="w-10 h-10 rounded-full bg-primary/20 border-2 border-primary flex items-center justify-center">
         <TrendingUp className="w-4 h-4 text-primary" />
-      </motion.div>
+      </div>
     </div>
   );
 }
@@ -95,25 +81,14 @@ function ProgressFlowGraphic() {
     <div className="flex items-center justify-between mt-4">
       {steps.map((step, i) => (
         <div key={step.label} className="flex items-center">
-          <motion.div
-            className="flex flex-col items-center"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.2 }}
-          >
+          <div className="flex flex-col items-center">
             <div className="w-10 h-10 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center mb-1">
               <step.icon className="w-4 h-4 text-primary" />
             </div>
             <span className="text-xs text-muted-foreground">{step.label}</span>
-          </motion.div>
+          </div>
           {i < steps.length - 1 && (
-            <motion.div 
-              className="w-8 h-0.5 bg-primary/30 mx-2"
-              initial={{ scaleX: 0 }}
-              animate={{ scaleX: 1 }}
-              transition={{ delay: 0.3 + i * 0.2 }}
-              style={{ transformOrigin: "left" }}
-            />
+            <div className="w-8 h-0.5 bg-primary/30 mx-2" />
           )}
         </div>
       ))}
@@ -126,29 +101,23 @@ function BusinessBadgesGraphic() {
 
   return (
     <div className="flex flex-wrap gap-2 mt-4">
-      {badges.map((badge, i) => (
-        <motion.div
+      {badges.map((badge) => (
+        <div
           key={badge}
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: i * 0.1 }}
           className="px-3 py-1.5 rounded-full bg-primary/10 border border-primary/30 text-xs font-medium text-primary"
         >
           {badge}
-        </motion.div>
+        </div>
       ))}
     </div>
   );
 }
 
-function DifferentiatorCard({ diff, index, isInView }: { diff: typeof differentiators[0]; index: number; isInView: boolean }) {
+function DifferentiatorCard({ diff, index }: { diff: typeof differentiators[0]; index: number }) {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 40 }}
-      animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.5, delay: index * 0.15 }}
+    <div
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className="p-6 rounded-2xl bg-secondary/30 border border-border hover:border-primary/30 transition-all duration-300"
@@ -174,23 +143,17 @@ function DifferentiatorCard({ diff, index, isInView }: { diff: typeof differenti
         {diff.designType === "progressFlow" && <ProgressFlowGraphic />}
         {diff.designType === "businessBadges" && <BusinessBadgesGraphic />}
       </div>
-    </motion.div>
+    </div>
   );
 }
 
 export default function DifferentiatorsSection() {
   const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
 
   return (
     <section ref={ref} className="py-24 lg:py-32 bg-card">
       <div className="container mx-auto px-4 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6 }}
-          className="text-center max-w-3xl mx-auto mb-16"
-        >
+        <div className="text-center max-w-3xl mx-auto mb-16">
           <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold mb-6 text-foreground">
             Därför väljer företag{" "}
             <span className="gradient-text">Buyr</span>
@@ -199,11 +162,11 @@ export default function DifferentiatorsSection() {
             Vi hjälper B2B-företag testa och införa self-service på ett sätt som är
             snabbt, konkret och affärsdrivet — utan att starta stora projekt från dag ett.
           </p>
-        </motion.div>
+        </div>
 
         <div className="grid md:grid-cols-2 gap-6">
           {differentiators.map((diff, index) => (
-            <DifferentiatorCard key={diff.title} diff={diff} index={index} isInView={isInView} />
+            <DifferentiatorCard key={diff.title} diff={diff} index={index} />
           ))}
         </div>
       </div>
