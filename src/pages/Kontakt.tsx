@@ -12,8 +12,15 @@ import { supabase } from "@/integrations/supabase/client";
 export default function Kontakt() {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [calendlyLoaded, setCalendlyLoaded] = useState(false);
 
   useEffect(() => {
+    // Check if Calendly is already loaded
+    if ((window as any).Calendly) {
+      setCalendlyLoaded(true);
+      return;
+    }
+
     // Load Calendly widget CSS
     const link = document.createElement('link');
     link.href = 'https://assets.calendly.com/assets/external/widget.css';
@@ -24,11 +31,18 @@ export default function Kontakt() {
     const script = document.createElement('script');
     script.src = 'https://assets.calendly.com/assets/external/widget.js';
     script.async = true;
+    script.onload = () => {
+      setCalendlyLoaded(true);
+    };
     document.body.appendChild(script);
 
     return () => {
-      document.head.removeChild(link);
-      document.body.removeChild(script);
+      if (document.head.contains(link)) {
+        document.head.removeChild(link);
+      }
+      if (document.body.contains(script)) {
+        document.body.removeChild(script);
+      }
     };
   }, []);
   const [formData, setFormData] = useState({
@@ -271,15 +285,16 @@ export default function Kontakt() {
                     <Button 
                       variant="outline" 
                       size="lg"
+                      disabled={!calendlyLoaded}
                       onClick={() => {
-                        if (typeof window !== 'undefined' && (window as any).Calendly) {
+                        if ((window as any).Calendly) {
                           (window as any).Calendly.initPopupWidget({
                             url: 'https://calendly.com/magnus-43/30min'
                           });
                         }
                       }}
                     >
-                      Se lediga tider
+                      {calendlyLoaded ? 'Se lediga tider' : 'Laddar...'}
                     </Button>
                   </div>
                 </div>
