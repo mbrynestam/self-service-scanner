@@ -13,50 +13,41 @@ const startLevels = [
     icon: Target,
     label: "Förstå möjligheterna",
     name: "Self-Service Opportunity Sprint",
-    price: 25000,
-    priceLabel: "25 000 kr",
+    price: 29000,
+    priceLabel: "29 000 kr",
     description: "Identifiera var self-service skapar mest värde i er köpresa.",
-    showComplexitySlider: false,
+    allowsAiBuilt: false,
   },
   {
     id: "prototype" as const,
     icon: Zap,
     label: "Ta fram och testa en lösning",
     name: "Self-Service Prototype Sprint",
-    price: 50000,
-    priceLabel: "50 000 kr",
+    price: 49000,
+    priceLabel: "49 000 kr",
     description: "Se hur en konkret lösning kan fungera med klickbar prototyp.",
     recommended: true,
-    showComplexitySlider: true,
+    allowsAiBuilt: true,
   },
   {
     id: "innovation" as const,
     icon: Rocket,
     label: "Ta ett större grepp",
     name: "Innovation Sprint",
-    price: 75000,
-    priceLabel: "från 75 000 kr",
+    price: 79000,
+    priceLabel: "från 79 000 kr",
     description: "För mer avancerade eller affärskritiska initiativ.",
-    showComplexitySlider: true,
+    allowsAiBuilt: false,
   },
 ];
 
-// Complexity levels for "Ta fram och testa en lösning" (prototype)
-const prototypeComplexityLevels = [
+// Complexity levels for AI-built version (only available with prototype sprint)
+const aiBuiltComplexityLevels = [
   { value: 0, label: "Mycket enkel", price: 12500 },
   { value: 1, label: "Enkel", price: 25000 },
   { value: 2, label: "Standard", price: 50000 },
   { value: 3, label: "Avancerad", price: 75000 },
   { value: 4, label: "Mycket komplex", price: 100000 },
-];
-
-// Complexity levels for "Ta ett större grepp" (innovation)
-const innovationComplexityLevels = [
-  { value: 0, label: "Mycket enkel", price: 30000 },
-  { value: 1, label: "Enkel", price: 85000 },
-  { value: 2, label: "Standard", price: 140000 },
-  { value: 3, label: "Avancerad", price: 195000 },
-  { value: 4, label: "Mycket komplex", price: 250000 },
 ];
 
 const implementationTypes = [
@@ -115,20 +106,14 @@ export default function BudgetCalculator() {
   const selectedImplementation = implementationTypes.find((i) => i.id === implementationType) 
     || secondaryImplementationTypes.find((i) => i.id === implementationType);
   
-  // Get the correct complexity levels based on selected start level
-  const getComplexityLevels = () => {
-    if (startLevel === "innovation") {
-      return innovationComplexityLevels;
-    }
-    return prototypeComplexityLevels;
-  };
+  const selectedComplexity = aiBuiltComplexityLevels[complexityIndex];
 
-  const complexityLevels = getComplexityLevels();
-  const selectedComplexity = complexityLevels[complexityIndex];
+  // Check if AI-built option is available (only for prototype sprint)
+  const canSelectAiBuilt = selectedStart?.allowsAiBuilt === true;
 
-  // Check if slider should be shown (only for prototype and innovation with AI-built)
+  // Check if slider should be shown (only for AI-built with prototype)
   const shouldShowSlider = () => {
-    return implementationType === "ai-built" && selectedStart?.showComplexitySlider;
+    return implementationType === "ai-built" && canSelectAiBuilt;
   };
 
   const getAiBuiltPrice = () => {
@@ -138,7 +123,7 @@ export default function BudgetCalculator() {
   const getTotalRange = () => {
     if (!selectedStart) return null;
     
-    if (implementationType === "ai-built" && selectedStart.showComplexitySlider) {
+    if (implementationType === "ai-built" && canSelectAiBuilt) {
       const aiPrice = getAiBuiltPrice();
       return {
         min: selectedStart.price + aiPrice,
@@ -208,13 +193,16 @@ export default function BudgetCalculator() {
                 const Icon = level.icon;
                 const isSelected = startLevel === level.id;
                 return (
-                  <button
-                    key={level.id}
-                    onClick={() => {
-                      setStartLevel(level.id);
-                      // Reset complexity to "Enkel" when changing start level
-                      setComplexityIndex(1);
-                    }}
+                    <button
+                      key={level.id}
+                      onClick={() => {
+                        setStartLevel(level.id);
+                        setComplexityIndex(1);
+                        // Reset implementation type if AI-built was selected but new sprint doesn't allow it
+                        if (implementationType === "ai-built" && !level.allowsAiBuilt) {
+                          setImplementationType(null);
+                        }
+                      }}
                     className={cn(
                       "relative w-full text-left p-4 md:p-5 rounded-xl border-2 transition-all duration-200",
                       isSelected
@@ -278,69 +266,55 @@ export default function BudgetCalculator() {
                 </p>
 
                 <div className="space-y-4">
-                  {/* Main options */}
-                  {implementationTypes.map((impl) => {
-                    const Icon = impl.icon;
-                    const isSelected = implementationType === impl.id;
-                    const showSlider = impl.hasSlider && isSelected && selectedStart?.showComplexitySlider;
-                    
-                    return (
-                      <div key={impl.id}>
-                        <button
-                          onClick={() => setImplementationType(impl.id)}
-                          className={cn(
-                            "relative w-full text-left p-4 md:p-5 rounded-xl border-2 transition-all duration-200",
-                            isSelected
-                              ? "border-primary bg-primary/5"
-                              : "border-border hover:border-primary/40 bg-secondary/30"
-                          )}
-                        >
-                          {impl.recommended && (
-                            <span className="absolute -top-2.5 right-4 px-3 py-0.5 bg-primary text-primary-foreground text-xs font-semibold rounded-full">
-                              Rekommenderad
-                            </span>
-                          )}
-                          <div className="flex items-start gap-4">
-                            {Icon ? (
-                              <div
-                                className={cn(
-                                  "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
-                                  isSelected ? "bg-primary/20" : "bg-secondary"
-                                )}
-                              >
-                                <Icon className={cn("w-5 h-5", isSelected ? "text-primary" : "text-muted-foreground")} />
-                              </div>
-                            ) : (
-                              <div className="w-10 h-10 shrink-0" />
+                  {/* AI-built option - only shown for prototype sprint */}
+                  {canSelectAiBuilt && (
+                    <button
+                      onClick={() => setImplementationType("ai-built")}
+                      className={cn(
+                        "relative w-full text-left rounded-xl border-2 transition-all duration-200",
+                        implementationType === "ai-built"
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:border-primary/40 bg-secondary/30"
+                      )}
+                    >
+                      <span className="absolute -top-2.5 right-4 px-3 py-0.5 bg-primary text-primary-foreground text-xs font-semibold rounded-full">
+                        Rekommenderad
+                      </span>
+                      <div className="p-4 md:p-5">
+                        <div className="flex items-start gap-4">
+                          <div
+                            className={cn(
+                              "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
+                              implementationType === "ai-built" ? "bg-primary/20" : "bg-secondary"
                             )}
-                            <div className="flex-1 min-w-0">
-                              <p className="font-semibold text-foreground mb-1">{impl.label}</p>
-                              <p className="text-sm text-muted-foreground">{impl.description}</p>
-                              {showSlider && (
-                                <p className="text-sm font-medium text-primary mt-2">
-                                  {formatPrice(getAiBuiltPrice())}
-                                </p>
-                              )}
-                            </div>
-                            <div
-                              className={cn(
-                                "w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-1",
-                                isSelected ? "border-primary bg-primary" : "border-muted-foreground/30"
-                              )}
-                            >
-                              {isSelected && <Check className="w-3 h-3 text-primary-foreground" />}
-                            </div>
-                          </div>
-                        </button>
-
-                        {/* Complexity Slider - only for AI-built with prototype or innovation */}
-                        {showSlider && (
-                          <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: "auto" }}
-                            exit={{ opacity: 0, height: 0 }}
-                            className="mt-4 ml-14 mr-4 p-4 bg-secondary/30 rounded-xl border border-border"
                           >
+                            <Sparkles className={cn("w-5 h-5", implementationType === "ai-built" ? "text-primary" : "text-muted-foreground")} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-foreground mb-1">Snabb AI-byggd version</p>
+                            <p className="text-sm text-muted-foreground">Snabb leverans, kodad med AI, enklare integrationer</p>
+                          </div>
+                          <div
+                            className={cn(
+                              "w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-1",
+                              implementationType === "ai-built" ? "border-primary bg-primary" : "border-muted-foreground/30"
+                            )}
+                          >
+                            {implementationType === "ai-built" && <Check className="w-3 h-3 text-primary-foreground" />}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Complexity Slider - integrated inside the box */}
+                      {implementationType === "ai-built" && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="px-4 md:px-5 pb-4 md:pb-5 pt-0"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <div className="p-4 bg-secondary/50 rounded-xl border border-border">
                             <p className="text-sm font-medium text-foreground mb-4">
                               Hur komplex är lösningen?
                             </p>
@@ -354,7 +328,7 @@ export default function BudgetCalculator() {
                                 className="w-full"
                               />
                               <div className="flex justify-between text-xs text-muted-foreground">
-                                {complexityLevels.map((level) => (
+                                {aiBuiltComplexityLevels.map((level) => (
                                   <span 
                                     key={level.value}
                                     className={cn(
@@ -373,11 +347,38 @@ export default function BudgetCalculator() {
                                 </p>
                               </div>
                             </div>
-                          </motion.div>
-                        )}
+                          </div>
+                        </motion.div>
+                      )}
+                    </button>
+                  )}
+
+                  {/* Undecided option */}
+                  <button
+                    onClick={() => setImplementationType("undecided")}
+                    className={cn(
+                      "relative w-full text-left p-4 md:p-5 rounded-xl border-2 transition-all duration-200",
+                      implementationType === "undecided"
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-primary/40 bg-secondary/30"
+                    )}
+                  >
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-foreground mb-1">Vet inte ännu</p>
+                        <p className="text-sm text-muted-foreground">Jag vill se resultatet av sprinten först</p>
                       </div>
-                    );
-                  })}
+                      <div
+                        className={cn(
+                          "w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-1",
+                          implementationType === "undecided" ? "border-primary bg-primary" : "border-muted-foreground/30"
+                        )}
+                      >
+                        {implementationType === "undecided" && <Check className="w-3 h-3 text-primary-foreground" />}
+                      </div>
+                    </div>
+                  </button>
 
                   {/* Secondary options - smaller styling */}
                   <div className="pt-2 border-t border-border/50">
@@ -468,7 +469,7 @@ export default function BudgetCalculator() {
                           : selectedImplementation?.label}
                       </p>
                       <p className="font-display text-2xl font-bold text-muted-foreground">
-                        {implementationType === "ai-built" && selectedStart.showComplexitySlider
+                        {implementationType === "ai-built" && canSelectAiBuilt
                           ? formatPrice(getAiBuiltPrice())
                           : selectedImplementation?.priceRange || "–"}
                       </p>
