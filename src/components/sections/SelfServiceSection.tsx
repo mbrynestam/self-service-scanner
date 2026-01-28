@@ -86,7 +86,7 @@ export default function SelfServiceSection() {
         >
           <Button variant="outline" size="lg" asChild>
             <Link to="/losning">
-              Self-service för B2B
+              Fler verktyg
               <ArrowRight className="ml-2 w-4 h-4" />
             </Link>
           </Button>
