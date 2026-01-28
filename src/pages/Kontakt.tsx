@@ -1,9 +1,8 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
 import Layout from "@/components/layout/Layout";
-import { Calendar, Send } from "lucide-react";
+import { Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,13 +12,6 @@ import { supabase } from "@/integrations/supabase/client";
 export default function Kontakt() {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isCalendlyOpen, setIsCalendlyOpen] = useState(false);
-
-  const calendlyUrl = "https://calendly.com/magnus-43/30min";
-  const calendlyEmbedUrl =
-    typeof window !== "undefined"
-      ? `${calendlyUrl}?embed_domain=${encodeURIComponent(window.location.hostname)}&embed_type=Inline`
-      : calendlyUrl;
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -242,56 +234,6 @@ export default function Kontakt() {
                 <p className="mt-6 text-sm text-muted-foreground/80 italic">
                   Inget säljs. Fokus är på klarhet och nästa steg.
                 </p>
-              </div>
-
-              <div className="gradient-border rounded-2xl p-8 card-gradient">
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center flex-shrink-0">
-                    <Calendar className="w-6 h-6 text-primary-foreground" />
-                  </div>
-                  <div>
-                    <h3 className="font-display text-xl font-bold text-foreground mb-2">
-                      Boka direkt i kalendern
-                    </h3>
-                    <p className="text-muted-foreground mb-4">
-                      Välj en tid som passar dig för ett 30-minuters samtal där
-                      vi går igenom era möjligheter.
-                    </p>
-                    <Button variant="outline" size="lg" type="button" onClick={() => setIsCalendlyOpen(true)}>
-                      Se lediga tider
-                    </Button>
-
-                    <Dialog open={isCalendlyOpen} onOpenChange={setIsCalendlyOpen}>
-                      <DialogContent className="max-w-4xl p-0 overflow-hidden">
-                        <DialogHeader className="p-6 pb-0">
-                          <DialogTitle>Boka strategisamtal</DialogTitle>
-                        </DialogHeader>
-                        <div className="px-6 pb-6">
-                          <div className="rounded-lg overflow-hidden border border-border">
-                            <iframe
-                              title="Calendly bokning"
-                              src={calendlyEmbedUrl}
-                              className="w-full h-[70vh]"
-                              loading="lazy"
-                            />
-                          </div>
-                          <p className="mt-3 text-xs text-muted-foreground">
-                            Om inbäddningen inte laddar: {" "}
-                            <a
-                              href={calendlyUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="underline underline-offset-4"
-                            >
-                              öppna Calendly i ny flik
-                            </a>
-                            .
-                          </p>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-                  </div>
-                </div>
               </div>
 
             </motion.div>
