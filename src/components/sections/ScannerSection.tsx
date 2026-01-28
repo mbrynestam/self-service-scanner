@@ -10,7 +10,6 @@ export default function ScannerSection({ variant = "full" }: ScannerSectionProps
     <section className="py-20 md:py-32 relative overflow-hidden">
       {/* Background effects */}
       <div className="absolute inset-0 bg-gradient-to-b from-background via-card/30 to-background" />
-      <div className="hero-glow left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 opacity-30" />
       
       <div className="container relative z-10">
         {variant === "full" && (

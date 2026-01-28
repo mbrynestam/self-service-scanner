@@ -56,7 +56,7 @@ export default function ProblemSection() {
               transition={{ duration: 0.6, delay: index * 0.1 }}
               className="bg-card rounded-2xl p-6 border border-border hover:border-primary/50 transition-colors duration-300"
             >
-              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-5 shadow-[0_0_20px_hsl(145_89%_71%/0.2)]">
+              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-5">
                 <problem.icon className="w-6 h-6 text-primary" />
               </div>
               <h3 className="font-display text-lg font-semibold text-foreground mb-2">

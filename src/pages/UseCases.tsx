@@ -111,8 +111,6 @@ export default function UseCasesPage() {
     <Layout>
       {/* Hero - Why Self-Service */}
       <section className="pt-24 pb-16 lg:pt-32 lg:pb-24 relative overflow-hidden">
-        <div className="hero-glow top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-30" />
-        
         <div className="container mx-auto px-4 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
