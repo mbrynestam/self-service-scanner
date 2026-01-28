@@ -1,6 +1,10 @@
 import { motion } from "framer-motion";
-import { Sparkles } from "lucide-react";
+import { useState } from "react";
+import { Sparkles, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
 import type { FocusArea, Opportunity } from "./OpportunityScanner";
 
 interface ScannerStep5Props {
@@ -20,30 +24,45 @@ const suggestionTitles: Record<FocusArea, string[]> = {
 
 export default function ScannerStep5({ focusArea, suggestionIndex, url, opportunities, onReset }: ScannerStep5Props) {
   const suggestionTitle = suggestionTitles[focusArea][suggestionIndex] || suggestionTitles[focusArea][0];
-
-  // Build Tally URL with prefilled hidden fields
-  const tallyBaseUrl = "https://tally.so/embed/1A9Qj4";
-  const params = new URLSearchParams({
-    alignLeft: "1",
-    hideTitle: "1",
-    transparentBackground: "1",
-    dynamicHeight: "1",
+  const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    company: "",
+    role: "",
   });
-  
-  // Add hidden field data if Tally form supports it
-  // You can prefill fields by adding: &field_name=value
-  if (url) {
-    params.append("analyzed_url", url);
-  }
-  if (suggestionTitle) {
-    params.append("selected_tool", suggestionTitle);
-  }
-  if (opportunities.length > 0) {
-    const opportunitiesText = opportunities.map((opp, i) => `${i + 1}. ${opp.title}`).join(", ");
-    params.append("opportunities", opportunitiesText);
-  }
 
-  const tallyUrl = `${tallyBaseUrl}?${params.toString()}`;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
+    // Log the data that would be sent (for debugging)
+    console.log("Form submission:", {
+      ...formData,
+      analyzedUrl: url,
+      selectedTool: suggestionTitle,
+      opportunities: opportunities.map(o => o.title),
+    });
+    
+    // Simulate form submission
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    toast({
+      title: "Tack! Vi hör av oss snart.",
+      description: "Du kommer få din prototyp inom 24 timmar.",
+    });
+    
+    setIsSubmitting(false);
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
+  };
 
   return (
     <div className="flex flex-col items-center max-w-lg mx-auto px-4">
@@ -67,24 +86,92 @@ export default function ScannerStep5({ focusArea, suggestionIndex, url, opportun
         </p>
       </motion.div>
 
-      {/* Tally Form Embed */}
-      <motion.div
+      {/* Lead Capture Form */}
+      <motion.form
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="w-full"
+        onSubmit={handleSubmit}
+        className="w-full space-y-4"
       >
-        <iframe
-          src={tallyUrl}
-          width="100%"
-          height="400"
-          frameBorder="0"
-          marginHeight={0}
-          marginWidth={0}
-          title="Boka prototyp"
-          className="rounded-xl"
-        />
-      </motion.div>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1.5">
+            <Label htmlFor="firstName" className="text-xs">Förnamn *</Label>
+            <Input
+              id="firstName"
+              name="firstName"
+              value={formData.firstName}
+              onChange={handleChange}
+              required
+              placeholder="Anna"
+              className="h-9"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="lastName" className="text-xs">Efternamn *</Label>
+            <Input
+              id="lastName"
+              name="lastName"
+              value={formData.lastName}
+              onChange={handleChange}
+              required
+              placeholder="Andersson"
+              className="h-9"
+            />
+          </div>
+        </div>
+        
+        <div className="space-y-1.5">
+          <Label htmlFor="email" className="text-xs">E-post *</Label>
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            value={formData.email}
+            onChange={handleChange}
+            required
+            placeholder="anna@foretag.se"
+            className="h-9"
+          />
+        </div>
+        
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1.5">
+            <Label htmlFor="company" className="text-xs">Företag *</Label>
+            <Input
+              id="company"
+              name="company"
+              value={formData.company}
+              onChange={handleChange}
+              required
+              placeholder="Företaget AB"
+              className="h-9"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="role" className="text-xs">Roll</Label>
+            <Input
+              id="role"
+              name="role"
+              value={formData.role}
+              onChange={handleChange}
+              placeholder="VD, Marknadschef..."
+              className="h-9"
+            />
+          </div>
+        </div>
+        
+        <Button type="submit" className="w-full" disabled={isSubmitting}>
+          {isSubmitting ? (
+            "Skickar..."
+          ) : (
+            <>
+              <Send className="w-4 h-4 mr-2" />
+              Skicka förfrågan
+            </>
+          )}
+        </Button>
+      </motion.form>
 
       {/* Trust indicators */}
       <motion.div
