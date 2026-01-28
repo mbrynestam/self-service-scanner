@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Globe, Sparkles } from "lucide-react";
+import { Globe, Sparkles, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { checkScannerLimit, recordScannerUse } from "@/hooks/useScannerRateLimit";
 
 interface ScannerStep1Props {
   onSubmit: (url: string) => void;
@@ -13,9 +14,29 @@ export default function ScannerStep1({ onSubmit }: ScannerStep1Props) {
   const [error, setError] = useState("");
   const [honeypot, setHoneypot] = useState("");
   const formLoadTime = useRef(Date.now());
+  
+  // Rate limit state
+  const [limitStatus, setLimitStatus] = useState(() => checkScannerLimit());
+
+  // Update limit status periodically (for countdown)
+  useEffect(() => {
+    if (limitStatus.minutesUntilReset !== null) {
+      const interval = setInterval(() => {
+        setLimitStatus(checkScannerLimit());
+      }, 30000); // Check every 30 seconds
+      return () => clearInterval(interval);
+    }
+  }, [limitStatus.minutesUntilReset]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Check rate limit first
+    const currentLimit = checkScannerLimit();
+    if (!currentLimit.allowed) {
+      setLimitStatus(currentLimit);
+      return;
+    }
     
     // Bot detection: honeypot field should be empty
     if (honeypot) {
@@ -46,6 +67,11 @@ export default function ScannerStep1({ onSubmit }: ScannerStep1Props) {
     try {
       new URL(validUrl);
       setError("");
+      
+      // Record the usage before proceeding
+      recordScannerUse();
+      setLimitStatus(checkScannerLimit());
+      
       onSubmit(validUrl);
     } catch {
       setError("Ange en giltig webbadress");
@@ -56,6 +82,52 @@ export default function ScannerStep1({ onSubmit }: ScannerStep1Props) {
   useEffect(() => {
     formLoadTime.current = Date.now();
   }, []);
+
+  // Show rate limit message if paused
+  if (!limitStatus.allowed && limitStatus.minutesUntilReset !== null) {
+    return (
+      <div className="flex flex-col items-center text-center max-w-2xl mx-auto px-4">
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ type: "spring", delay: 0.1 }}
+          className="w-14 h-14 rounded-xl bg-muted flex items-center justify-center mb-4"
+        >
+          <Clock className="w-7 h-7 text-muted-foreground" />
+        </motion.div>
+
+        <motion.h2
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="text-xl md:text-2xl font-bold mb-2"
+        >
+          Scannern tar en paus
+        </motion.h2>
+
+        <motion.p
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="text-muted-foreground mb-6 text-base"
+        >
+          Du har använt scannern 3 gånger. Kom tillbaka om cirka {limitStatus.minutesUntilReset} {limitStatus.minutesUntilReset === 1 ? 'minut' : 'minuter'}.
+        </motion.p>
+
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4 }}
+          className="text-sm text-muted-foreground"
+        >
+          Vill du diskutera möjligheterna direkt?{" "}
+          <a href="/kontakt" className="text-primary hover:underline">
+            Kontakta oss
+          </a>
+        </motion.p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center text-center max-w-2xl mx-auto px-4">
@@ -145,14 +217,14 @@ export default function ScannerStep1({ onSubmit }: ScannerStep1Props) {
         </Button>
       </motion.form>
 
-      {/* Trust indicator */}
+      {/* Trust indicator with remaining uses */}
       <motion.p
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.6 }}
         className="text-xs text-muted-foreground mt-4"
       >
-        Tar cirka 30 sekunder • Helt gratis • Inga förpliktelser
+        Tar cirka 30 sekunder • Helt gratis • {limitStatus.remainingUses} {limitStatus.remainingUses === 1 ? 'analys' : 'analyser'} kvar
       </motion.p>
     </div>
   );
