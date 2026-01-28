@@ -30,7 +30,8 @@ export default function ScannerStep5({ focusArea, suggestionIndex, url, opportun
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [formData, setFormData] = useState({
-    name: "",
+    firstName: "",
+    lastName: "",
     company: "",
     email: "",
     role: "",
@@ -43,7 +44,7 @@ export default function ScannerStep5({ focusArea, suggestionIndex, url, opportun
     e.preventDefault();
     
     // Basic validation
-    if (!formData.name || !formData.company || !formData.email) {
+    if (!formData.firstName || !formData.lastName || !formData.company || !formData.email) {
       toast({
         title: "Fyll i alla obligatoriska fält",
         variant: "destructive",
@@ -62,7 +63,8 @@ export default function ScannerStep5({ focusArea, suggestionIndex, url, opportun
       // Send to HubSpot via edge function
       const { error } = await supabase.functions.invoke('submit-to-hubspot', {
         body: {
-          name: formData.name,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
           company: formData.company,
           email: formData.email,
           role: formData.role || '',
@@ -82,7 +84,7 @@ export default function ScannerStep5({ focusArea, suggestionIndex, url, opportun
       
       toast({
         title: mode === "meeting" ? "✅ Tack! Vi hör av oss inom 24h" : "✅ Prototypen skickas snart!",
-        description: `Vi har tagit emot din förfrågan, ${formData.name.split(' ')[0]}. Kolla din inbox för mer information.`,
+        description: `Vi har tagit emot din förfrågan, ${formData.firstName}. Kolla din inbox för mer information.`,
       });
     } catch (error) {
       console.error('Form submission error:', error);
@@ -215,20 +217,37 @@ export default function ScannerStep5({ focusArea, suggestionIndex, url, opportun
         >
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-              <Label htmlFor="name" className="text-xs flex items-center gap-1">
+              <Label htmlFor="firstName" className="text-xs flex items-center gap-1">
                 <User className="w-3 h-3 text-muted-foreground" />
-                Namn *
+                Förnamn *
               </Label>
               <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="Anna Andersson"
+                id="firstName"
+                value={formData.firstName}
+                onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
+                placeholder="Anna"
                 required
                 className="h-9 text-sm"
               />
             </div>
 
+            <div className="space-y-1">
+              <Label htmlFor="lastName" className="text-xs flex items-center gap-1">
+                <User className="w-3 h-3 text-muted-foreground" />
+                Efternamn *
+              </Label>
+              <Input
+                id="lastName"
+                value={formData.lastName}
+                onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
+                placeholder="Andersson"
+                required
+                className="h-9 text-sm"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
               <Label htmlFor="company" className="text-xs flex items-center gap-1">
                 <Building className="w-3 h-3 text-muted-foreground" />
@@ -239,24 +258,6 @@ export default function ScannerStep5({ focusArea, suggestionIndex, url, opportun
                 value={formData.company}
                 onChange={(e) => setFormData(prev => ({ ...prev, company: e.target.value }))}
                 placeholder="Företaget AB"
-                required
-                className="h-9 text-sm"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <Label htmlFor="email" className="text-xs flex items-center gap-1">
-                <Mail className="w-3 h-3 text-muted-foreground" />
-                E-post *
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                placeholder="anna@foretaget.se"
                 required
                 className="h-9 text-sm"
               />
@@ -275,6 +276,22 @@ export default function ScannerStep5({ focusArea, suggestionIndex, url, opportun
                 className="h-9 text-sm"
               />
             </div>
+          </div>
+
+          <div className="space-y-1">
+            <Label htmlFor="email" className="text-xs flex items-center gap-1">
+              <Mail className="w-3 h-3 text-muted-foreground" />
+              E-post *
+            </Label>
+            <Input
+              id="email"
+              type="email"
+              value={formData.email}
+              onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+              placeholder="anna@foretaget.se"
+              required
+              className="h-9 text-sm"
+            />
           </div>
 
           <div className="flex gap-2 pt-2">
