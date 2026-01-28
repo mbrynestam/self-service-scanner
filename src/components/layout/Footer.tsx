@@ -20,12 +20,24 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
           {/* Logo & Description */}
           <div className="md:col-span-2">
-            <Link to="/" className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-                <span className="text-primary-foreground font-display font-bold text-lg">B</span>
-              </div>
-              <span className="font-display font-bold text-xl text-foreground">Buyr</span>
+            <Link to="/" className="flex items-center gap-2 mb-2">
+              <img 
+                src="/assets/buyr-logo.png" 
+                alt="Buyr" 
+                className="h-8 w-auto"
+              />
             </Link>
+            <p className="text-sm text-muted-foreground mb-4">
+              En del av{" "}
+              <a 
+                href="https://grown.se" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="hover:text-primary transition-colors underline underline-offset-2"
+              >
+                Grown
+              </a>
+            </p>
             <p className="text-muted-foreground max-w-md">
               Vi hjälper B2B-företag bygga self-service tools som låter köpare utforska, utvärdera och ta beslut – på egna villkor.
             </p>
