@@ -344,22 +344,14 @@ export default function HeroSection() {
                 {analysisComplete ? "Vi har hittat följande insikter:" : "AI:n undersöker er köpresa och identifierar möjligheter"}
               </p>
 
-              {/* Progress bar - starts immediately */}
+              {/* Progress bar - starts immediately, only moves forward */}
               <div className="max-w-md mx-auto mb-8">
                 <div className="h-1 bg-muted rounded-full overflow-hidden">
                   <motion.div
                     className="h-full bg-primary rounded-full"
                     initial={{ width: "5%" }}
-                    animate={{ 
-                      width: isWaitingForApi && realProgress < 15 
-                        ? ["5%", "12%", "8%", "15%"] 
-                        : `${realProgress}%` 
-                    }}
-                    transition={{ 
-                      duration: isWaitingForApi && realProgress < 15 ? 2 : 0.3,
-                      repeat: isWaitingForApi && realProgress < 15 ? Infinity : 0,
-                      ease: "easeInOut"
-                    }}
+                    animate={{ width: `${Math.max(realProgress, isWaitingForApi ? 10 : realProgress)}%` }}
+                    transition={{ duration: 0.5, ease: "easeOut" }}
                   />
                 </div>
               </div>
