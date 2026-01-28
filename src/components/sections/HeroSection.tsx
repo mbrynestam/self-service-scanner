@@ -88,7 +88,7 @@ export default function HeroSection() {
       setError("");
       setAiError(null);
       setAiAnalysis(null);
-      setRealProgress(0);
+      setRealProgress(5);
       setTerminalLines([]);
       setCurrentTypingLine("");
       setTypingIndex(0);
@@ -170,9 +170,9 @@ export default function HeroSection() {
           setCurrentTypingLine("");
           setTypingIndex(prev => prev + 1);
           setRealProgress(prev => Math.min(prev + 12, 95));
-        }, 150);
+        }, 300);
       }
-    }, 18);
+    }, 35);
 
     return () => clearInterval(typeInterval);
   }, [typingIndex, phase, isWaitingForApi, insightsQueue]);
@@ -344,50 +344,60 @@ export default function HeroSection() {
                 {analysisComplete ? "Vi har hittat följande insikter:" : "AI:n undersöker er köpresa och identifierar möjligheter"}
               </p>
 
-              {/* Progress bar */}
+              {/* Progress bar - starts immediately */}
               <div className="max-w-md mx-auto mb-8">
                 <div className="h-1 bg-muted rounded-full overflow-hidden">
                   <motion.div
                     className="h-full bg-primary rounded-full"
-                    initial={{ width: "0%" }}
-                    animate={{ width: `${realProgress}%` }}
-                    transition={{ duration: 0.3 }}
+                    initial={{ width: "5%" }}
+                    animate={{ 
+                      width: isWaitingForApi && realProgress < 15 
+                        ? ["5%", "12%", "8%", "15%"] 
+                        : `${realProgress}%` 
+                    }}
+                    transition={{ 
+                      duration: isWaitingForApi && realProgress < 15 ? 2 : 0.3,
+                      repeat: isWaitingForApi && realProgress < 15 ? Infinity : 0,
+                      ease: "easeInOut"
+                    }}
                   />
                 </div>
               </div>
 
-              {/* Insights display - clean text only */}
-              <div className="w-full text-sm text-left min-h-[180px] max-h-[180px] overflow-hidden flex flex-col-reverse">
-                <div className="space-y-2">
-                  {/* Completed lines - faded */}
+              {/* Insights display - newest at top, older below with decreasing opacity */}
+              <div className="w-full text-sm text-left min-h-[180px] max-h-[180px] overflow-hidden">
+                <div className="space-y-2 flex flex-col">
+                  {/* Currently typing - full opacity at top */}
+                  {currentTypingLine && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: -10 }} 
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.4 }}
+                      className="font-medium"
+                    >
+                      <span className="text-primary">{currentTypingLine}</span>
+                      <motion.span animate={{ opacity: [1, 0, 1] }} transition={{ duration: 1, repeat: Infinity }} className="text-primary">_</motion.span>
+                    </motion.div>
+                  )}
+
+                  {/* Completed lines - reversed order (newest first), with decreasing opacity */}
                   <AnimatePresence>
-                    {terminalLines.map((line, index) => {
-                      const totalLines = terminalLines.length;
-                      const fadeLevel = Math.max(0.2, 1 - (totalLines - index - 1) * 0.15);
+                    {[...terminalLines].reverse().map((line, index) => {
+                      // Opacity decreases: 40%, 30%, 20%, 10% for positions 0, 1, 2, 3+
+                      const opacityLevels = [0.4, 0.3, 0.2, 0.1];
+                      const opacity = opacityLevels[Math.min(index, opacityLevels.length - 1)];
                       return (
                         <motion.div 
-                          key={index} 
-                          initial={{ opacity: 0, y: 10 }} 
-                          animate={{ opacity: fadeLevel, y: 0 }}
-                          transition={{ duration: 0.3 }}
+                          key={terminalLines.length - 1 - index} 
+                          initial={{ opacity: 1, y: -10 }} 
+                          animate={{ opacity, y: 0 }}
+                          transition={{ duration: 0.4 }}
                         >
                           <span className="text-primary">{line}</span>
                         </motion.div>
                       );
                     })}
                   </AnimatePresence>
-
-                  {/* Currently typing - full opacity */}
-                  {currentTypingLine && (
-                    <motion.div 
-                      initial={{ opacity: 0, y: 10 }} 
-                      animate={{ opacity: 1, y: 0 }}
-                      className="font-medium"
-                    >
-                      <span className="text-primary">{currentTypingLine}</span>
-                      <motion.span animate={{ opacity: [1, 0, 1] }} transition={{ duration: 0.5, repeat: Infinity }} className="text-primary">_</motion.span>
-                    </motion.div>
-                  )}
                 </div>
               </div>
             </motion.div>
