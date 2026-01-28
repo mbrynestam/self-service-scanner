@@ -42,12 +42,6 @@ export default function Header() {
             ))}
           </nav>
 
-          {/* CTA */}
-          <div className="hidden lg:flex items-center gap-4">
-            <Button variant="hero" size="lg" asChild>
-              <Link to="/kontakt">Boka strategisamtal</Link>
-            </Button>
-          </div>
 
           {/* Mobile Menu Button */}
           <button
