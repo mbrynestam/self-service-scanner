@@ -73,6 +73,22 @@ export default function HeroSection() {
   const [typingIndex, setTypingIndex] = useState(0);
   const [isWaitingForApi, setIsWaitingForApi] = useState(false);
   const [insightsQueue, setInsightsQueue] = useState<string[]>([]);
+
+  // Keep progress moving while waiting for API (never decreasing)
+  useEffect(() => {
+    if (phase !== "analyzing" || !isWaitingForApi) return;
+
+    const interval = setInterval(() => {
+      setRealProgress(prev => {
+        // Move fairly quickly early, then slow crawl (but never stops)
+        if (prev < 60) return prev + 0.6;
+        if (prev < 75) return prev + 0.25;
+        return Math.min(prev + 0.12, 85);
+      });
+    }, 120);
+
+    return () => clearInterval(interval);
+  }, [phase, isWaitingForApi]);
   const handleUrlSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     let validUrl = url.trim();
@@ -127,6 +143,11 @@ export default function HeroSection() {
     if (analysis.concerns && analysis.concerns.length > 0) {
       insights.push(`> Oro: "${analysis.concerns[0]}"`);
     }
+
+    // Brainstorming messages (requested copy)
+    insights.push(`> Brainstormar self-service verktyg som matchar målgruppens behov`);
+    insights.push(`> Analyserar och väljer ut de verktyg med största affärsnytta`);
+
     if (analysis.opportunities && analysis.opportunities.length > 0) {
       insights.push(`> Identifierade ${analysis.opportunities.length} self-service-möjligheter`);
     }
@@ -170,9 +191,9 @@ export default function HeroSection() {
           setCurrentTypingLine("");
           setTypingIndex(prev => prev + 1);
           setRealProgress(prev => Math.min(prev + 12, 95));
-        }, 300);
+        }, 150);
       }
-    }, 35);
+    }, 12);
 
     return () => clearInterval(typeInterval);
   }, [typingIndex, phase, isWaitingForApi, insightsQueue]);
@@ -197,7 +218,8 @@ export default function HeroSection() {
         const insights = buildTerminalInsights(data.analysis);
         setTerminalLines([]);
         setTypingIndex(0);
-        setRealProgress(15);
+        // Don't allow progress to go backwards if it already crawled while waiting
+        setRealProgress(prev => Math.max(prev, 15));
         setIsWaitingForApi(false);
         // Trigger typewriter effect by setting insights queue
         setInsightsQueue(insights);
