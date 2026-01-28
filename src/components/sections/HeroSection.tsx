@@ -363,7 +363,7 @@ export default function HeroSection() {
               </h2>
               
               <p className="text-muted-foreground mb-6">
-                {analysisComplete ? "Vi har hittat följande insikter:" : "AI:n undersöker er köpresa och identifierar möjligheter"}
+                {analysisComplete ? "Vi har hittat följande insikter:" : "Buyr undersöker er målgrupps köpresa och identifierar affärsdrivande self-service-möjligheter"}
               </p>
 
               {/* Progress bar - starts immediately, only moves forward */}
