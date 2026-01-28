@@ -10,7 +10,7 @@ const navLinks = [
   { name: "Use cases", href: "/use-cases" },
   { name: "Priser", href: "/priser" },
   { name: "Om oss", href: "/om-oss" },
-  { name: "Kontakt", href: "/kontakt" },
+  { name: "Boka strategisamtal", href: "/kontakt" },
 ];
 
 export default function Header() {
