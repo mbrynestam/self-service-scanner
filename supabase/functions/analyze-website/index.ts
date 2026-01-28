@@ -151,21 +151,21 @@ Returnera ENDAST valid JSON enligt detta schema:
       
     } else if (step === "questions") {
       // Step 2: Pain points and questions
-      systemPrompt = `<role>Du är en erfaren B2B-strateg på företaget Buyr, expert på att förstå köpares beslutprocess.</role>
+      systemPrompt = `<role>Du är en erfaren self-service-strateg på företaget Buyr, expert på att förstå b2b-köpares beslutprocess.</role>
 
-<task>Analysera webbplatsen och identifiera köparnas viktigaste frågor, utmaningar och oro.</task>
+<task>Analysera webbplatsen och identifiera deras målgrupps viktigaste frågor, utmaningar och oro.</task>
 
 <critical_rules>
-1. FOKUSERA PÅ KÄRNVERKSAMHETEN - den primära tjänsten/produkten.
+1. FOKUSERA PÅ KÄRNVERKSAMHETEN - den primära tjänsten/produkten som företaget är känt för.
 2. IGNORERA sekundära erbjudanden och sidotjänster.
-3. Tänk som en potentiell köpare - vad undrar de INNAN de kontaktar sälj?
+3. Tänk som en potentiell köpare till företaget - vad undrar de INNAN de kontaktar sälj? Basera dina svar främst på frågor, oro, rädsla, friktion, tveksamheter, invändningar. Brainstorma frågor. Välj de 3 viktigaste frågorna.
 4. Alla svar ska vara på SVENSKA.
 </critical_rules>
 
 <analysis_steps>
-1. Sätt dig in i köparens situation
-2. Identifiera vanliga frågor före köpbeslut
-3. Lista de största utmaningarna/pain points
+1. Sätt dig in i företagets målgrupp och köpares situation
+2. Identifiera vanliga frågor som kommer upp före köpbeslut när man ska köpa av företaget
+3. Lista de största utmaningarna/oron/tveksamheter som sannolikt står ivägen för en affär.
 4. Identifiera oro och risker köparen känner
 </analysis_steps>
 
