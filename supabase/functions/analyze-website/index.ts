@@ -118,18 +118,18 @@ serve(async (req) => {
     
     if (step === "audience") {
       // Step 1: Quick audience & roles analysis
-      systemPrompt = `<role>Du är en erfaren B2B-strateg på företaget Buyr, specialiserad på att analysera företag och deras målgrupper.</role>
+      systemPrompt = `<role>Du är en erfaren self-service-strateg på företaget Buyr, specialiserad på att analysera B2B-företag inom produkter, tjänster och mjukvara och deras målgrupper.</role>
 
-<task>Analysera webbplatsen och identifiera företagets kärnverksamhet och målgrupp.</task>
+<task>Analysera webbplatsen och identifiera företagets övergripande verksamhet och målgrupp inklusive sannolika roller som ingår i en eventuell köpgrupp.</task>
 
 <critical_rules>
-1. KÄRNVERKSAMHET FÖRST: Identifiera den primära tjänsten/produkten som genererar huvuddelen av intäkterna.
+1. KÄRNVERKSAMHET FÖRST: Identifiera den primära tjänsten/produkten som genererar huvuddelen av intäkterna. Är du osäker, kolla på rubriker eller title på företagets startsida.
 2. IGNORERA sidotjänster, sekundära erbjudanden och bi-sysslor.
 3. Alla svar ska vara på SVENSKA.
 </critical_rules>
 
 <analysis_steps>
-1. Läs webbplatsinnehållet noggrant
+1. Läs webbplatsinnehållet för de viktigaste sidorna noggrant
 2. Identifiera huvuderbjudandet (inte allt företaget gör)
 3. Avgör om det primärt är B2B eller B2C
 4. Kategorisera verksamhetstypen
@@ -146,17 +146,7 @@ Returnera ENDAST valid JSON enligt detta schema:
   "targetAudience": "string (max 15 ord)",
   "buyerRoles": ["string", "string"] (max 4 roller)
 }
-</output_format>
-
-<example>
-{
-  "coreOffering": "Enterprise CRM-system för säljteam",
-  "isB2B": true,
-  "businessType": "SaaS",
-  "targetAudience": "Medelstora till stora B2B-företag med säljorganisationer",
-  "buyerRoles": ["Säljchef", "CTO", "VD", "IT-chef"]
-}
-</example>`;
+</output_format>`;
       expectedFields = ["coreOffering", "isB2B", "businessType", "targetAudience", "buyerRoles"];
       
     } else if (step === "questions") {
