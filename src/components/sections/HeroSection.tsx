@@ -72,8 +72,7 @@ export default function HeroSection() {
   const [currentTypingLine, setCurrentTypingLine] = useState("");
   const [typingIndex, setTypingIndex] = useState(0);
   const [isWaitingForApi, setIsWaitingForApi] = useState(false);
-  const insightsQueueRef = useRef<string[]>([]);
-
+  const [insightsQueue, setInsightsQueue] = useState<string[]>([]);
   const handleUrlSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     let validUrl = url.trim();
@@ -93,7 +92,7 @@ export default function HeroSection() {
       setTerminalLines([]);
       setCurrentTypingLine("");
       setTypingIndex(0);
-      insightsQueueRef.current = [];
+      setInsightsQueue([]);
       setAnalysisComplete(false);
       setIsWaitingForApi(true);
       setPhase("analyzing");
@@ -135,12 +134,12 @@ export default function HeroSection() {
     return insights;
   };
 
-  // Typewriter effect for terminal lines
+  // Typewriter effect for terminal lines - triggered when insightsQueue changes
   useEffect(() => {
     if (phase !== "analyzing" || isWaitingForApi) return;
-    if (insightsQueueRef.current.length === 0) return;
+    if (insightsQueue.length === 0) return;
     
-    if (typingIndex >= insightsQueueRef.current.length) {
+    if (typingIndex >= insightsQueue.length) {
       // All insights shown, complete
       const timeout = setTimeout(() => {
         setRealProgress(100);
@@ -156,7 +155,7 @@ export default function HeroSection() {
       return () => clearTimeout(timeout);
     }
 
-    const currentLine = insightsQueueRef.current[typingIndex];
+    const currentLine = insightsQueue[typingIndex];
     let charIndex = 0;
     setCurrentTypingLine("");
 
@@ -176,7 +175,7 @@ export default function HeroSection() {
     }, 18);
 
     return () => clearInterval(typeInterval);
-  }, [typingIndex, phase, isWaitingForApi]);
+  }, [typingIndex, phase, isWaitingForApi, insightsQueue]);
 
   const runAnalysis = async (websiteUrl: string) => {
     try {
@@ -196,11 +195,12 @@ export default function HeroSection() {
         setAiAnalysis(data.analysis as AIAnalysis);
         
         const insights = buildTerminalInsights(data.analysis);
-        insightsQueueRef.current = insights;
         setTerminalLines([]);
         setTypingIndex(0);
         setRealProgress(15);
         setIsWaitingForApi(false);
+        // Trigger typewriter effect by setting insights queue
+        setInsightsQueue(insights);
       } else {
         throw new Error("No analysis data returned");
       }
