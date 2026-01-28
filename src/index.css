@@ -103,9 +103,16 @@
     font-family: 'Flow Circular', sans-serif;
   }
 
-  p, li, span, a {
+  /* Only apply larger font size to body text, not elements inside headings */
+  p, li {
     font-size: 1.125rem;
     line-height: 1.8;
+  }
+
+  /* Ensure spans inside headings inherit the heading size */
+  h1 span, h2 span, h3 span, h4 span, h5 span, h6 span {
+    font-size: inherit;
+    line-height: inherit;
   }
 }
 
