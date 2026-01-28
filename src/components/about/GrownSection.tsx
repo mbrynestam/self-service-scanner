@@ -90,7 +90,7 @@ export default function GrownSection() {
               </h3>
               <p className="text-primary font-medium mb-4">Förstår hur köpare tänker</p>
               <p className="text-muted-foreground text-sm">
-                Strategi, positionering och insikt i hur B2B-köpresor verkligen fungerar.
+                Hjälper B2B-företag anpassa sitt sätt att marknadsföra och sälja till hur dagens B2B-kunder köper.
               </p>
             </motion.div>
 
