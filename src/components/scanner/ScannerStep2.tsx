@@ -55,6 +55,9 @@ export default function ScannerStep2({ url, onComplete }: ScannerStep2Props) {
     if (data.concerns && data.concerns.length > 0) {
       insights.push(`> Oro: "${data.concerns[0]}"`);
     }
+    // Brainstorming messages
+    insights.push(`> Brainstormar self-service verktyg som matchar målgruppens behov...`);
+    insights.push(`> Analyserar och väljer ut de verktyg med största affärsnytta...`);
     if (data.opportunities && data.opportunities.length > 0) {
       insights.push(`> Identifierade ${data.opportunities.length} self-service-möjligheter`);
     }
@@ -138,26 +141,31 @@ export default function ScannerStep2({ url, onComplete }: ScannerStep2Props) {
     }
   }, [analysisData]);
 
-  // Slow continuous progress while waiting, then jump based on insights shown
+  // Continuous slow progress - never stops completely
   const [slowProgress, setSlowProgress] = useState(5);
   
   useEffect(() => {
-    if (analysisData) return; // Stop slow progress once we have data
-    
     const interval = setInterval(() => {
       setSlowProgress(prev => {
-        // Slowly increment up to 70% while waiting
-        if (prev < 70) return prev + 0.5;
-        return prev;
+        // Always keep moving, but slow down as we approach limits
+        if (!analysisData) {
+          // Before data: move towards 65%
+          if (prev < 65) return prev + 0.3;
+          return prev + 0.05; // Very slow crawl after 65%
+        } else {
+          // After data: continue moving based on insights
+          const targetProgress = 70 + ((visibleInsights.length + 1) / (insightsQueueRef.current.length || 1)) * 28;
+          if (prev < targetProgress) return prev + 0.4;
+          if (prev < 98) return prev + 0.1; // Keep crawling slowly
+          return prev;
+        }
       });
     }, 100);
     
     return () => clearInterval(interval);
-  }, [analysisData]);
+  }, [analysisData, visibleInsights.length]);
   
-  const progress = analysisData 
-    ? Math.min(70 + ((visibleInsights.length + 1) / (insightsQueueRef.current.length || 1)) * 30, 100)
-    : slowProgress;
+  const progress = slowProgress;
 
   return (
     <div className="flex flex-col items-center text-center max-w-2xl mx-auto px-4">
