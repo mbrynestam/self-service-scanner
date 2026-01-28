@@ -12,7 +12,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <div className="min-h-screen bg-background flex items-center justify-center p-4 md:p-8">
-        <div className="w-full max-w-4xl bg-card/50 backdrop-blur-sm rounded-3xl border border-border p-6 md:p-10">
+        <div className="w-full max-w-4xl">
           <OpportunityScanner />
         </div>
       </div>
