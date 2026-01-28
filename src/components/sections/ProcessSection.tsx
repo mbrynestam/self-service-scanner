@@ -125,8 +125,8 @@ export default function ProcessSection() {
         </motion.div>
 
         <div className="relative">
-          {/* Animated connecting line - Desktop */}
-          <div className="hidden lg:block absolute top-1/2 left-[10%] right-[10%] h-0.5 -translate-y-1/2 z-0">
+          {/* Animated connecting line - Desktop (only covers first 2 steps) */}
+          <div className="hidden lg:block absolute top-1/2 left-[10%] right-[38%] h-0.5 -translate-y-1/2 z-0">
             <div className="absolute inset-0 bg-border" />
             <motion.div
               className="absolute inset-y-0 left-0 bg-primary"
@@ -136,8 +136,8 @@ export default function ProcessSection() {
             />
           </div>
 
-          {/* Animated connecting line - Mobile */}
-          <div className="lg:hidden absolute left-8 top-[60px] bottom-[60px] w-0.5 z-0">
+          {/* Animated connecting line - Mobile (only covers first 2 steps) */}
+          <div className="lg:hidden absolute left-8 top-[60px] bottom-[38%] w-0.5 z-0">
             <div className="absolute inset-0 bg-border" />
             <motion.div
               className="absolute inset-x-0 top-0 bg-primary"
