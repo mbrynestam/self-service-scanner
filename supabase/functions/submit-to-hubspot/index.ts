@@ -28,10 +28,13 @@ serve(async (req) => {
       company, 
       email, 
       role, 
+      phone,
+      message,
       websiteUrl, 
       opportunities, 
       selectedTool,
-      submissionType 
+      submissionType,
+      buyr_source 
     } = body;
 
     console.log("Submitting to HubSpot:", { email, company, websiteUrl, submissionType });
@@ -41,21 +44,33 @@ serve(async (req) => {
     const firstname = nameParts[0] || "";
     const lastname = nameParts.slice(1).join(" ") || "";
 
+    // Determine submission type label
+    let submissionLabel = "";
+    if (submissionType === "meeting") {
+      submissionLabel = "Boka genomgång";
+    } else if (submissionType === "email") {
+      submissionLabel = "Skicka prototyp";
+    } else if (submissionType === "contact") {
+      submissionLabel = "Kontaktformulär";
+    }
+
     // Create or update contact in HubSpot
     const contactPayload = {
       properties: {
         email,
         firstname,
         lastname,
-        company,
+        company: company || "",
         jobtitle: role || "",
-        website: websiteUrl,
+        phone: phone || "",
+        website: websiteUrl || "",
+        message: message || "",
         // Custom properties for scanner data
-        buyr_analyzed_url: websiteUrl,
-        buyr_opportunities: opportunities,
-        buyr_selected_tool: selectedTool,
-        buyr_submission_type: submissionType === "meeting" ? "Boka genomgång" : "Skicka prototyp",
-        buyr_source: "Opportunity Scanner",
+        buyr_analyzed_url: websiteUrl || "",
+        buyr_opportunities: opportunities || "",
+        buyr_selected_tool: selectedTool || "",
+        buyr_submission_type: submissionLabel,
+        buyr_source: buyr_source || "Opportunity Scanner",
         hs_lead_status: "NEW",
       },
     };
