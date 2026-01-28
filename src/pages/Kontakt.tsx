@@ -163,10 +163,10 @@ export default function Kontakt() {
                     <div>
                       <p className="font-semibold text-foreground mb-1">E-post</p>
                       <a
-                        href="mailto:hej@sjalvbetjaning.se"
+                        href="mailto:hej@buyr.studio"
                         className="text-muted-foreground hover:text-primary transition-colors"
                       >
-                        hej@sjalvbetjaning.se
+                        hej@buyr.studio
                       </a>
                     </div>
                   </div>
