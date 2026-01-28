@@ -201,7 +201,7 @@ export default function Kontakt() {
               transition={{ duration: 0.6, delay: 0.2 }}
               className="space-y-8"
             >
-              <div className="gradient-border rounded-2xl p-8 card-gradient">
+              <div className="rounded-2xl p-8 card-gradient">
                 <h2 className="font-display text-2xl font-bold text-foreground mb-6">
                   I ett första möte (30 min) hjälper vi er att:
                 </h2>
@@ -256,37 +256,6 @@ export default function Kontakt() {
                 </div>
               </div>
 
-              <div className="bg-secondary/30 rounded-2xl p-8 border border-border">
-                <h3 className="font-display text-lg font-bold text-foreground mb-4">
-                  Vad händer efter du skickat formuläret?
-                </h3>
-                <ol className="space-y-3 text-sm text-muted-foreground">
-                  <li className="flex items-start gap-3">
-                    <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center flex-shrink-0">
-                      1
-                    </span>
-                    <span>Vi granskar din förfrågan inom 24 timmar</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center flex-shrink-0">
-                      2
-                    </span>
-                    <span>En specialist kontaktar dig för att boka möte</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center flex-shrink-0">
-                      3
-                    </span>
-                    <span>Vi har ett 30-min discovery-samtal om era behov</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center flex-shrink-0">
-                      4
-                    </span>
-                    <span>Du får ett förslag anpassat efter er situation</span>
-                  </li>
-                </ol>
-              </div>
             </motion.div>
           </div>
         </div>
