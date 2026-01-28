@@ -125,9 +125,9 @@ export default function ScannerStep2({ url, onComplete }: ScannerStep2Props) {
           setVisibleInsights(prev => [...prev, currentInsight]);
           setDisplayedText("");
           setCurrentTypingIndex(prev => prev + 1);
-        }, 300);
+        }, 150); // Faster pause between lines
       }
-    }, 25); // Speed of typing
+    }, 12); // Faster typing speed
 
     return () => clearInterval(typeInterval);
   }, [currentTypingIndex, analysisData, onComplete]);
@@ -150,13 +150,13 @@ export default function ScannerStep2({ url, onComplete }: ScannerStep2Props) {
         // Always keep moving, but slow down as we approach limits
         if (!analysisData) {
           // Before data: move towards 65%
-          if (prev < 65) return prev + 0.3;
-          return prev + 0.05; // Very slow crawl after 65%
+          if (prev < 65) return prev + 0.5;
+          return prev + 0.1; // Slow crawl after 65%
         } else {
           // After data: continue moving based on insights
           const targetProgress = 70 + ((visibleInsights.length + 1) / (insightsQueueRef.current.length || 1)) * 28;
-          if (prev < targetProgress) return prev + 0.4;
-          if (prev < 98) return prev + 0.1; // Keep crawling slowly
+          if (prev < targetProgress) return prev + 0.6;
+          if (prev < 98) return prev + 0.15; // Keep crawling
           return prev;
         }
       });
