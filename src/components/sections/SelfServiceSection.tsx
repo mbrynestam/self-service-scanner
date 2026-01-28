@@ -73,13 +73,7 @@ export default function SelfServiceSection() {
               <h3 className="font-display text-2xl font-bold text-foreground mb-3">
                 {tool.title}
               </h3>
-              <p className="text-muted-foreground mb-6">{tool.description}</p>
-              <Button variant="default" size="sm" asChild>
-                <Link to={tool.href}>
-                  {tool.cta}
-                  <ArrowRight className="ml-2 w-4 h-4" />
-                </Link>
-              </Button>
+              <p className="text-muted-foreground">{tool.description}</p>
             </motion.div>
           ))}
         </div>
