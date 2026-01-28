@@ -29,3 +29,6 @@ enable_confirmations = false
 
 [functions.analyze-website]
 verify_jwt = false
+
+[functions.submit-to-hubspot]
+verify_jwt = false

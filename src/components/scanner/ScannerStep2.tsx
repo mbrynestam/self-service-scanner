@@ -1,10 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { Brain, Search, MessageSquare, Lightbulb, CheckCircle2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import type { Opportunity } from "./OpportunityScanner";
 
 interface ScannerStep2Props {
   url: string;
-  onComplete: () => void;
+  onComplete: (opportunities?: Opportunity[]) => void;
 }
 
 const analysisSteps = [
@@ -33,6 +35,30 @@ const analysisSteps = [
 export default function ScannerStep2({ url, onComplete }: ScannerStep2Props) {
   const [currentStep, setCurrentStep] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
+  const opportunitiesRef = useRef<Opportunity[]>([]);
+  const analysisStartedRef = useRef(false);
+
+  // Fetch opportunities from the API
+  useEffect(() => {
+    if (analysisStartedRef.current) return;
+    analysisStartedRef.current = true;
+
+    const fetchOpportunities = async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('analyze-website', {
+          body: { url, step: 'opportunities' },
+        });
+
+        if (!error && data?.analysis?.opportunities) {
+          opportunitiesRef.current = data.analysis.opportunities;
+        }
+      } catch (err) {
+        console.error('Failed to fetch opportunities:', err);
+      }
+    };
+
+    fetchOpportunities();
+  }, [url]);
 
   useEffect(() => {
     let timeout: NodeJS.Timeout;
@@ -44,7 +70,7 @@ export default function ScannerStep2({ url, onComplete }: ScannerStep2Props) {
     } else if (!isComplete) {
       setIsComplete(true);
       timeout = setTimeout(() => {
-        onComplete();
+        onComplete(opportunitiesRef.current);
       }, 1500);
     }
 

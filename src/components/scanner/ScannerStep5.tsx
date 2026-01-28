@@ -5,11 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import type { FocusArea } from "./OpportunityScanner";
+import { supabase } from "@/integrations/supabase/client";
+import type { FocusArea, Opportunity } from "./OpportunityScanner";
 
 interface ScannerStep5Props {
   focusArea: FocusArea;
   suggestionIndex: number;
+  url: string;
+  opportunities: Opportunity[];
   onReset: () => void;
 }
 
@@ -22,7 +25,7 @@ const suggestionTitles: Record<FocusArea, string[]> = {
 
 type SubmitMode = "meeting" | "email";
 
-export default function ScannerStep5({ focusArea, suggestionIndex, onReset }: ScannerStep5Props) {
+export default function ScannerStep5({ focusArea, suggestionIndex, url, opportunities, onReset }: ScannerStep5Props) {
   const [mode, setMode] = useState<SubmitMode | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -50,16 +53,47 @@ export default function ScannerStep5({ focusArea, suggestionIndex, onReset }: Sc
 
     setIsSubmitting(true);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    setIsSubmitting(false);
-    setIsSubmitted(true);
-    
-    toast({
-      title: mode === "meeting" ? "Tack! Vi hör av oss inom 24h" : "Prototypen skickas snart!",
-      description: "Kolla din inbox för mer information.",
-    });
+    try {
+      // Format opportunities for HubSpot
+      const opportunitiesText = opportunities.length > 0
+        ? opportunities.map((opp, i) => `${i + 1}. ${opp.title}: ${opp.description}`).join('\n')
+        : `Fokusområde: ${focusArea}, Valt förslag: ${suggestionTitle}`;
+
+      // Send to HubSpot via edge function
+      const { error } = await supabase.functions.invoke('submit-to-hubspot', {
+        body: {
+          name: formData.name,
+          company: formData.company,
+          email: formData.email,
+          role: formData.role || '',
+          websiteUrl: url,
+          opportunities: opportunitiesText,
+          selectedTool: suggestionTitle,
+          submissionType: mode,
+        },
+      });
+
+      if (error) {
+        console.error('HubSpot submission error:', error);
+        throw error;
+      }
+
+      setIsSubmitted(true);
+      
+      toast({
+        title: mode === "meeting" ? "Tack! Vi hör av oss inom 24h" : "Prototypen skickas snart!",
+        description: "Kolla din inbox för mer information.",
+      });
+    } catch (error) {
+      console.error('Form submission error:', error);
+      toast({
+        title: "Något gick fel",
+        description: "Försök igen eller kontakta oss direkt.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (isSubmitted) {
