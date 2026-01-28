@@ -12,10 +12,11 @@ serve(async (req) => {
   }
 
   try {
-    const HUBSPOT_ACCESS_TOKEN = Deno.env.get("HUBSPOT_ACCESS_TOKEN");
+    const HUBSPOT_PORTAL_ID = Deno.env.get("HUBSPOT_PORTAL_ID");
+    const HUBSPOT_FORM_ID = Deno.env.get("HUBSPOT_FORM_ID");
     
-    if (!HUBSPOT_ACCESS_TOKEN) {
-      console.error("HUBSPOT_ACCESS_TOKEN is not configured");
+    if (!HUBSPOT_PORTAL_ID || !HUBSPOT_FORM_ID) {
+      console.error("HubSpot Portal ID or Form ID is not configured");
       return new Response(
         JSON.stringify({ error: "HubSpot integration not configured" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -37,10 +38,10 @@ serve(async (req) => {
       buyr_source 
     } = body;
 
-    console.log("Submitting to HubSpot:", { email, company, websiteUrl, submissionType });
+    console.log("Submitting to HubSpot Forms API:", { email, company, submissionType });
 
     // Split name into first and last name
-    const nameParts = name.trim().split(" ");
+    const nameParts = (name || "").trim().split(" ");
     const firstname = nameParts[0] || "";
     const lastname = nameParts.slice(1).join(" ") || "";
 
@@ -54,93 +55,72 @@ serve(async (req) => {
       submissionLabel = "Kontaktformulär";
     }
 
-    // Create or update contact in HubSpot
-    const contactPayload = {
-      properties: {
-        email,
-        firstname,
-        lastname,
-        company: company || "",
-        jobtitle: role || "",
-        phone: phone || "",
-        website: websiteUrl || "",
-        message: message || "",
-        // Custom properties for scanner data
-        buyr_analyzed_url: websiteUrl || "",
-        buyr_opportunities: opportunities || "",
-        buyr_selected_tool: selectedTool || "",
-        buyr_submission_type: submissionLabel,
-        buyr_source: buyr_source || "Opportunity Scanner",
-        hs_lead_status: "NEW",
+    // Build form fields array for HubSpot Forms API
+    const fields = [
+      { name: "email", value: email || "" },
+      { name: "firstname", value: firstname },
+      { name: "lastname", value: lastname },
+      { name: "company", value: company || "" },
+      { name: "jobtitle", value: role || "" },
+      { name: "phone", value: phone || "" },
+      { name: "message", value: message || "" },
+      { name: "website", value: websiteUrl || "" },
+    ];
+
+    // Add custom fields if they exist in your HubSpot form
+    if (opportunities) {
+      fields.push({ name: "buyr_opportunities", value: opportunities });
+    }
+    if (selectedTool) {
+      fields.push({ name: "buyr_selected_tool", value: selectedTool });
+    }
+    if (submissionLabel) {
+      fields.push({ name: "buyr_submission_type", value: submissionLabel });
+    }
+    if (buyr_source) {
+      fields.push({ name: "buyr_source", value: buyr_source });
+    }
+    if (websiteUrl) {
+      fields.push({ name: "buyr_analyzed_url", value: websiteUrl });
+    }
+
+    // HubSpot Forms API v3 endpoint
+    const formUrl = `https://api.hsforms.com/submissions/v3/integration/submit/${HUBSPOT_PORTAL_ID}/${HUBSPOT_FORM_ID}`;
+
+    const formPayload = {
+      fields,
+      context: {
+        pageUri: websiteUrl || "https://buyr.studio",
+        pageName: buyr_source || "Buyr Form Submission",
       },
     };
 
-    // First, try to create the contact
-    let response = await fetch("https://api.hubapi.com/crm/v3/objects/contacts", {
+    console.log("Sending to HubSpot:", JSON.stringify(formPayload, null, 2));
+
+    const response = await fetch(formUrl, {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${HUBSPOT_ACCESS_TOKEN}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(contactPayload),
+      body: JSON.stringify(formPayload),
     });
-
-    // If contact already exists, update it
-    if (response.status === 409) {
-      console.log("Contact exists, updating...");
-      
-      // Search for existing contact
-      const searchResponse = await fetch("https://api.hubapi.com/crm/v3/objects/contacts/search", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${HUBSPOT_ACCESS_TOKEN}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          filterGroups: [{
-            filters: [{
-              propertyName: "email",
-              operator: "EQ",
-              value: email,
-            }],
-          }],
-        }),
-      });
-
-      const searchData = await searchResponse.json();
-      
-      if (searchData.results && searchData.results.length > 0) {
-        const contactId = searchData.results[0].id;
-        
-        // Update existing contact
-        response = await fetch(`https://api.hubapi.com/crm/v3/objects/contacts/${contactId}`, {
-          method: "PATCH",
-          headers: {
-            "Authorization": `Bearer ${HUBSPOT_ACCESS_TOKEN}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ properties: contactPayload.properties }),
-        });
-      }
-    }
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("HubSpot API error:", response.status, errorText);
+      console.error("HubSpot Forms API error:", response.status, errorText);
       
       // Return success anyway to not block user experience
-      // Log the error for debugging
       return new Response(
-        JSON.stringify({ success: true, warning: "Contact may not have been saved to CRM" }),
+        JSON.stringify({ success: true, warning: "Form submission may have failed" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     const result = await response.json();
-    console.log("HubSpot contact created/updated:", result.id);
+    console.log("HubSpot form submitted successfully:", result);
 
     return new Response(
-      JSON.stringify({ success: true, contactId: result.id }),
+      JSON.stringify({ success: true, result }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
 
