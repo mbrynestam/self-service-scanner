@@ -1,6 +1,6 @@
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
-import { Check, Sparkles, Users, Compass, Bot } from "lucide-react";
+import { Check, Users, Compass, Bot } from "lucide-react";
 
 const benefits = [
   "Blir dialogerna mer kvalificerade",
@@ -120,66 +120,6 @@ export default function OurRoleSection() {
           <p className="text-muted-foreground text-center mb-12">
             Vi ser det som ett samarbete där varje del spelar en viktig roll.
           </p>
-
-          {/* Venn diagram */}
-          <div className="relative h-[400px] md:h-[450px] flex items-center justify-center mb-12">
-            {/* Circle 1 - Customer knowledge */}
-            <motion.div
-              initial={{ opacity: 0, x: -50, y: -20 }}
-              animate={isInView ? { opacity: 1, x: 0, y: 0 } : {}}
-              transition={{ duration: 0.8, delay: 0.4 }}
-              className="absolute w-48 h-48 md:w-56 md:h-56 rounded-full bg-secondary/60 border border-border flex items-center justify-center"
-              style={{ left: "10%", top: "15%" }}
-            >
-              <div className="text-center p-4">
-                <Users className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-                <p className="text-sm font-medium text-foreground">Er kunskap</p>
-              </div>
-            </motion.div>
-
-            {/* Circle 2 - Buyr methodology */}
-            <motion.div
-              initial={{ opacity: 0, x: 50, y: -20 }}
-              animate={isInView ? { opacity: 1, x: 0, y: 0 } : {}}
-              transition={{ duration: 0.8, delay: 0.6 }}
-              className="absolute w-48 h-48 md:w-56 md:h-56 rounded-full bg-primary/15 border border-primary/30 flex items-center justify-center"
-              style={{ right: "10%", top: "15%" }}
-            >
-              <div className="text-center p-4">
-                <Compass className="w-8 h-8 text-primary mx-auto mb-2" />
-                <p className="text-sm font-medium text-foreground">Buyrs metodik</p>
-              </div>
-            </motion.div>
-
-            {/* Circle 3 - AI possibilities */}
-            <motion.div
-              initial={{ opacity: 0, y: 50 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.8, delay: 0.8 }}
-              className="absolute w-48 h-48 md:w-56 md:h-56 rounded-full bg-accent/10 border border-accent/30 flex items-center justify-center"
-              style={{ left: "50%", bottom: "5%", transform: "translateX(-50%)" }}
-            >
-              <div className="text-center p-4">
-                <Bot className="w-8 h-8 text-accent-foreground mx-auto mb-2" />
-                <p className="text-sm font-medium text-foreground">AI:s möjligheter</p>
-              </div>
-            </motion.div>
-
-            {/* Center intersection */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.5 }}
-              animate={isInView ? { opacity: 1, scale: 1 } : {}}
-              transition={{ duration: 0.6, delay: 1.2 }}
-              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10"
-            >
-              <div className="bg-background border-2 border-primary rounded-full px-4 py-3 shadow-lg flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-primary" />
-                <span className="text-sm font-bold text-foreground whitespace-nowrap">
-                  Bättre köpupplevelser
-                </span>
-              </div>
-            </motion.div>
-          </div>
 
           {/* Contribution cards */}
           <div className="grid md:grid-cols-3 gap-6">
