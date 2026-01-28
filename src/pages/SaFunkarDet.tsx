@@ -327,35 +327,6 @@ export default function SaFunkarDet() {
         </div>
       </section>
 
-      {/* Key Message */}
-      <section className="py-20 relative overflow-hidden">
-        <div className="container mx-auto px-4 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="max-w-4xl mx-auto text-center"
-          >
-            <div className="gradient-border rounded-3xl p-8 lg:p-12 card-gradient">
-              <div className="grid md:grid-cols-3 gap-8 md:gap-4">
-                <div>
-                  <p className="font-display text-xl lg:text-2xl font-bold text-foreground mb-2">Ni driver riktningen.</p>
-                  <div className="w-12 h-1 bg-primary mx-auto rounded-full" />
-                </div>
-                <div>
-                  <p className="font-display text-xl lg:text-2xl font-bold text-foreground mb-2">Vi driver processen.</p>
-                  <div className="w-12 h-1 bg-primary mx-auto rounded-full" />
-                </div>
-                <div>
-                  <p className="font-display text-xl lg:text-2xl font-bold gradient-text text-xl lg:text-2xl font-bold mb-2">AI driver hastigheten.</p>
-                  <div className="w-12 h-1 bg-primary mx-auto rounded-full" />
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      </section>
 
       {/* Timeline Expectation */}
       <section className="py-16 bg-card">
