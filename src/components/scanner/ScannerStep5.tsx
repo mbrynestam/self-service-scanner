@@ -4,6 +4,7 @@ import { Sparkles, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import type { FocusArea, Opportunity } from "./OpportunityScanner";
@@ -32,7 +33,8 @@ export default function ScannerStep5({ focusArea, suggestionIndex, url, opportun
     lastName: "",
     email: "",
     company: "",
-    role: "",
+    phone: "",
+    message: "",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -40,11 +42,12 @@ export default function ScannerStep5({ focusArea, suggestionIndex, url, opportun
     setIsSubmitting(true);
     
     try {
-      const { data, error } = await supabase.functions.invoke('submit-to-hubspot', {
+      const { error } = await supabase.functions.invoke('submit-to-hubspot', {
         body: {
           ...formData,
           analyzedUrl: url,
           selectedTool: suggestionTitle,
+          focusArea: focusArea,
           opportunities: opportunities.map(o => o.title),
           source: 'Opportunity Scanner',
         },
@@ -68,7 +71,7 @@ export default function ScannerStep5({ focusArea, suggestionIndex, url, opportun
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData(prev => ({
       ...prev,
       [e.target.name]: e.target.value,
@@ -97,7 +100,7 @@ export default function ScannerStep5({ focusArea, suggestionIndex, url, opportun
         </p>
       </motion.div>
 
-      {/* Lead Capture Form */}
+      {/* Lead Capture Form - Same structure as Kontakt page */}
       <motion.form
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -114,7 +117,7 @@ export default function ScannerStep5({ focusArea, suggestionIndex, url, opportun
               value={formData.firstName}
               onChange={handleChange}
               required
-              placeholder="Anna"
+              placeholder="Ditt förnamn"
               className="h-9"
             />
           </div>
@@ -126,7 +129,7 @@ export default function ScannerStep5({ focusArea, suggestionIndex, url, opportun
               value={formData.lastName}
               onChange={handleChange}
               required
-              placeholder="Andersson"
+              placeholder="Ditt efternamn"
               className="h-9"
             />
           </div>
@@ -141,35 +144,48 @@ export default function ScannerStep5({ focusArea, suggestionIndex, url, opportun
             value={formData.email}
             onChange={handleChange}
             required
-            placeholder="anna@foretag.se"
+            placeholder="din@epost.se"
             className="h-9"
           />
         </div>
         
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1.5">
-            <Label htmlFor="company" className="text-xs">Företag *</Label>
-            <Input
-              id="company"
-              name="company"
-              value={formData.company}
-              onChange={handleChange}
-              required
-              placeholder="Företaget AB"
-              className="h-9"
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="role" className="text-xs">Roll</Label>
-            <Input
-              id="role"
-              name="role"
-              value={formData.role}
-              onChange={handleChange}
-              placeholder="VD, Marknadschef..."
-              className="h-9"
-            />
-          </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="company" className="text-xs">Företag *</Label>
+          <Input
+            id="company"
+            name="company"
+            value={formData.company}
+            onChange={handleChange}
+            required
+            placeholder="Ditt företag"
+            className="h-9"
+          />
+        </div>
+        
+        <div className="space-y-1.5">
+          <Label htmlFor="phone" className="text-xs">Telefon</Label>
+          <Input
+            id="phone"
+            name="phone"
+            type="tel"
+            value={formData.phone}
+            onChange={handleChange}
+            placeholder="070-123 45 67"
+            className="h-9"
+          />
+        </div>
+        
+        <div className="space-y-1.5">
+          <Label htmlFor="message" className="text-xs">Meddelande</Label>
+          <Textarea
+            id="message"
+            name="message"
+            value={formData.message}
+            onChange={handleChange}
+            placeholder="Berätta kort om era behov..."
+            rows={3}
+            className="resize-none"
+          />
         </div>
         
         <Button type="submit" className="w-full" disabled={isSubmitting}>
