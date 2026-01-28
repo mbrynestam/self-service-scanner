@@ -249,19 +249,24 @@ export default function Kontakt() {
                       Välj en tid som passar dig för ett 30-minuters samtal där
                       vi går igenom era möjligheter.
                     </p>
-                    <Button 
-                      variant="outline" 
-                      size="lg"
-                      asChild
-                    >
-                      <a 
-                        href="https://calendly.com/magnus-43/30min" 
-                        target="_blank" 
-                        rel="noopener noreferrer"
+                    <div className="space-y-2">
+                      <Button
+                        variant="outline"
+                        size="lg"
+                        type="button"
+                        onClick={() => {
+                          const url = "https://calendly.com/magnus-43/30min";
+                          const w = window.open(url, "_blank", "noopener,noreferrer");
+                          // If blocked, fall back to same-tab navigation
+                          if (!w) window.location.assign(url);
+                        }}
                       >
                         Se lediga tider
-                      </a>
-                    </Button>
+                      </Button>
+                      <p className="text-xs text-muted-foreground">
+                        Om inget händer kan din webbläsare blockera nya fönster—då öppnar vi länken i samma flik.
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
