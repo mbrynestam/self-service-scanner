@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Globe, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,9 +11,25 @@ interface ScannerStep1Props {
 export default function ScannerStep1({ onSubmit }: ScannerStep1Props) {
   const [url, setUrl] = useState("");
   const [error, setError] = useState("");
+  const [honeypot, setHoneypot] = useState("");
+  const formLoadTime = useRef(Date.now());
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Bot detection: honeypot field should be empty
+    if (honeypot) {
+      console.log("Bot detected via honeypot");
+      // Silently reject but show fake success
+      return;
+    }
+
+    // Bot detection: form submitted too fast (< 2 seconds)
+    const timeElapsed = Date.now() - formLoadTime.current;
+    if (timeElapsed < 2000) {
+      console.log("Bot detected via timing");
+      return;
+    }
     
     // Basic URL validation
     let validUrl = url.trim();
@@ -35,6 +51,11 @@ export default function ScannerStep1({ onSubmit }: ScannerStep1Props) {
       setError("Ange en giltig webbadress");
     }
   };
+
+  // Reset form load time when component mounts
+  useEffect(() => {
+    formLoadTime.current = Date.now();
+  }, []);
 
   return (
     <div className="flex flex-col items-center text-center max-w-2xl mx-auto px-4">
@@ -89,6 +110,25 @@ export default function ScannerStep1({ onSubmit }: ScannerStep1Props) {
             className="pl-12 h-14 text-lg bg-card border-border focus:border-primary"
           />
         </div>
+
+        {/* Honeypot field - invisible to humans, bots will fill it */}
+        <input
+          type="text"
+          name="website_url_confirm"
+          value={honeypot}
+          onChange={(e) => setHoneypot(e.target.value)}
+          tabIndex={-1}
+          autoComplete="off"
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            left: "-9999px",
+            opacity: 0,
+            height: 0,
+            width: 0,
+            pointerEvents: "none",
+          }}
+        />
         
         {error && (
           <p className="text-destructive text-sm">{error}</p>
