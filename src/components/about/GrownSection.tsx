@@ -80,7 +80,7 @@ export default function GrownSection() {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="gradient-border rounded-2xl p-6 md:p-8 card-gradient relative z-10"
+              className="rounded-2xl p-6 md:p-8 card-gradient relative z-10"
             >
               <div className="w-14 h-14 rounded-xl bg-secondary flex items-center justify-center mb-6">
                 <Compass className="w-7 h-7 text-muted-foreground" />
@@ -114,7 +114,7 @@ export default function GrownSection() {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.4 }}
-              className="gradient-border rounded-2xl p-6 md:p-8 card-gradient relative z-10"
+              className="rounded-2xl p-6 md:p-8 card-gradient relative z-10"
             >
               <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-6">
                 <Fingerprint className="w-7 h-7 text-primary" />
