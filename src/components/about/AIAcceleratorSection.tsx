@@ -67,7 +67,7 @@ export default function AIAcceleratorSection() {
               ))}
             </div>
             <div className="mt-6 text-center">
-              <span className="text-3xl font-bold text-muted-foreground">3+ månader</span>
+              <span className="text-3xl font-bold text-muted-foreground">4+ månader</span>
             </div>
           </motion.div>
 
