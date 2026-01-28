@@ -138,9 +138,26 @@ export default function ScannerStep2({ url, onComplete }: ScannerStep2Props) {
     }
   }, [analysisData]);
 
+  // Slow continuous progress while waiting, then jump based on insights shown
+  const [slowProgress, setSlowProgress] = useState(5);
+  
+  useEffect(() => {
+    if (analysisData) return; // Stop slow progress once we have data
+    
+    const interval = setInterval(() => {
+      setSlowProgress(prev => {
+        // Slowly increment up to 70% while waiting
+        if (prev < 70) return prev + 0.5;
+        return prev;
+      });
+    }, 100);
+    
+    return () => clearInterval(interval);
+  }, [analysisData]);
+  
   const progress = analysisData 
-    ? Math.min(((visibleInsights.length + 1) / (insightsQueueRef.current.length || 1)) * 100, 100)
-    : 10;
+    ? Math.min(70 + ((visibleInsights.length + 1) / (insightsQueueRef.current.length || 1)) * 30, 100)
+    : slowProgress;
 
   return (
     <div className="flex flex-col items-center text-center max-w-2xl mx-auto px-4">
@@ -184,7 +201,7 @@ export default function ScannerStep2({ url, onComplete }: ScannerStep2Props) {
       </div>
 
       {/* Terminal-style insights display */}
-      <div className="w-full max-w-lg bg-[#0d1117] border border-[#30363d] rounded-lg p-4 font-mono text-sm text-left min-h-[200px]">
+      <div className="w-full max-w-lg bg-[#0d1117] border border-[#30363d] rounded-lg p-4 font-mono text-sm text-center min-h-[200px]">
         {/* Terminal header */}
         <div className="flex items-center gap-2 mb-3 pb-2 border-b border-[#30363d]">
           <Terminal className="w-4 h-4 text-[#8b949e]" />
