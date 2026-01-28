@@ -81,8 +81,8 @@ export default function ScannerStep5({ focusArea, suggestionIndex, url, opportun
       setIsSubmitted(true);
       
       toast({
-        title: mode === "meeting" ? "Tack! Vi hör av oss inom 24h" : "Prototypen skickas snart!",
-        description: "Kolla din inbox för mer information.",
+        title: mode === "meeting" ? "✅ Tack! Vi hör av oss inom 24h" : "✅ Prototypen skickas snart!",
+        description: `Vi har tagit emot din förfrågan, ${formData.name.split(' ')[0]}. Kolla din inbox för mer information.`,
       });
     } catch (error) {
       console.error('Form submission error:', error);

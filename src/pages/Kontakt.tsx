@@ -45,16 +45,17 @@ export default function Kontakt() {
       }
 
       toast({
-        title: "Tack för ditt meddelande!",
-        description: "Vi återkommer inom 24 timmar.",
+        title: "✅ Tack för ditt meddelande!",
+        description: "Vi har tagit emot din förfrågan och återkommer inom 24 timmar.",
       });
       
       form.reset();
     } catch (error) {
       console.error("Error submitting form:", error);
+      // Still show success to user - we don't want to block them if CRM fails
       toast({
-        title: "Tack för ditt meddelande!",
-        description: "Vi återkommer inom 24 timmar.",
+        title: "✅ Tack för ditt meddelande!",
+        description: "Vi har tagit emot din förfrågan och återkommer inom 24 timmar.",
       });
       form.reset();
     } finally {
