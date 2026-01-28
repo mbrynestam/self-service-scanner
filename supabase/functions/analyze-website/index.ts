@@ -5,24 +5,70 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Simple HTML to text extraction
+// Scrape website using Firecrawl API
+async function scrapeWithFirecrawl(url: string): Promise<string> {
+  const apiKey = Deno.env.get('FIRECRAWL_API_KEY');
+  
+  if (!apiKey) {
+    console.log("FIRECRAWL_API_KEY not configured, falling back to basic scraper");
+    return scrapeWebsiteBasic(url);
+  }
+
+  try {
+    // Ensure URL has protocol
+    let fullUrl = url;
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      fullUrl = 'https://' + url;
+    }
+
+    console.log("Scraping with Firecrawl:", fullUrl);
+    
+    const response = await fetch('https://api.firecrawl.dev/v1/scrape', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        url: fullUrl,
+        formats: ['markdown'],
+        onlyMainContent: true,
+        waitFor: 3000, // Wait for JavaScript to render
+      }),
+    });
+
+    if (!response.ok) {
+      console.error("Firecrawl API error:", response.status);
+      return scrapeWebsiteBasic(url);
+    }
+
+    const data = await response.json();
+    const markdown = data.data?.markdown || data.markdown || "";
+    
+    // Limit text length to avoid token limits
+    const maxLength = 12000;
+    if (markdown.length > maxLength) {
+      console.log("Firecrawl content truncated from", markdown.length, "to", maxLength);
+      return markdown.substring(0, maxLength) + "...";
+    }
+    
+    console.log("Firecrawl extracted text length:", markdown.length);
+    return markdown;
+  } catch (error) {
+    console.error("Firecrawl error:", error);
+    return scrapeWebsiteBasic(url);
+  }
+}
+
+// Basic HTML scraper as fallback
 function extractTextFromHtml(html: string): string {
-  // Remove script and style tags with their content
   let text = html.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '');
   text = text.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
   text = text.replace(/<noscript[^>]*>[\s\S]*?<\/noscript>/gi, '');
-  
-  // Remove HTML comments
   text = text.replace(/<!--[\s\S]*?-->/g, '');
-  
-  // Replace common block elements with newlines
   text = text.replace(/<\/(div|p|h[1-6]|li|tr|section|article|header|footer|nav|aside)>/gi, '\n');
   text = text.replace(/<br\s*\/?>/gi, '\n');
-  
-  // Remove all remaining HTML tags
   text = text.replace(/<[^>]+>/g, ' ');
-  
-  // Decode HTML entities
   text = text.replace(/&nbsp;/g, ' ');
   text = text.replace(/&amp;/g, '&');
   text = text.replace(/&lt;/g, '<');
@@ -35,24 +81,20 @@ function extractTextFromHtml(html: string): string {
   text = text.replace(/&Auml;/g, 'Ä');
   text = text.replace(/&Ouml;/g, 'Ö');
   text = text.replace(/&Aring;/g, 'Å');
-  
-  // Clean up whitespace
   text = text.replace(/\s+/g, ' ');
   text = text.replace(/\n\s+/g, '\n');
   text = text.replace(/\n+/g, '\n');
-  
   return text.trim();
 }
 
-async function scrapeWebsite(url: string): Promise<string> {
+async function scrapeWebsiteBasic(url: string): Promise<string> {
   try {
-    // Ensure URL has protocol
     let fullUrl = url;
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
       fullUrl = 'https://' + url;
     }
 
-    console.log("Fetching website:", fullUrl);
+    console.log("Basic scraper fetching:", fullUrl);
     
     const response = await fetch(fullUrl, {
       headers: {
@@ -63,23 +105,22 @@ async function scrapeWebsite(url: string): Promise<string> {
     });
 
     if (!response.ok) {
-      console.error("Failed to fetch website:", response.status, response.statusText);
+      console.error("Basic scraper failed:", response.status);
       return "";
     }
 
     const html = await response.text();
     const text = extractTextFromHtml(html);
     
-    // Limit text length to avoid token limits (approx 10000 chars)
     const maxLength = 10000;
     if (text.length > maxLength) {
       return text.substring(0, maxLength) + "...";
     }
     
-    console.log("Extracted text length:", text.length);
+    console.log("Basic scraper extracted:", text.length, "chars");
     return text;
   } catch (error) {
-    console.error("Error scraping website:", error);
+    console.error("Basic scraper error:", error);
     return "";
   }
 }
@@ -106,11 +147,11 @@ serve(async (req) => {
 
     console.log("Analyzing website:", url);
 
-    // Scrape the website content
-    const websiteContent = await scrapeWebsite(url);
+    // Scrape the website content using Firecrawl (with basic fallback)
+    const websiteContent = await scrapeWithFirecrawl(url);
     const hasContent = websiteContent.length > 100;
     
-    console.log("Website content scraped:", hasContent ? "success" : "failed or minimal content", "length:", websiteContent.length);
+    console.log("Content scraped:", hasContent ? "success" : "failed/minimal", "length:", websiteContent.length);
 
     // Single consolidated prompt
     const systemPrompt = `Du är en strategisk B2B-analytiker som analyserar företagswebbplatser för att identifiera möjliga self-service-verktyg som kan hjälpa köpare bli trygga och välinformerade innan de pratar med sälj.
@@ -276,7 +317,6 @@ Returnera ENDAST valid JSON enligt detta schema:
 
     if (!content || content.trim().length < 50) {
       console.error("All AI attempts failed, using fallback");
-      // Use fallback response
       const fallbackAnalysis = {
         isB2B: true,
         businessType: "tjänst",
@@ -341,7 +381,6 @@ Returnera ENDAST valid JSON enligt detta schema:
       analysis = JSON.parse(jsonStr);
     } catch (parseError) {
       console.error("Failed to parse AI response:", parseError, "Content:", content.substring(0, 500));
-      // Return fallback
       analysis = {
         isB2B: true,
         businessType: "tjänst",
