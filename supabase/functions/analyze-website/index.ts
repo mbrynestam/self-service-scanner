@@ -8,6 +8,96 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
+// Simple in-memory rate limiter (per function instance)
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT_WINDOW_MS = 60000; // 1 minute
+const RATE_LIMIT_MAX_REQUESTS = 10; // Max 10 requests per minute per IP
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip);
+  
+  if (!entry || now > entry.resetTime) {
+    rateLimitMap.set(ip, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
+    return false;
+  }
+  
+  entry.count++;
+  if (entry.count > RATE_LIMIT_MAX_REQUESTS) {
+    return true;
+  }
+  
+  return false;
+}
+
+// URL validation to prevent SSRF attacks
+function isValidPublicUrl(urlString: string): { valid: boolean; error?: string; url?: string } {
+  try {
+    // Length limit
+    if (urlString.length > 2048) {
+      return { valid: false, error: "URL is too long (max 2048 characters)" };
+    }
+
+    // Add protocol if missing
+    let fullUrl = urlString.trim();
+    if (!fullUrl.startsWith('http://') && !fullUrl.startsWith('https://')) {
+      fullUrl = 'https://' + fullUrl;
+    }
+
+    const parsed = new URL(fullUrl);
+
+    // Only allow http/https protocols
+    if (!['http:', 'https:'].includes(parsed.protocol)) {
+      return { valid: false, error: "Only HTTP and HTTPS protocols are allowed" };
+    }
+
+    const hostname = parsed.hostname.toLowerCase();
+
+    // Block localhost and loopback addresses
+    if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '0.0.0.0' || hostname === '[::1]') {
+      return { valid: false, error: "Local addresses are not allowed" };
+    }
+
+    // Block private IP ranges
+    const privateIpPatterns = [
+      /^10\./,                          // 10.0.0.0/8
+      /^172\.(1[6-9]|2[0-9]|3[0-1])\./, // 172.16.0.0/12
+      /^192\.168\./,                    // 192.168.0.0/16
+      /^169\.254\./,                    // Link-local
+      /^fc[0-9a-f]{2}:/i,               // IPv6 unique local
+      /^fd[0-9a-f]{2}:/i,               // IPv6 unique local
+      /^fe80:/i,                        // IPv6 link-local
+    ];
+
+    for (const pattern of privateIpPatterns) {
+      if (pattern.test(hostname)) {
+        return { valid: false, error: "Private IP addresses are not allowed" };
+      }
+    }
+
+    // Block cloud metadata endpoints
+    const blockedHosts = [
+      '169.254.169.254',           // AWS/GCP/Azure metadata
+      'metadata.google.internal',   // GCP
+      'metadata.google.com',        // GCP
+      'instance-data',              // EC2
+    ];
+
+    if (blockedHosts.includes(hostname)) {
+      return { valid: false, error: "This address is not allowed" };
+    }
+
+    // Must have a valid domain with at least one dot (no bare hostnames)
+    if (!hostname.includes('.')) {
+      return { valid: false, error: "Invalid domain name" };
+    }
+
+    return { valid: true, url: fullUrl };
+  } catch {
+    return { valid: false, error: "Invalid URL format" };
+  }
+}
+
 // Scrape website using Firecrawl API
 async function scrapeWithFirecrawl(url: string): Promise<string> {
   const apiKey = Deno.env.get('FIRECRAWL_API_KEY');
@@ -134,24 +224,53 @@ serve(async (req) => {
   }
 
   try {
+    // Rate limiting by IP
+    const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || 
+                     req.headers.get("cf-connecting-ip") || 
+                     "unknown";
+    
+    if (isRateLimited(clientIp)) {
+      console.warn("Rate limit exceeded for IP:", clientIp);
+      return new Response(
+        JSON.stringify({ error: "Too many requests. Please wait a moment and try again." }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const { url } = await req.json();
     
-    if (!url) {
+    if (!url || typeof url !== 'string') {
       return new Response(
         JSON.stringify({ error: "URL is required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+    // Validate URL to prevent SSRF attacks
+    const urlValidation = isValidPublicUrl(url);
+    if (!urlValidation.valid) {
+      console.warn("Invalid URL rejected:", url, urlValidation.error);
+      return new Response(
+        JSON.stringify({ error: urlValidation.error || "Invalid URL" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
-    console.log("Analyzing website:", url);
+    const validatedUrl = urlValidation.url!;
+
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) {
+      console.error("LOVABLE_API_KEY is not configured");
+      return new Response(
+        JSON.stringify({ error: "Service configuration error" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    console.log("Analyzing website:", validatedUrl);
 
     // Scrape the website content using Firecrawl (with basic fallback)
-    const websiteContent = await scrapeWithFirecrawl(url);
+    const websiteContent = await scrapeWithFirecrawl(validatedUrl);
     const hasContent = websiteContent.length > 100;
     
     console.log("Content scraped:", hasContent ? "success" : "failed/minimal", "length:", websiteContent.length);
