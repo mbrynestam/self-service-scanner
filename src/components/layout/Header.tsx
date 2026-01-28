@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 
 const navLinks = [
-  { name: "Lösning", href: "/losning" },
+  { name: "Self-service för B2B", href: "/losning" },
   { name: "Så funkar det", href: "/sa-funkar-det" },
   { name: "Use cases", href: "/use-cases" },
   { name: "Priser", href: "/priser" },
