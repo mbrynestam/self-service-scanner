@@ -22,7 +22,7 @@ const tools = [
   },
   {
     icon: Settings,
-    title: "Configurator",
+    title: "Konfiguratorer",
     description: "Låt köpare bygga sin egen lösning visuellt med pris och specifikation i realtid.",
     cta: "Konfigurera lösning",
     href: "/losning",
