@@ -29,7 +29,7 @@ const tools = [
   },
   {
     icon: Calendar,
-    title: "Self-Scheduling",
+    title: "Urval & rekommendationer",
     description: "Ge köpare möjlighet att boka möten, demos eller samtal — utan mail-pingpong.",
     cta: "Boka tid",
     href: "/kontakt",
