@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Kontakt() {
   const { toast } = useToast();
@@ -24,23 +25,44 @@ export default function Kontakt() {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Simulate form submission
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    toast({
-      title: "Tack för ditt meddelande!",
-      description: "Vi återkommer inom 24 timmar.",
-    });
-    
-    setFormData({
-      firstName: "",
-      lastName: "",
-      email: "",
-      company: "",
-      phone: "",
-      message: "",
-    });
-    setIsSubmitting(false);
+    try {
+      const { error } = await supabase.functions.invoke('hubspot-contact', {
+        body: {
+          email: formData.email,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          company: formData.company,
+          phone: formData.phone,
+          message: formData.message,
+          source: 'contact_form',
+        },
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Tack för ditt meddelande!",
+        description: "Vi återkommer inom 24 timmar.",
+      });
+      
+      setFormData({
+        firstName: "",
+        lastName: "",
+        email: "",
+        company: "",
+        phone: "",
+        message: "",
+      });
+    } catch (error) {
+      console.error('Error submitting to HubSpot:', error);
+      toast({
+        title: "Något gick fel",
+        description: "Försök igen eller kontakta oss direkt på hej@buyr.studio",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import type { FocusArea, Opportunity } from "./OpportunityScanner";
 
 interface ScannerStep5Props {
@@ -38,23 +39,37 @@ export default function ScannerStep5({ focusArea, suggestionIndex, url, opportun
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Log the data that would be sent (for debugging)
-    console.log("Form submission:", {
-      ...formData,
-      analyzedUrl: url,
-      selectedTool: suggestionTitle,
-      opportunities: opportunities.map(o => o.title),
-    });
-    
-    // Simulate form submission
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    toast({
-      title: "Tack! Vi hör av oss snart.",
-      description: "Du kommer få din prototyp inom 24 timmar.",
-    });
-    
-    setIsSubmitting(false);
+    try {
+      const { error } = await supabase.functions.invoke('hubspot-contact', {
+        body: {
+          email: formData.email,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          company: formData.company,
+          role: formData.role,
+          source: 'opportunity_scanner',
+          analyzedUrl: url,
+          selectedTool: suggestionTitle,
+          opportunities: opportunities.map(o => o.title),
+        },
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Tack! Vi hör av oss snart.",
+        description: "Du kommer få din prototyp inom 24 timmar.",
+      });
+    } catch (error) {
+      console.error('Error submitting to HubSpot:', error);
+      toast({
+        title: "Något gick fel",
+        description: "Försök igen eller kontakta oss direkt.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
