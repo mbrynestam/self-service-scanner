@@ -1,9 +1,55 @@
 import { motion } from "framer-motion";
+import { useState } from "react";
 import Layout from "@/components/layout/Layout";
-import { Mail, Phone, MapPin, Calendar } from "lucide-react";
+import { Mail, Phone, MapPin, Calendar, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Kontakt() {
+  const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    company: "",
+    phone: "",
+    message: "",
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
+    // Simulate form submission
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    toast({
+      title: "Tack för ditt meddelande!",
+      description: "Vi återkommer inom 24 timmar.",
+    });
+    
+    setFormData({
+      firstName: "",
+      lastName: "",
+      email: "",
+      company: "",
+      phone: "",
+      message: "",
+    });
+    setIsSubmitting(false);
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFormData(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
+  };
+
   return (
     <Layout>
       {/* Hero */}
@@ -31,7 +77,7 @@ export default function Kontakt() {
       <section className="py-24">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-16">
-            {/* Tally Form Embed */}
+            {/* Contact Form */}
             <motion.div
               initial={{ opacity: 0, x: -40 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -41,16 +87,93 @@ export default function Kontakt() {
               <h2 className="font-display text-2xl font-bold text-foreground mb-6">
                 Boka demo
               </h2>
-              <iframe
-                src="https://tally.so/embed/eqagdQ?alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1"
-                width="100%"
-                height="500"
-                frameBorder="0"
-                marginHeight={0}
-                marginWidth={0}
-                title="Kontaktformulär"
-                className="rounded-xl"
-              />
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="firstName">Förnamn *</Label>
+                    <Input
+                      id="firstName"
+                      name="firstName"
+                      value={formData.firstName}
+                      onChange={handleChange}
+                      required
+                      placeholder="Ditt förnamn"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="lastName">Efternamn *</Label>
+                    <Input
+                      id="lastName"
+                      name="lastName"
+                      value={formData.lastName}
+                      onChange={handleChange}
+                      required
+                      placeholder="Ditt efternamn"
+                    />
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="email">E-post *</Label>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                    placeholder="din@epost.se"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="company">Företag *</Label>
+                  <Input
+                    id="company"
+                    name="company"
+                    value={formData.company}
+                    onChange={handleChange}
+                    required
+                    placeholder="Ditt företag"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Telefon</Label>
+                  <Input
+                    id="phone"
+                    name="phone"
+                    type="tel"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    placeholder="070-123 45 67"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="message">Meddelande *</Label>
+                  <Textarea
+                    id="message"
+                    name="message"
+                    value={formData.message}
+                    onChange={handleChange}
+                    required
+                    placeholder="Berätta kort om era behov..."
+                    rows={4}
+                  />
+                </div>
+                
+                <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    "Skickar..."
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4 mr-2" />
+                      Skicka meddelande
+                    </>
+                  )}
+                </Button>
+              </form>
             </motion.div>
 
             {/* Contact Info */}
