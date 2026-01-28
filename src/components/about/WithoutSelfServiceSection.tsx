@@ -45,11 +45,7 @@ export default function WithoutSelfServiceSection() {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
-              whileHover={{ 
-                x: [0, -3, 3, -3, 3, 0],
-                transition: { duration: 0.4 }
-              }}
-              className="flex items-center gap-4 p-5 rounded-xl bg-background/50 border border-destructive/20 cursor-default group"
+              className="flex items-center gap-4 p-5 rounded-xl bg-background/50 border border-destructive/20 group"
             >
               <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center flex-shrink-0 group-hover:bg-destructive/20 transition-colors">
                 <problem.icon className="w-6 h-6 text-destructive" />
