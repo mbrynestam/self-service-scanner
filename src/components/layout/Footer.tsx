@@ -72,8 +72,8 @@ export default function Footer() {
             © {new Date().getFullYear()} Buyr AB. Alla rättigheter förbehållna.
           </p>
           <div className="flex gap-6 text-sm text-muted-foreground">
-            <Link to="#" className="hover:text-primary transition-colors">Integritetspolicy</Link>
-            <Link to="#" className="hover:text-primary transition-colors">Villkor</Link>
+            <Link to="/integritetspolicy" className="hover:text-primary transition-colors">Integritetspolicy</Link>
+            <Link to="/villkor" className="hover:text-primary transition-colors">Villkor</Link>
           </div>
         </div>
       </div>
