@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 const tools = [
   {
     icon: Calculator,
-    title: "Self-Pricing",
+    title: "Priskalkylator",
     description: "Låt köpare räkna ut sin egen kostnad direkt — utan att behöva prata med sälj.",
     cta: "Testa priskalkylator",
     href: "/priser",
