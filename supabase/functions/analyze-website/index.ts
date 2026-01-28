@@ -316,6 +316,7 @@ Returnera ENDAST valid JSON enligt detta schema:
           },
           body: JSON.stringify({
             model: "google/gemini-2.5-flash",
+            max_tokens: 4000, // Ensure enough tokens for complete JSON response
             messages: [
               { role: "system", content: systemPrompt },
               { role: "user", content: userMessage }
@@ -347,7 +348,19 @@ Returnera ENDAST valid JSON enligt detta schema:
 
         if (content && content.trim().length > 50) {
           console.log("AI response received, length:", content.length);
-          break; // Success
+          
+          // Validate JSON before accepting - retry if invalid
+          try {
+            const jsonStr = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+            JSON.parse(jsonStr); // Test parse
+            console.log("JSON validation passed");
+            break; // Success - valid JSON
+          } catch (jsonError) {
+            console.warn(`Attempt ${attempt + 1}: Invalid JSON in response, retrying...`, jsonError);
+            lastError = new Error("Invalid JSON response");
+            content = null; // Reset so we retry
+            continue;
+          }
         }
         
         console.warn(`Attempt ${attempt + 1}: Empty or minimal AI response, retrying...`);
