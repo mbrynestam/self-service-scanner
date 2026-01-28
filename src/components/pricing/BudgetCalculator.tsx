@@ -399,17 +399,25 @@ export default function BudgetCalculator() {
 
                   {/* Development cost - shown when implementation is selected */}
                   {implementationType && implementationType !== "self" && (
-                    <div className="bg-secondary/50 rounded-xl p-4">
-                      <p className="text-sm text-muted-foreground mb-1">Utveckling</p>
+                    <div className="bg-secondary/30 rounded-xl p-4 border border-dashed border-border">
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="text-sm text-muted-foreground">Utveckling</p>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+                          Valfritt nästa steg
+                        </span>
+                      </div>
                       <p className="text-sm font-medium text-foreground mb-2">
                         {implementationType === "ai-built" 
                           ? `Snabb AI-byggd version (${selectedComplexity.label.toLowerCase()})`
                           : selectedImplementation?.label}
                       </p>
-                      <p className="font-display text-2xl font-bold text-primary">
+                      <p className="font-display text-2xl font-bold text-muted-foreground">
                         {implementationType === "ai-built" && selectedStart.showComplexitySlider
                           ? formatPrice(getAiBuiltPrice())
                           : selectedImplementation?.priceRange || "–"}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-2 italic">
+                        Ni väljer själva om och hur ni går vidare efter sprinten
                       </p>
                     </div>
                   )}
