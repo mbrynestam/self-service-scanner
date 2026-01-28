@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useRef } from "react";
-import { Calculator, Settings, BarChart3, Calendar, ArrowRight } from "lucide-react";
+import { Calculator, Settings, BarChart3, Sparkles, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
@@ -28,11 +28,11 @@ const tools = [
     href: "/losning",
   },
   {
-    icon: Calendar,
+    icon: Sparkles,
     title: "Urval & rekommendationer",
-    description: "Ge köpare möjlighet att boka möten, demos eller samtal — utan mail-pingpong.",
-    cta: "Boka tid",
-    href: "/kontakt",
+    description: "Låt köpare få skräddarsydda rekommendationer baserat på sina behov — och utbilda sig själva innan de tar kontakt.",
+    cta: "Se exempel",
+    href: "/use-cases",
   },
 ];
 
