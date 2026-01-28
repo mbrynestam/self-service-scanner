@@ -1,68 +1,9 @@
-import { useState } from "react";
 import { motion } from "framer-motion";
 import Layout from "@/components/layout/Layout";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { Mail, Phone, MapPin, Calendar } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
 
 export default function Kontakt() {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { toast } = useToast();
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    
-    const form = e.target as HTMLFormElement;
-    const formData = new FormData(form);
-    
-    const firstName = formData.get("firstName") as string;
-    const lastName = formData.get("lastName") as string;
-    const email = formData.get("email") as string;
-    const company = formData.get("company") as string;
-    const phone = formData.get("phone") as string;
-    const message = formData.get("message") as string;
-
-    try {
-      const { error } = await supabase.functions.invoke("submit-to-hubspot", {
-        body: {
-          name: `${firstName} ${lastName}`.trim(),
-          email,
-          company,
-          phone,
-          message,
-          submissionType: "contact",
-          buyr_source: "Kontaktsida",
-        },
-      });
-
-      if (error) {
-        console.error("HubSpot submission error:", error);
-      }
-
-      toast({
-        title: "✅ Tack för ditt meddelande!",
-        description: "Vi har tagit emot din förfrågan och återkommer inom 24 timmar.",
-      });
-      
-      form.reset();
-    } catch (error) {
-      console.error("Error submitting form:", error);
-      // Still show success to user - we don't want to block them if CRM fails
-      toast({
-        title: "✅ Tack för ditt meddelande!",
-        description: "Vi har tagit emot din förfrågan och återkommer inom 24 timmar.",
-      });
-      form.reset();
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   return (
     <Layout>
       {/* Hero */}
@@ -90,7 +31,7 @@ export default function Kontakt() {
       <section className="py-24">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-16">
-            {/* Contact Form */}
+            {/* Tally Form Embed */}
             <motion.div
               initial={{ opacity: 0, x: -40 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -100,80 +41,16 @@ export default function Kontakt() {
               <h2 className="font-display text-2xl font-bold text-foreground mb-6">
                 Boka demo
               </h2>
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div>
-                    <Label htmlFor="firstName">Förnamn</Label>
-                    <Input
-                      id="firstName"
-                      name="firstName"
-                      required
-                      className="mt-2 bg-secondary/50 border-border"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="lastName">Efternamn</Label>
-                    <Input
-                      id="lastName"
-                      name="lastName"
-                      required
-                      className="mt-2 bg-secondary/50 border-border"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="email">E-post</Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    required
-                    className="mt-2 bg-secondary/50 border-border"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="company">Företag</Label>
-                  <Input
-                    id="company"
-                    name="company"
-                    required
-                    className="mt-2 bg-secondary/50 border-border"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="phone">Telefon (valfritt)</Label>
-                  <Input
-                    id="phone"
-                    name="phone"
-                    type="tel"
-                    className="mt-2 bg-secondary/50 border-border"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="message">Berätta om era utmaningar</Label>
-                  <Textarea
-                    id="message"
-                    name="message"
-                    rows={4}
-                    className="mt-2 bg-secondary/50 border-border"
-                    placeholder="Vilka utmaningar har ni med er säljprocess idag?"
-                  />
-                </div>
-
-                <Button
-                  type="submit"
-                  variant="hero"
-                  size="lg"
-                  className="w-full"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? "Skickar..." : "Boka demo"}
-                </Button>
-              </form>
+              <iframe
+                src="https://tally.so/embed/eqagdQ?alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1"
+                width="100%"
+                height="500"
+                frameBorder="0"
+                marginHeight={0}
+                marginWidth={0}
+                title="Kontaktformulär"
+                className="rounded-xl"
+              />
             </motion.div>
 
             {/* Contact Info */}
