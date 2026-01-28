@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Mail, Phone, MapPin, Calendar } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Kontakt() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -16,16 +17,49 @@ export default function Kontakt() {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Simulate form submission
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    const form = e.target as HTMLFormElement;
+    const formData = new FormData(form);
     
-    toast({
-      title: "Tack för ditt meddelande!",
-      description: "Vi återkommer inom 24 timmar.",
-    });
-    
-    setIsSubmitting(false);
-    (e.target as HTMLFormElement).reset();
+    const firstName = formData.get("firstName") as string;
+    const lastName = formData.get("lastName") as string;
+    const email = formData.get("email") as string;
+    const company = formData.get("company") as string;
+    const phone = formData.get("phone") as string;
+    const message = formData.get("message") as string;
+
+    try {
+      const { error } = await supabase.functions.invoke("submit-to-hubspot", {
+        body: {
+          name: `${firstName} ${lastName}`.trim(),
+          email,
+          company,
+          phone,
+          message,
+          submissionType: "contact",
+          buyr_source: "Kontaktsida",
+        },
+      });
+
+      if (error) {
+        console.error("HubSpot submission error:", error);
+      }
+
+      toast({
+        title: "Tack för ditt meddelande!",
+        description: "Vi återkommer inom 24 timmar.",
+      });
+      
+      form.reset();
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      toast({
+        title: "Tack för ditt meddelande!",
+        description: "Vi återkommer inom 24 timmar.",
+      });
+      form.reset();
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
