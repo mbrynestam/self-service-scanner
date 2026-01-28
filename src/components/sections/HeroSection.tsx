@@ -531,7 +531,7 @@ export default function HeroSection() {
           }} transition={{
             duration: 0.6,
             delay: 0.1
-          }} className="text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">Vår AI analyserar hur era köpare kan känna mer kontroll i köpresan.</motion.p>
+          }} className="text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">Vår AI analyserar hur era B2B-köpare kan göra mer på egen hand i köpresan så att ni får fler kvalificerade leads, redo att köpa.</motion.p>
 
               <motion.form initial={{
             opacity: 0,
