@@ -80,7 +80,7 @@ export default function AIAcceleratorSection() {
             className="gradient-border rounded-2xl p-8 card-gradient"
           >
             <h3 className="font-display text-xl font-bold mb-6 text-primary">
-              Nu med AI
+              Nu med Buyr och AI
             </h3>
             <div className="space-y-4">
               {afterSteps.map((step, index) => (
