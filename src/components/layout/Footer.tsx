@@ -69,7 +69,16 @@ export default function Footer() {
         {/* Bottom */}
         <div className="border-t border-border mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Buyr AB. Alla rättigheter förbehållna.
+            © 2026{" "}
+            <a 
+              href="https://grown.se" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="hover:text-primary transition-colors underline underline-offset-2"
+            >
+              Grown
+            </a>
+            . Alla rättigheter förbehållna.
           </p>
           <div className="flex gap-6 text-sm text-muted-foreground">
             <Link to="/integritetspolicy" className="hover:text-primary transition-colors">Integritetspolicy</Link>
