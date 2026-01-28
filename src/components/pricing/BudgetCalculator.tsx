@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { Slider } from "@/components/ui/slider";
 
 type StartLevel = "opportunity" | "prototype" | "innovation" | null;
-type ImplementationType = "ai-built" | "custom" | "self" | null;
+type ImplementationType = "ai-built" | "custom" | "self" | "undecided" | null;
 
 const startLevels = [
   {
@@ -66,7 +66,24 @@ const implementationTypes = [
     label: "Snabb AI-byggd version",
     description: "Snabb leverans, kodad med AI, enklare integrationer",
     hasSlider: true,
+    recommended: true,
+    isSecondary: false,
   },
+  {
+    id: "undecided" as const,
+    icon: null,
+    label: "Vet inte ännu",
+    description: "Jag vill se resultatet av sprinten först",
+    hasSlider: false,
+    recommended: false,
+    isSecondary: false,
+    priceRange: null,
+    minPrice: 0,
+    maxPrice: 0,
+  },
+];
+
+const secondaryImplementationTypes = [
   {
     id: "custom" as const,
     icon: Wrench,
@@ -95,7 +112,8 @@ export default function BudgetCalculator() {
   const [complexityIndex, setComplexityIndex] = useState(1); // Default to "Enkel"
 
   const selectedStart = startLevels.find((s) => s.id === startLevel);
-  const selectedImplementation = implementationTypes.find((i) => i.id === implementationType);
+  const selectedImplementation = implementationTypes.find((i) => i.id === implementationType) 
+    || secondaryImplementationTypes.find((i) => i.id === implementationType);
   
   // Get the correct complexity levels based on selected start level
   const getComplexityLevels = () => {
@@ -259,7 +277,8 @@ export default function BudgetCalculator() {
                   Om lösningen fungerar – hur vill ni gå vidare?
                 </p>
 
-                <div className="grid gap-4">
+                <div className="space-y-4">
+                  {/* Main options */}
                   {implementationTypes.map((impl) => {
                     const Icon = impl.icon;
                     const isSelected = implementationType === impl.id;
@@ -270,31 +289,35 @@ export default function BudgetCalculator() {
                         <button
                           onClick={() => setImplementationType(impl.id)}
                           className={cn(
-                            "w-full text-left p-4 md:p-5 rounded-xl border-2 transition-all duration-200",
+                            "relative w-full text-left p-4 md:p-5 rounded-xl border-2 transition-all duration-200",
                             isSelected
                               ? "border-primary bg-primary/5"
                               : "border-border hover:border-primary/40 bg-secondary/30"
                           )}
                         >
+                          {impl.recommended && (
+                            <span className="absolute -top-2.5 right-4 px-3 py-0.5 bg-primary text-primary-foreground text-xs font-semibold rounded-full">
+                              Rekommenderad
+                            </span>
+                          )}
                           <div className="flex items-start gap-4">
-                            <div
-                              className={cn(
-                                "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
-                                isSelected ? "bg-primary/20" : "bg-secondary"
-                              )}
-                            >
-                              <Icon className={cn("w-5 h-5", isSelected ? "text-primary" : "text-muted-foreground")} />
-                            </div>
+                            {Icon ? (
+                              <div
+                                className={cn(
+                                  "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
+                                  isSelected ? "bg-primary/20" : "bg-secondary"
+                                )}
+                              >
+                                <Icon className={cn("w-5 h-5", isSelected ? "text-primary" : "text-muted-foreground")} />
+                              </div>
+                            ) : (
+                              <div className="w-10 h-10 shrink-0" />
+                            )}
                             <div className="flex-1 min-w-0">
                               <p className="font-semibold text-foreground mb-1">{impl.label}</p>
-                              <p className="text-sm text-muted-foreground mb-2">{impl.description}</p>
-                              {impl.priceRange && (
-                                <p className="text-sm font-medium text-foreground/80">
-                                  Typiskt: {impl.priceRange}
-                                </p>
-                              )}
+                              <p className="text-sm text-muted-foreground">{impl.description}</p>
                               {showSlider && (
-                                <p className="text-sm font-medium text-primary">
+                                <p className="text-sm font-medium text-primary mt-2">
                                   {formatPrice(getAiBuiltPrice())}
                                 </p>
                               )}
@@ -355,6 +378,39 @@ export default function BudgetCalculator() {
                       </div>
                     );
                   })}
+
+                  {/* Secondary options - smaller styling */}
+                  <div className="pt-2 border-t border-border/50">
+                    <p className="text-xs text-muted-foreground mb-3">Andra alternativ</p>
+                    <div className="grid grid-cols-2 gap-3">
+                      {secondaryImplementationTypes.map((impl) => {
+                        const Icon = impl.icon;
+                        const isSelected = implementationType === impl.id;
+                        
+                        return (
+                          <button
+                            key={impl.id}
+                            onClick={() => setImplementationType(impl.id)}
+                            className={cn(
+                              "text-left p-3 rounded-lg border transition-all duration-200",
+                              isSelected
+                                ? "border-primary bg-primary/5"
+                                : "border-border hover:border-primary/40 bg-secondary/20"
+                            )}
+                          >
+                            <div className="flex items-center gap-2 mb-1">
+                              <Icon className={cn("w-4 h-4", isSelected ? "text-primary" : "text-muted-foreground")} />
+                              <p className="text-sm font-medium text-foreground">{impl.label}</p>
+                            </div>
+                            <p className="text-xs text-muted-foreground">{impl.description}</p>
+                            {impl.priceRange && (
+                              <p className="text-xs text-muted-foreground mt-1">{impl.priceRange}</p>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </div>
               </motion.div>
             )}
@@ -435,11 +491,20 @@ export default function BudgetCalculator() {
                     </div>
                   )}
 
-                  {selectedImplementation?.id === "self" && (
+                  {implementationType === "self" && (
                     <div className="bg-secondary/50 rounded-xl p-4">
                       <p className="text-sm text-muted-foreground mb-1">Utveckling</p>
                       <p className="text-sm font-medium text-foreground">
                         Ni får underlag och prototyp att arbeta vidare med själva eller med valfri partner.
+                      </p>
+                    </div>
+                  )}
+
+                  {implementationType === "undecided" && (
+                    <div className="bg-secondary/50 rounded-xl p-4">
+                      <p className="text-sm text-muted-foreground mb-1">Utveckling</p>
+                      <p className="text-sm font-medium text-foreground">
+                        Ni väljer väg framåt efter att ha sett resultatet av sprinten.
                       </p>
                     </div>
                   )}
