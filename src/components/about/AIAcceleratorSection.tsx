@@ -5,7 +5,7 @@ const beforeSteps = [
   { icon: Calendar, label: "Vecka 1-8: Möten och förstudier" },
   { icon: FileText, label: "Vecka 8-12: Kravspec" },
   { icon: Users, label: "Vecka 12-20: Utveckling" },
-  { icon: Calendar, label: "Vecka 13+: Utveckling" },
+  { icon: Calendar, label: "Utveckling" },
 ];
 
 const afterSteps = [
