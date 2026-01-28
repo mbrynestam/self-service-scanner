@@ -38,26 +38,29 @@ export default function ScannerStep2({ url, onComplete }: ScannerStep2Props) {
   const opportunitiesRef = useRef<Opportunity[]>([]);
   const analysisStartedRef = useRef(false);
 
-  // Fetch opportunities from the API
+  // Fetch complete analysis from the API (single call)
   useEffect(() => {
     if (analysisStartedRef.current) return;
     analysisStartedRef.current = true;
 
-    const fetchOpportunities = async () => {
+    const fetchAnalysis = async () => {
+      console.log("Starting analysis for:", url);
       try {
         const { data, error } = await supabase.functions.invoke('analyze-website', {
-          body: { url, step: 'opportunities' },
+          body: { url },
         });
+
+        console.log("Analysis response:", data);
 
         if (!error && data?.analysis?.opportunities) {
           opportunitiesRef.current = data.analysis.opportunities;
         }
       } catch (err) {
-        console.error('Failed to fetch opportunities:', err);
+        console.error('Failed to fetch analysis:', err);
       }
     };
 
-    fetchOpportunities();
+    fetchAnalysis();
   }, [url]);
 
   useEffect(() => {
