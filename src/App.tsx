@@ -2,44 +2,22 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { HelmetProvider } from "react-helmet-async";
-import Index from "./pages/Index";
-import Losning from "./pages/Losning";
-import SaFunkarDet from "./pages/SaFunkarDet";
-import Priser from "./pages/Priser";
-import OmOss from "./pages/OmOss";
-import Kontakt from "./pages/Kontakt";
-import Embed from "./pages/Embed";
-import Integritetspolicy from "./pages/Integritetspolicy";
-import Villkor from "./pages/Villkor";
-import NotFound from "./pages/NotFound";
+import OpportunityScanner from "@/components/scanner/OpportunityScanner";
 
 const queryClient = new QueryClient();
 
 const App = () => (
-  <HelmetProvider>
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/losning" element={<Losning />} />
-            <Route path="/sa-funkar-det" element={<SaFunkarDet />} />
-            <Route path="/priser" element={<Priser />} />
-            <Route path="/om-oss" element={<OmOss />} />
-            <Route path="/kontakt" element={<Kontakt />} />
-            <Route path="/embed" element={<Embed />} />
-            <Route path="/integritetspolicy" element={<Integritetspolicy />} />
-            <Route path="/villkor" element={<Villkor />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
-  </HelmetProvider>
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <div className="min-h-screen bg-background flex items-center justify-center p-4 md:p-8">
+        <div className="w-full max-w-4xl bg-card/50 backdrop-blur-sm rounded-3xl border border-border p-6 md:p-10">
+          <OpportunityScanner />
+        </div>
+      </div>
+    </TooltipProvider>
+  </QueryClientProvider>
 );
 
 export default App;
