@@ -25,7 +25,9 @@ serve(async (req) => {
 
     const body = await req.json();
     const { 
-      name, 
+      name,
+      firstName,
+      lastName,
       company, 
       email, 
       role, 
@@ -40,10 +42,16 @@ serve(async (req) => {
 
     console.log("Submitting to HubSpot Forms API:", { email, company, submissionType });
 
-    // Split name into first and last name
-    const nameParts = (name || "").trim().split(" ");
-    const firstname = nameParts[0] || "";
-    const lastname = nameParts.slice(1).join(" ") || "";
+    // Handle both combined name and separate first/last name
+    let firstname = firstName || "";
+    let lastname = lastName || "";
+    
+    // If name is provided (from Kontakt page), split it
+    if (name && !firstName) {
+      const nameParts = name.trim().split(" ");
+      firstname = nameParts[0] || "";
+      lastname = nameParts.slice(1).join(" ") || "";
+    }
 
     // Determine submission type label
     let submissionLabel = "";
