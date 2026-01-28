@@ -143,27 +143,42 @@ export default function ScannerStep2({ url, onComplete }: ScannerStep2Props) {
 
   // Continuous slow progress - never stops completely
   const [slowProgress, setSlowProgress] = useState(5);
+  const analysisDataRef = useRef<AnalysisData | null>(null);
+  const visibleInsightsCountRef = useRef(0);
+  
+  // Keep refs in sync
+  useEffect(() => {
+    analysisDataRef.current = analysisData;
+  }, [analysisData]);
+  
+  useEffect(() => {
+    visibleInsightsCountRef.current = visibleInsights.length;
+  }, [visibleInsights.length]);
   
   useEffect(() => {
     const interval = setInterval(() => {
       setSlowProgress(prev => {
-        // Always keep moving, but slow down as we approach limits
-        if (!analysisData) {
-          // Before data: move towards 65%
-          if (prev < 65) return prev + 0.5;
-          return prev + 0.1; // Slow crawl after 65%
+        const hasData = analysisDataRef.current !== null;
+        const insightsCount = visibleInsightsCountRef.current;
+        const totalInsights = insightsQueueRef.current.length || 1;
+        
+        if (!hasData) {
+          // Before data: always keep moving
+          if (prev < 60) return prev + 0.5;
+          if (prev < 75) return prev + 0.2;
+          return prev + 0.08; // Very slow but never stops
         } else {
-          // After data: continue moving based on insights
-          const targetProgress = 70 + ((visibleInsights.length + 1) / (insightsQueueRef.current.length || 1)) * 28;
+          // After data: move based on insights progress
+          const targetProgress = 70 + ((insightsCount + 1) / totalInsights) * 28;
           if (prev < targetProgress) return prev + 0.6;
-          if (prev < 98) return prev + 0.15; // Keep crawling
-          return prev;
+          if (prev < 99) return prev + 0.1; // Keep crawling until nearly done
+          return 99; // Cap at 99 until complete
         }
       });
     }, 100);
     
     return () => clearInterval(interval);
-  }, [analysisData, visibleInsights.length]);
+  }, []); // No dependencies - runs once, uses refs for current values
   
   const progress = slowProgress;
 
