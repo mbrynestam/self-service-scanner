@@ -16,6 +16,7 @@ const startLevels = [
     price: 25000,
     priceLabel: "25 000 kr",
     description: "Identifiera var self-service skapar mest värde i er köpresa.",
+    showComplexitySlider: false,
   },
   {
     id: "prototype" as const,
@@ -26,6 +27,7 @@ const startLevels = [
     priceLabel: "50 000 kr",
     description: "Se hur en konkret lösning kan fungera med klickbar prototyp.",
     recommended: true,
+    showComplexitySlider: true,
   },
   {
     id: "innovation" as const,
@@ -35,15 +37,26 @@ const startLevels = [
     price: 75000,
     priceLabel: "från 75 000 kr",
     description: "För mer avancerade eller affärskritiska initiativ.",
+    showComplexitySlider: true,
   },
 ];
 
-const complexityLevels = [
-  { value: 0, label: "Mycket enkelt", price: 12500 },
-  { value: 1, label: "Enkelt", price: 25000 },
+// Complexity levels for "Ta fram och testa en lösning" (prototype)
+const prototypeComplexityLevels = [
+  { value: 0, label: "Mycket enkel", price: 12500 },
+  { value: 1, label: "Enkel", price: 25000 },
   { value: 2, label: "Standard", price: 50000 },
-  { value: 3, label: "Avancerat", price: 75000 },
+  { value: 3, label: "Avancerad", price: 75000 },
   { value: 4, label: "Mycket komplex", price: 100000 },
+];
+
+// Complexity levels for "Ta ett större grepp" (innovation)
+const innovationComplexityLevels = [
+  { value: 0, label: "Mycket enkel", price: 30000 },
+  { value: 1, label: "Enkel", price: 85000 },
+  { value: 2, label: "Standard", price: 140000 },
+  { value: 3, label: "Avancerad", price: 195000 },
+  { value: 4, label: "Mycket komplex", price: 250000 },
 ];
 
 const implementationTypes = [
@@ -62,6 +75,7 @@ const implementationTypes = [
     minPrice: 50000,
     maxPrice: 200000,
     description: "Byggs utifrån prototypen, kodas manuellt, fler integrationsmöjligheter",
+    hasSlider: false,
   },
   {
     id: "self" as const,
@@ -71,17 +85,33 @@ const implementationTypes = [
     minPrice: 0,
     maxPrice: 0,
     description: "Arbeta vidare med projektet på egen hand",
+    hasSlider: false,
   },
 ];
 
 export default function BudgetCalculator() {
   const [startLevel, setStartLevel] = useState<StartLevel>(null);
   const [implementationType, setImplementationType] = useState<ImplementationType>(null);
-  const [complexityIndex, setComplexityIndex] = useState(2); // Default to "Standard"
+  const [complexityIndex, setComplexityIndex] = useState(1); // Default to "Enkel"
 
   const selectedStart = startLevels.find((s) => s.id === startLevel);
   const selectedImplementation = implementationTypes.find((i) => i.id === implementationType);
+  
+  // Get the correct complexity levels based on selected start level
+  const getComplexityLevels = () => {
+    if (startLevel === "innovation") {
+      return innovationComplexityLevels;
+    }
+    return prototypeComplexityLevels;
+  };
+
+  const complexityLevels = getComplexityLevels();
   const selectedComplexity = complexityLevels[complexityIndex];
+
+  // Check if slider should be shown (only for prototype and innovation with AI-built)
+  const shouldShowSlider = () => {
+    return implementationType === "ai-built" && selectedStart?.showComplexitySlider;
+  };
 
   const getAiBuiltPrice = () => {
     return selectedComplexity.price;
@@ -90,7 +120,7 @@ export default function BudgetCalculator() {
   const getTotalRange = () => {
     if (!selectedStart) return null;
     
-    if (implementationType === "ai-built") {
+    if (implementationType === "ai-built" && selectedStart.showComplexitySlider) {
       const aiPrice = getAiBuiltPrice();
       return {
         min: selectedStart.price + aiPrice,
@@ -162,7 +192,11 @@ export default function BudgetCalculator() {
                 return (
                   <button
                     key={level.id}
-                    onClick={() => setStartLevel(level.id)}
+                    onClick={() => {
+                      setStartLevel(level.id);
+                      // Reset complexity to "Enkel" when changing start level
+                      setComplexityIndex(1);
+                    }}
                     className={cn(
                       "relative w-full text-left p-4 md:p-5 rounded-xl border-2 transition-all duration-200",
                       isSelected
@@ -229,6 +263,8 @@ export default function BudgetCalculator() {
                   {implementationTypes.map((impl) => {
                     const Icon = impl.icon;
                     const isSelected = implementationType === impl.id;
+                    const showSlider = impl.hasSlider && isSelected && selectedStart?.showComplexitySlider;
+                    
                     return (
                       <div key={impl.id}>
                         <button
@@ -257,7 +293,7 @@ export default function BudgetCalculator() {
                                   Typiskt: {impl.priceRange}
                                 </p>
                               )}
-                              {impl.hasSlider && isSelected && (
+                              {showSlider && (
                                 <p className="text-sm font-medium text-primary">
                                   {formatPrice(getAiBuiltPrice())}
                                 </p>
@@ -274,8 +310,8 @@ export default function BudgetCalculator() {
                           </div>
                         </button>
 
-                        {/* Complexity Slider for AI-built */}
-                        {impl.hasSlider && isSelected && (
+                        {/* Complexity Slider - only for AI-built with prototype or innovation */}
+                        {showSlider && (
                           <motion.div
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: "auto" }}
@@ -299,7 +335,7 @@ export default function BudgetCalculator() {
                                   <span 
                                     key={level.value}
                                     className={cn(
-                                      "transition-colors",
+                                      "transition-colors text-center",
                                       complexityIndex === level.value && "text-primary font-medium"
                                     )}
                                   >
