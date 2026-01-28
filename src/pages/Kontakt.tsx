@@ -25,15 +25,29 @@ export default function Kontakt() {
     e.preventDefault();
     setIsSubmitting(true);
     
+    const submissionData = {
+      ...formData,
+      source: 'contact',
+    };
+    
     try {
-      const { data, error } = await supabase.functions.invoke('submit-to-hubspot', {
-        body: {
-          ...formData,
-          source: 'Kontaktsida',
-        },
+      // Send email notification (primary)
+      const { error: emailError } = await supabase.functions.invoke('send-lead-notification', {
+        body: submissionData,
       });
 
-      if (error) throw error;
+      if (emailError) {
+        console.error('Email notification error:', emailError);
+      }
+
+      // Also try HubSpot as backup
+      try {
+        await supabase.functions.invoke('submit-to-hubspot', {
+          body: submissionData,
+        });
+      } catch (hubspotError) {
+        console.error('HubSpot backup error:', hubspotError);
+      }
 
       toast({
         title: "Tack för ditt meddelande!",

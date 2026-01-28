@@ -41,19 +41,34 @@ export default function ScannerStep5({ focusArea, suggestionIndex, url, opportun
     e.preventDefault();
     setIsSubmitting(true);
     
+    const submissionData = {
+      ...formData,
+      analyzedUrl: url,
+      selectedTool: suggestionTitle,
+      focusArea: focusArea,
+      opportunities: opportunities.map(o => o.title),
+      source: 'scanner',
+    };
+    
     try {
-      const { error } = await supabase.functions.invoke('submit-to-hubspot', {
-        body: {
-          ...formData,
-          analyzedUrl: url,
-          selectedTool: suggestionTitle,
-          focusArea: focusArea,
-          opportunities: opportunities.map(o => o.title),
-          source: 'Opportunity Scanner',
-        },
+      // Send email notification
+      const { error: emailError } = await supabase.functions.invoke('send-lead-notification', {
+        body: submissionData,
       });
 
-      if (error) throw error;
+      if (emailError) {
+        console.error('Email notification error:', emailError);
+      }
+
+      // Also try HubSpot as backup
+      try {
+        await supabase.functions.invoke('submit-to-hubspot', {
+          body: submissionData,
+        });
+      } catch (hubspotError) {
+        console.error('HubSpot backup error:', hubspotError);
+        // Don't fail if HubSpot fails - email is primary
+      }
 
       toast({
         title: "Tack! Vi hör av oss snart.",
