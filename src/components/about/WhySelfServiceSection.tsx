@@ -5,7 +5,7 @@ const stats = [
   {
     value: 75,
     suffix: "%",
-    label: "Vill köpa utan säljkontakt tidigt",
+    label: "Vill ha en säljupplevelse utan kontakt med säljare",
     source: "Gartner",
   },
   {
