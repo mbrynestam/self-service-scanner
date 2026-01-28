@@ -357,18 +357,18 @@ export default function HeroSection() {
               </div>
 
               {/* Terminal display */}
-              <div className="w-full bg-[#0d1117] border border-[#30363d] rounded-lg p-4 font-mono text-sm text-left min-h-[220px]">
+              <div className="w-full bg-card rounded-lg p-4 font-mono text-sm text-left min-h-[220px]">
                 {/* Terminal header */}
-                <div className="flex items-center gap-2 mb-3 pb-2 border-b border-[#30363d]">
-                  <Terminal className="w-4 h-4 text-[#8b949e]" />
-                  <span className="text-[#8b949e] text-xs">buyr-scanner</span>
+                <div className="flex items-center gap-2 mb-3 pb-2 border-b border-border">
+                  <Terminal className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-muted-foreground text-xs">buyr-scanner</span>
                 </div>
 
                 <div className="space-y-1">
                   {/* Waiting for API */}
                   {isWaitingForApi && (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-[#8b949e]">
-                      <span className="text-[#58a6ff]">$</span> Ansluter till AI...
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-muted-foreground">
+                      <span className="text-primary">$</span> Ansluter till AI...
                       <motion.span animate={{ opacity: [1, 0, 1] }} transition={{ duration: 0.8, repeat: Infinity }} className="ml-1">_</motion.span>
                     </motion.div>
                   )}
@@ -376,25 +376,25 @@ export default function HeroSection() {
                   {/* Completed lines */}
                   <AnimatePresence>
                     {terminalLines.map((line, index) => (
-                      <motion.div key={index} initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="text-[#c9d1d9]">
-                        <span className="text-[#7ee787]">{line}</span>
+                      <motion.div key={index} initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }}>
+                        <span className="text-primary">{line}</span>
                       </motion.div>
                     ))}
                   </AnimatePresence>
 
                   {/* Currently typing */}
                   {currentTypingLine && (
-                    <div className="text-[#c9d1d9]">
-                      <span className="text-[#7ee787]">{currentTypingLine}</span>
-                      <motion.span animate={{ opacity: [1, 0, 1] }} transition={{ duration: 0.5, repeat: Infinity }} className="text-[#7ee787]">_</motion.span>
+                    <div>
+                      <span className="text-primary">{currentTypingLine}</span>
+                      <motion.span animate={{ opacity: [1, 0, 1] }} transition={{ duration: 0.5, repeat: Infinity }} className="text-primary">_</motion.span>
                     </div>
                   )}
 
                   {/* Completion */}
                   {analysisComplete && (
-                    <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="mt-3 pt-2 border-t border-[#30363d]">
-                      <span className="text-[#58a6ff]">$</span>
-                      <span className="text-[#c9d1d9] ml-2">Analys klar. Laddar resultat...</span>
+                    <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="mt-3 pt-2 border-t border-border">
+                      <span className="text-primary">$</span>
+                      <span className="text-foreground ml-2">Analys klar. Laddar resultat...</span>
                     </motion.div>
                   )}
                 </div>
