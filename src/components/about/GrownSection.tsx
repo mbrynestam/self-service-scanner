@@ -17,8 +17,8 @@ export default function GrownSection() {
           className="text-center mb-16"
         >
           {/* Experience badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6">
-            <span className="text-sm font-medium text-primary">25+ års erfarenhet av B2B-köpresor</span>
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/50 border border-border mb-6">
+            <span className="text-sm font-medium text-muted-foreground">25+ års erfarenhet av B2B-köpresor</span>
           </div>
           
           <h2 className="font-display text-3xl md:text-4xl font-bold mb-6">
