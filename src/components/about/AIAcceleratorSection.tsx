@@ -4,7 +4,7 @@ import { Calendar, Users, FileText, Zap, Bot, Rocket } from "lucide-react";
 const beforeSteps = [
   { icon: Calendar, label: "Vecka 1-8: Möten och förstudier" },
   { icon: FileText, label: "Vecka 8-11: Kravspec" },
-  { icon: Users, label: "Vecka 12-20: Utveckling" },
+  { icon: Users, label: "Vecka 12-14: UX-Design" },
   { icon: Calendar, label: "Utveckling" },
 ];
 
