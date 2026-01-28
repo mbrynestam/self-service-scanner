@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Buyr Scanner - Embed Example</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 40px;
+      background: #0d0d0d;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    h1 {
+      color: white;
+      text-align: center;
+      margin-bottom: 40px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Buyr Scanner Embed Demo</h1>
+    
+    <!-- The web component -->
+    <buyr-scanner></buyr-scanner>
+  </div>
+
+  <!-- 
+    To use in production, include the built web component:
+    <script src="path/to/buyr-scanner.es.js" type="module"></script>
+    
+    Or for UMD:
+    <script src="path/to/buyr-scanner.umd.js"></script>
+  -->
+  <script type="module" src="/src/web-component.tsx"></script>
+</body>
+</html>
