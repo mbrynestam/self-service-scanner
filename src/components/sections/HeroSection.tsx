@@ -4,6 +4,8 @@ import { Link } from "react-router-dom";
 import confetti from "canvas-confetti";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   Globe, 
   Sparkles, 
@@ -127,6 +129,7 @@ interface StreamingInsight {
 }
 
 export default function HeroSection() {
+  const { toast } = useToast();
   const [phase, setPhase] = useState<"input" | "analyzing" | "results" | "form">("input");
   const [url, setUrl] = useState("");
   const [error, setError] = useState("");
@@ -415,11 +418,57 @@ export default function HeroSection() {
     (aiAnalysis.painPoints && aiAnalysis.painPoints.length > 0)
   );
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Here you would submit the form data
-    console.log("Form submitted:", { ...formData, opportunity: selectedOpportunity?.id, url });
-    alert("Tack! Vi återkommer inom kort.");
+
+    const fullName = formData.name.trim();
+    const email = formData.email.trim();
+    if (!fullName || !email) {
+      toast({
+        title: "Fyll i obligatoriska fält",
+        description: "Namn och e-post måste vara ifyllda.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const [firstName, ...lastParts] = fullName.split(/\s+/);
+    const lastName = lastParts.join(" ").trim() || "-";
+
+    try {
+      const { error } = await supabase.functions.invoke("submit-to-hubspot", {
+        body: {
+          firstName,
+          lastName,
+          email,
+          company: formData.company.trim() || undefined,
+          role: formData.role.trim() || undefined,
+          analyzedUrl: url.trim() || undefined,
+          selectedTool: selectedOpportunity?.title,
+          opportunities: selectedOpportunity ? [selectedOpportunity.title] : undefined,
+          message: selectedOpportunity
+            ? `Vald möjlighet: ${selectedOpportunity.title}`
+            : undefined,
+          source: "Hero Scanner",
+        },
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Tack! Vi hör av oss snart.",
+        description: "Din förfrågan är skickad.",
+      });
+
+      setFormData({ name: "", company: "", email: "", role: "" });
+    } catch (err) {
+      console.error("HubSpot submit failed:", err);
+      toast({
+        title: "Något gick fel",
+        description: "Försök igen senare.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
