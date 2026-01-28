@@ -52,7 +52,7 @@ const steps = [
   {
     number: "04",
     icon: TestTube,
-    title: "Testa och ta beslut med trygghet",
+    title: "Testa ditt nya verktyg",
     time: "Dagar till någon vecka",
     color: "primary",
     description: "Innan något byggs \"på riktigt\" använder vi prototypen för att samla insikter.",
