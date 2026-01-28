@@ -356,63 +356,38 @@ export default function HeroSection() {
                 </div>
               </div>
 
-              {/* Terminal display */}
-              <div className="w-full bg-card rounded-lg p-4 font-mono text-sm text-left min-h-[220px] max-h-[220px] overflow-hidden relative">
-                {/* Terminal header */}
-                <div className="flex items-center gap-2 mb-3 pb-2 border-b border-border">
-                  <Terminal className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-muted-foreground text-xs">buyr-scanner</span>
-                </div>
+              {/* Insights display - clean text only */}
+              <div className="w-full text-sm text-left min-h-[180px] max-h-[180px] overflow-hidden flex flex-col-reverse">
+                <div className="space-y-2">
+                  {/* Completed lines - faded */}
+                  <AnimatePresence>
+                    {terminalLines.map((line, index) => {
+                      const totalLines = terminalLines.length;
+                      const fadeLevel = Math.max(0.2, 1 - (totalLines - index - 1) * 0.15);
+                      return (
+                        <motion.div 
+                          key={index} 
+                          initial={{ opacity: 0, y: 10 }} 
+                          animate={{ opacity: fadeLevel, y: 0 }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          <span className="text-primary">{line}</span>
+                        </motion.div>
+                      );
+                    })}
+                  </AnimatePresence>
 
-                {/* Scrolling container - content flows upward */}
-                <div className="flex flex-col-reverse overflow-hidden" style={{ maxHeight: '160px' }}>
-                  <div className="space-y-1">
-                    {/* Waiting for API */}
-                    {isWaitingForApi && (
-                      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-muted-foreground">
-                        <span className="text-primary">$</span> Ansluter till AI...
-                        <motion.span animate={{ opacity: [1, 0, 1] }} transition={{ duration: 0.8, repeat: Infinity }} className="ml-1">_</motion.span>
-                      </motion.div>
-                    )}
-
-                    {/* Completed lines - faded */}
-                    <AnimatePresence>
-                      {terminalLines.map((line, index) => {
-                        const totalLines = terminalLines.length;
-                        const fadeLevel = Math.max(0.2, 1 - (totalLines - index - 1) * 0.15);
-                        return (
-                          <motion.div 
-                            key={index} 
-                            initial={{ opacity: 0, y: 10 }} 
-                            animate={{ opacity: fadeLevel, y: 0 }}
-                            transition={{ duration: 0.3 }}
-                          >
-                            <span className="text-primary">{line}</span>
-                          </motion.div>
-                        );
-                      })}
-                    </AnimatePresence>
-
-                    {/* Currently typing - full opacity */}
-                    {currentTypingLine && (
-                      <motion.div 
-                        initial={{ opacity: 0, y: 10 }} 
-                        animate={{ opacity: 1, y: 0 }}
-                        className="font-medium"
-                      >
-                        <span className="text-primary">{currentTypingLine}</span>
-                        <motion.span animate={{ opacity: [1, 0, 1] }} transition={{ duration: 0.5, repeat: Infinity }} className="text-primary">_</motion.span>
-                      </motion.div>
-                    )}
-
-                    {/* Completion */}
-                    {analysisComplete && (
-                      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-3 pt-2 border-t border-border">
-                        <span className="text-primary">$</span>
-                        <span className="text-foreground ml-2">Analys klar. Laddar resultat...</span>
-                      </motion.div>
-                    )}
-                  </div>
+                  {/* Currently typing - full opacity */}
+                  {currentTypingLine && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10 }} 
+                      animate={{ opacity: 1, y: 0 }}
+                      className="font-medium"
+                    >
+                      <span className="text-primary">{currentTypingLine}</span>
+                      <motion.span animate={{ opacity: [1, 0, 1] }} transition={{ duration: 0.5, repeat: Infinity }} className="text-primary">_</motion.span>
+                    </motion.div>
+                  )}
                 </div>
               </div>
             </motion.div>
