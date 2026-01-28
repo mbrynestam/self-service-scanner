@@ -85,8 +85,8 @@ export default function SelfServiceSection() {
           className="text-center mt-12"
         >
           <Button variant="outline" size="lg" asChild>
-            <Link to="/use-cases">
-              Se fler use cases
+            <Link to="/losning">
+              Self-service för B2B
               <ArrowRight className="ml-2 w-4 h-4" />
             </Link>
           </Button>
