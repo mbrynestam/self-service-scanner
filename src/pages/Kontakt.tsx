@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Layout from "@/components/layout/Layout";
 import { Calendar, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,39 +12,6 @@ import { supabase } from "@/integrations/supabase/client";
 export default function Kontakt() {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [calendlyLoaded, setCalendlyLoaded] = useState(false);
-
-  useEffect(() => {
-    // Check if Calendly is already loaded
-    if ((window as any).Calendly) {
-      setCalendlyLoaded(true);
-      return;
-    }
-
-    // Load Calendly widget CSS
-    const link = document.createElement('link');
-    link.href = 'https://assets.calendly.com/assets/external/widget.css';
-    link.rel = 'stylesheet';
-    document.head.appendChild(link);
-
-    // Load Calendly widget script
-    const script = document.createElement('script');
-    script.src = 'https://assets.calendly.com/assets/external/widget.js';
-    script.async = true;
-    script.onload = () => {
-      setCalendlyLoaded(true);
-    };
-    document.body.appendChild(script);
-
-    return () => {
-      if (document.head.contains(link)) {
-        document.head.removeChild(link);
-      }
-      if (document.body.contains(script)) {
-        document.body.removeChild(script);
-      }
-    };
-  }, []);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -285,16 +252,15 @@ export default function Kontakt() {
                     <Button 
                       variant="outline" 
                       size="lg"
-                      disabled={!calendlyLoaded}
-                      onClick={() => {
-                        if ((window as any).Calendly) {
-                          (window as any).Calendly.initPopupWidget({
-                            url: 'https://calendly.com/magnus-43/30min'
-                          });
-                        }
-                      }}
+                      asChild
                     >
-                      {calendlyLoaded ? 'Se lediga tider' : 'Laddar...'}
+                      <a 
+                        href="https://calendly.com/magnus-43/30min" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                      >
+                        Se lediga tider
+                      </a>
                     </Button>
                   </div>
                 </div>
