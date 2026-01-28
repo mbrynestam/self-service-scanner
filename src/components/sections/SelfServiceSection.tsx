@@ -15,7 +15,7 @@ const tools = [
   },
   {
     icon: BarChart3,
-    title: "Self-Assessment",
+    title: "Assessments och Quiz",
     description: "Hjälp köpare utvärdera sitt behov med interaktiva quizzes och assessment-verktyg.",
     cta: "Gör assessment",
     href: "/use-cases",
