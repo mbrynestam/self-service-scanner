@@ -201,53 +201,39 @@ export default function Kontakt() {
               transition={{ duration: 0.6, delay: 0.2 }}
               className="space-y-8"
             >
-              <div>
+              <div className="gradient-border rounded-2xl p-8 card-gradient">
                 <h2 className="font-display text-2xl font-bold text-foreground mb-6">
-                  Kontaktinformation
+                  I ett första möte (30 min) hjälper vi er att:
                 </h2>
-                <div className="space-y-6">
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      <Mail className="w-6 h-6 text-primary" />
+                <ul className="space-y-4">
+                  <li className="flex items-start gap-3">
+                    <div className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">
+                      ✓
                     </div>
-                    <div>
-                      <p className="font-semibold text-foreground mb-1">E-post</p>
-                      <a
-                        href="mailto:hej@buyr.studio"
-                        className="text-muted-foreground hover:text-primary transition-colors"
-                      >
-                        hej@buyr.studio
-                      </a>
+                    <span className="text-muted-foreground">
+                      Förstå var era köpare fastnar före kontakt
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <div className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">
+                      ✓
                     </div>
-                  </div>
-
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      <Phone className="w-6 h-6 text-primary" />
+                    <span className="text-muted-foreground">
+                      Se exempel på self-service som faktiskt driver affär
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <div className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">
+                      ✓
                     </div>
-                    <div>
-                      <p className="font-semibold text-foreground mb-1">Telefon</p>
-                      <a
-                        href="tel:+46701234567"
-                        className="text-muted-foreground hover:text-primary transition-colors"
-                      >
-                        070-123 45 67
-                      </a>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      <MapPin className="w-6 h-6 text-primary" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-foreground mb-1">Kontor</p>
-                      <p className="text-muted-foreground">
-                        Stureplan 4, 114 35 Stockholm
-                      </p>
-                    </div>
-                  </div>
-                </div>
+                    <span className="text-muted-foreground">
+                      Avgöra om och hur self-service kan ge er bättre leads och kortare säljcykler
+                    </span>
+                  </li>
+                </ul>
+                <p className="mt-6 text-sm text-muted-foreground/80 italic">
+                  Inget säljs. Fokus är på klarhet och nästa steg.
+                </p>
               </div>
 
               <div className="gradient-border rounded-2xl p-8 card-gradient">
