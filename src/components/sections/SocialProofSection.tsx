@@ -37,8 +37,6 @@ export default function SocialProofSection() {
 
   return (
     <section ref={ref} className="py-24 lg:py-32 relative overflow-hidden">
-      <div className="hero-glow top-0 right-1/4 opacity-20" />
-      
       <div className="container mx-auto px-4 lg:px-8">
         {/* Stats */}
         <motion.div

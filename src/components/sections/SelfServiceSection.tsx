@@ -67,7 +67,7 @@ export default function SelfServiceSection() {
               transition={{ duration: 0.6, delay: index * 0.1 }}
               className="group bg-card rounded-2xl p-8 border border-border hover:border-primary/50 transition-all duration-300"
             >
-              <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-6 group-hover:shadow-[0_0_30px_hsl(145_89%_71%/0.3)] transition-shadow duration-300">
+              <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-6">
                 <tool.icon className="w-7 h-7 text-primary" />
               </div>
               <h3 className="font-display text-2xl font-bold text-foreground mb-3">

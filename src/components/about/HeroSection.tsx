@@ -96,10 +96,10 @@ export default function HeroSection() {
                   />
                 );
               })}
-              {/* Center glow */}
+              {/* Center dot */}
               <motion.div
-                className="absolute inset-0 m-auto w-16 h-16 rounded-full bg-primary/20 blur-xl"
-                animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0.8, 0.5] }}
+                className="absolute inset-0 m-auto w-12 h-12 rounded-full bg-primary/15"
+                animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
                 transition={{ duration: 3, repeat: Infinity }}
               />
             </div>

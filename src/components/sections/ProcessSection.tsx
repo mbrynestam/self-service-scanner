@@ -157,8 +157,6 @@ export default function ProcessSection() {
 
   return (
     <section ref={ref} className="py-24 lg:py-32 relative overflow-hidden">
-      <div className="hero-glow top-1/2 left-0 -translate-y-1/2 opacity-20" />
-      
       <div className="container mx-auto px-4 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 30 }}

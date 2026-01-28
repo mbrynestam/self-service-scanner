@@ -42,8 +42,6 @@ export default function Losning() {
     <Layout>
       {/* Hero */}
       <section className="pt-24 pb-16 lg:pt-32 lg:pb-24 relative overflow-hidden">
-        <div className="hero-glow top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-30" />
-        
         <div className="container mx-auto px-4 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -164,11 +162,11 @@ export default function Losning() {
                   <p className="font-display text-5xl md:text-6xl font-bold gradient-text">324%</p>
                 </div>
                 <div className="grid grid-cols-2 gap-6">
-                  <div className="text-center bg-card/60 backdrop-blur-sm rounded-xl p-4">
+                  <div className="text-center bg-card/80 rounded-xl p-4">
                     <p className="font-display text-2xl md:text-3xl font-bold text-foreground mb-1">40%</p>
                     <p className="text-xs md:text-sm text-muted-foreground">Kortare säljcykel</p>
                   </div>
-                  <div className="text-center bg-card/60 backdrop-blur-sm rounded-xl p-4">
+                  <div className="text-center bg-card/80 rounded-xl p-4">
                     <p className="font-display text-2xl md:text-3xl font-bold text-foreground mb-1">10x</p>
                     <p className="text-xs md:text-sm text-muted-foreground">Fler kvalificerade leads</p>
                   </div>

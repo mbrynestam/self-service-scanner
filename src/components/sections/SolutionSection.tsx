@@ -19,8 +19,6 @@ export default function SolutionSection() {
 
   return (
     <section ref={ref} className="py-24 lg:py-32 relative overflow-hidden">
-      <div className="hero-glow top-0 right-0 opacity-30" />
-      
       <div className="container mx-auto px-4 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           <motion.div
@@ -117,9 +115,6 @@ export default function SolutionSection() {
                 </div>
               </div>
             </div>
-            
-            {/* Decorative Glow */}
-            <div className="absolute -inset-4 bg-gradient-to-r from-primary/20 to-transparent rounded-3xl blur-3xl -z-10" />
           </motion.div>
         </div>
       </div>

@@ -424,21 +424,18 @@ export default function HeroSection() {
 
   return (
     <section className="relative min-h-[90vh] flex items-center overflow-y-auto overflow-x-hidden bg-background py-12">
-      {/* Glow Effect */}
-      <div className="hero-glow top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-
-      {/* Large centered pulsing rings animation - background */}
+      {/* Background rings animation */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden">
         {/* Pulsing concentric rings */}
         {[...Array(6)].map((_, i) => (
           <motion.div
             key={`ring-${i}`}
-            className="absolute rounded-full border border-primary/15"
+            className="absolute rounded-full border border-primary/10"
             initial={{ width: 100, height: 100, opacity: 0 }}
             animate={{
               width: [120 + i * 180, 350 + i * 220, 120 + i * 180],
               height: [120 + i * 180, 350 + i * 220, 120 + i * 180],
-              opacity: [0.08, 0.25, 0.08],
+              opacity: [0.05, 0.15, 0.05],
             }}
             transition={{
               duration: 5 + i * 0.7,
@@ -456,15 +453,15 @@ export default function HeroSection() {
           return (
             <motion.div
               key={`dot-${i}`}
-              className="absolute w-2 h-2 rounded-full bg-primary/40"
+              className="absolute w-2 h-2 rounded-full bg-primary/30"
               style={{
                 left: `calc(50% + ${Math.cos(angle) * radius}px)`,
                 top: `calc(50% + ${Math.sin(angle) * radius}px)`,
                 transform: "translate(-50%, -50%)",
               }}
               animate={{ 
-                opacity: [0.15, 0.5, 0.15], 
-                scale: [0.6, 1.4, 0.6],
+                opacity: [0.1, 0.4, 0.1], 
+                scale: [0.6, 1.2, 0.6],
               }}
               transition={{
                 duration: 3,
@@ -476,12 +473,12 @@ export default function HeroSection() {
           );
         })}
         
-        {/* Center glow */}
+        {/* Center dot */}
         <motion.div
-          className="absolute w-32 h-32 rounded-full bg-primary/15 blur-3xl"
+          className="absolute w-16 h-16 rounded-full bg-primary/10"
           animate={{ 
-            scale: [1, 1.5, 1], 
-            opacity: [0.2, 0.4, 0.2] 
+            scale: [1, 1.3, 1], 
+            opacity: [0.1, 0.2, 0.1] 
           }}
           transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
         />
@@ -566,23 +563,6 @@ export default function HeroSection() {
               exit={{ opacity: 0, y: -20 }}
               className="max-w-3xl mx-auto text-center relative"
             >
-              {/* Pulsating background glow */}
-              <motion.div
-                animate={{ 
-                  scale: [1, 1.2, 1],
-                  opacity: [0.15, 0.3, 0.15]
-                }}
-                transition={{ 
-                  duration: 3,
-                  repeat: Infinity,
-                  ease: "easeInOut"
-                }}
-                className="absolute inset-0 -z-10 blur-3xl"
-                style={{
-                  background: "radial-gradient(circle at center, hsl(var(--primary)) 0%, transparent 70%)",
-                  transform: "translateY(-20%)"
-                }}
-              />
 
               <h2 className="text-3xl md:text-4xl font-bold mb-4">
                 {analysisComplete ? "Analys klar!" : "Analyserar er webbplats..."}
