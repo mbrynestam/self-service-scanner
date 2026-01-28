@@ -390,22 +390,34 @@ export default function BudgetCalculator() {
                 <div className="space-y-6">
                   {/* Sprint cost */}
                   <div className="bg-secondary/50 rounded-xl p-4">
-                    <p className="text-sm text-muted-foreground mb-1">Er rekommenderade start</p>
+                    <p className="text-sm text-muted-foreground mb-1">Sprint</p>
                     <p className="text-sm font-medium text-foreground mb-2">{selectedStart.name}</p>
                     <p className="font-display text-2xl font-bold text-primary">
                       {selectedStart.priceLabel}
                     </p>
                   </div>
 
+                  {/* Development cost - shown when implementation is selected */}
+                  {implementationType && implementationType !== "self" && (
+                    <div className="bg-secondary/50 rounded-xl p-4">
+                      <p className="text-sm text-muted-foreground mb-1">Utveckling</p>
+                      <p className="text-sm font-medium text-foreground mb-2">
+                        {implementationType === "ai-built" 
+                          ? `Snabb AI-byggd version (${selectedComplexity.label.toLowerCase()})`
+                          : selectedImplementation?.label}
+                      </p>
+                      <p className="font-display text-2xl font-bold text-primary">
+                        {implementationType === "ai-built" && selectedStart.showComplexitySlider
+                          ? formatPrice(getAiBuiltPrice())
+                          : selectedImplementation?.priceRange || "–"}
+                      </p>
+                    </div>
+                  )}
+
                   {/* Total range */}
                   {totalRange && totalRange.showImplementation && (
                     <div className="bg-primary/10 rounded-xl p-4 border border-primary/20">
-                      <p className="text-sm text-muted-foreground mb-1">Möjlig total investering</p>
-                      <p className="text-xs text-muted-foreground mb-2">
-                        (Sprint + {implementationType === "ai-built" 
-                          ? `AI-byggd (${selectedComplexity.label.toLowerCase()})` 
-                          : selectedImplementation?.label.toLowerCase()})
-                      </p>
+                      <p className="text-sm text-muted-foreground mb-1">Total investering</p>
                       <p className="font-display text-2xl font-bold text-foreground">
                         {totalRange.isSinglePrice 
                           ? formatPrice(totalRange.min)
@@ -417,7 +429,7 @@ export default function BudgetCalculator() {
 
                   {selectedImplementation?.id === "self" && (
                     <div className="bg-secondary/50 rounded-xl p-4">
-                      <p className="text-sm text-muted-foreground mb-1">Implementation</p>
+                      <p className="text-sm text-muted-foreground mb-1">Utveckling</p>
                       <p className="text-sm font-medium text-foreground">
                         Ni får underlag och prototyp att arbeta vidare med själva eller med valfri partner.
                       </p>
