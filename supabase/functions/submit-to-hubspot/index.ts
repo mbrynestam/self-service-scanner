@@ -12,12 +12,12 @@ serve(async (req) => {
   }
 
   try {
-    const TALLY_WEBHOOK_URL = Deno.env.get("TALLY_WEBHOOK_URL");
+    const HUBSPOT_ACCESS_TOKEN = Deno.env.get("HUBSPOT_ACCESS_TOKEN");
     
-    if (!TALLY_WEBHOOK_URL) {
-      console.error("TALLY_WEBHOOK_URL is not configured");
+    if (!HUBSPOT_ACCESS_TOKEN) {
+      console.error("HUBSPOT_ACCESS_TOKEN is not configured");
       return new Response(
-        JSON.stringify({ error: "Tally webhook not configured" }),
+        JSON.stringify({ error: "HubSpot integration not configured" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -25,6 +25,7 @@ serve(async (req) => {
     const body = await req.json();
     const { 
       name, 
+      company, 
       email, 
       role, 
       websiteUrl, 
@@ -33,56 +34,106 @@ serve(async (req) => {
       submissionType 
     } = body;
 
-    console.log("Submitting to Tally webhook:", { 
-      name, 
-      email, 
-      role,
-      websiteUrl, 
-      selectedTool, 
-      submissionType,
-      opportunitiesLength: opportunities?.length 
-    });
+    console.log("Submitting to HubSpot:", { email, company, websiteUrl, submissionType });
 
-    // Send data to Tally webhook
-    const tallyResponse = await fetch(TALLY_WEBHOOK_URL, {
+    // Split name into first and last name
+    const nameParts = name.trim().split(" ");
+    const firstname = nameParts[0] || "";
+    const lastname = nameParts.slice(1).join(" ") || "";
+
+    // Create or update contact in HubSpot
+    const contactPayload = {
+      properties: {
+        email,
+        firstname,
+        lastname,
+        company,
+        jobtitle: role || "",
+        website: websiteUrl,
+        // Custom properties for scanner data
+        buyr_analyzed_url: websiteUrl,
+        buyr_opportunities: opportunities,
+        buyr_selected_tool: selectedTool,
+        buyr_submission_type: submissionType === "meeting" ? "Boka genomgång" : "Skicka prototyp",
+        buyr_source: "Opportunity Scanner",
+        hs_lead_status: "NEW",
+      },
+    };
+
+    // First, try to create the contact
+    let response = await fetch("https://api.hubapi.com/crm/v3/objects/contacts", {
       method: "POST",
       headers: {
+        "Authorization": `Bearer ${HUBSPOT_ACCESS_TOKEN}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        name,
-        email,
-        role,
-        analyzed_url: websiteUrl,
-        opportunities: opportunities,
-        selected_tool: selectedTool,
-        submission_type: submissionType === "meeting" ? "Boka genomgång" : "Skicka prototyp",
-        submitted_at: new Date().toISOString(),
-        source: "buyr-opportunity-scanner"
-      }),
+      body: JSON.stringify(contactPayload),
     });
 
-    if (!tallyResponse.ok) {
-      const errorText = await tallyResponse.text();
-      console.error("Tally webhook error:", tallyResponse.status, errorText);
+    // If contact already exists, update it
+    if (response.status === 409) {
+      console.log("Contact exists, updating...");
+      
+      // Search for existing contact
+      const searchResponse = await fetch("https://api.hubapi.com/crm/v3/objects/contacts/search", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${HUBSPOT_ACCESS_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          filterGroups: [{
+            filters: [{
+              propertyName: "email",
+              operator: "EQ",
+              value: email,
+            }],
+          }],
+        }),
+      });
+
+      const searchData = await searchResponse.json();
+      
+      if (searchData.results && searchData.results.length > 0) {
+        const contactId = searchData.results[0].id;
+        
+        // Update existing contact
+        response = await fetch(`https://api.hubapi.com/crm/v3/objects/contacts/${contactId}`, {
+          method: "PATCH",
+          headers: {
+            "Authorization": `Bearer ${HUBSPOT_ACCESS_TOKEN}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ properties: contactPayload.properties }),
+        });
+      }
+    }
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("HubSpot API error:", response.status, errorText);
+      
       // Return success anyway to not block user experience
+      // Log the error for debugging
       return new Response(
-        JSON.stringify({ success: true, warning: "Data may not have been saved" }),
+        JSON.stringify({ success: true, warning: "Contact may not have been saved to CRM" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    console.log("Successfully submitted to Tally");
+    const result = await response.json();
+    console.log("HubSpot contact created/updated:", result.id);
 
     return new Response(
-      JSON.stringify({ success: true }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({ success: true, contactId: result.id }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
+
   } catch (error) {
-    console.error("Error in submit function:", error);
+    console.error("Error submitting to HubSpot:", error);
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     return new Response(
-      JSON.stringify({ error: "Failed to submit", details: errorMessage }),
+      JSON.stringify({ error: "Failed to submit to HubSpot", details: errorMessage }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
