@@ -25,6 +25,30 @@ function isRateLimited(ip: string): boolean {
   return entry.count > RATE_LIMIT_MAX_REQUESTS;
 }
 
+// Suspicious user agent patterns
+const SUSPICIOUS_USER_AGENTS = [
+  /bot/i,
+  /crawler/i,
+  /spider/i,
+  /scraper/i,
+  /curl/i,
+  /wget/i,
+  /python/i,
+  /java(?!script)/i,
+  /go-http/i,
+  /headless/i,
+  /phantom/i,
+  /selenium/i,
+  /puppeteer/i,
+  /playwright/i,
+];
+
+function isSuspiciousUserAgent(ua: string | null): boolean {
+  if (!ua) return true;
+  if (ua.length < 20) return true;
+  return SUSPICIOUS_USER_AGENTS.some(pattern => pattern.test(ua));
+}
+
 // Input validation
 function isValidEmail(email: string): boolean {
   if (!email || typeof email !== 'string' || email.length > 255) return false;
@@ -68,6 +92,16 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ error: "Too many requests. Please wait and try again." }),
         { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Bot detection: Check user agent
+    const userAgent = req.headers.get("user-agent");
+    if (isSuspiciousUserAgent(userAgent)) {
+      console.warn("Suspicious user agent blocked:", userAgent, "IP:", clientIp);
+      return new Response(
+        JSON.stringify({ error: "Request blocked" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
