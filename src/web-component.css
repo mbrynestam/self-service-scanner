@@ -64,11 +64,11 @@
   --sidebar-ring: 145 89% 71%;
 
   /* Base styles applied directly */
-  background-color: hsl(0 0% 5%);
+  background-color: transparent;
   color: hsl(0 0% 100%);
   font-family: 'Flow Circular', ui-sans-serif, system-ui, sans-serif;
-  font-size: 18px;
-  line-height: 1.7;
+  font-size: 16px;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   -webkit-text-size-adjust: 100%;
@@ -173,11 +173,11 @@
   display: none;
 }
 
-/* Typography */
+/* Typography - match Lovable exactly */
 #buyr-scanner-root p,
 #buyr-scanner-root li {
-  font-size: 1.125rem;
-  line-height: 1.8;
+  font-size: 1rem;
+  line-height: 1.5;
 }
 
 #buyr-scanner-root h1 span,
@@ -188,6 +188,65 @@
 #buyr-scanner-root h6 span {
   font-size: inherit;
   line-height: inherit;
+}
+
+/* Tailwind spacing utilities - ensure they work correctly */
+#buyr-scanner-root .mb-2 { margin-bottom: 0.5rem !important; }
+#buyr-scanner-root .mb-4 { margin-bottom: 1rem !important; }
+#buyr-scanner-root .mb-6 { margin-bottom: 1.5rem !important; }
+#buyr-scanner-root .mb-8 { margin-bottom: 2rem !important; }
+#buyr-scanner-root .mt-4 { margin-top: 1rem !important; }
+#buyr-scanner-root .pt-2 { padding-top: 0.5rem !important; }
+#buyr-scanner-root .px-4 { padding-left: 1rem !important; padding-right: 1rem !important; }
+#buyr-scanner-root .py-2 { padding-top: 0.5rem !important; padding-bottom: 0.5rem !important; }
+#buyr-scanner-root .p-4 { padding: 1rem !important; }
+#buyr-scanner-root .gap-2 { gap: 0.5rem !important; }
+#buyr-scanner-root .gap-4 { gap: 1rem !important; }
+#buyr-scanner-root .space-y-4 > * + * { margin-top: 1rem !important; }
+
+/* Font sizes - match Tailwind exactly */
+#buyr-scanner-root .text-xs { font-size: 0.75rem !important; line-height: 1rem !important; }
+#buyr-scanner-root .text-sm { font-size: 0.875rem !important; line-height: 1.25rem !important; }
+#buyr-scanner-root .text-base { font-size: 1rem !important; line-height: 1.5rem !important; }
+#buyr-scanner-root .text-lg { font-size: 1.125rem !important; line-height: 1.75rem !important; }
+#buyr-scanner-root .text-xl { font-size: 1.25rem !important; line-height: 1.75rem !important; }
+#buyr-scanner-root .text-2xl { font-size: 1.5rem !important; line-height: 2rem !important; }
+
+/* Height utilities */
+#buyr-scanner-root .h-14 { height: 3.5rem !important; }
+#buyr-scanner-root .h-1\.5 { height: 0.375rem !important; }
+#buyr-scanner-root .w-4 { width: 1rem !important; }
+#buyr-scanner-root .w-5 { width: 1.25rem !important; }
+#buyr-scanner-root .w-7 { width: 1.75rem !important; }
+#buyr-scanner-root .w-8 { width: 2rem !important; }
+#buyr-scanner-root .w-14 { width: 3.5rem !important; }
+#buyr-scanner-root .h-4 { height: 1rem !important; }
+#buyr-scanner-root .h-5 { height: 1.25rem !important; }
+#buyr-scanner-root .h-7 { height: 1.75rem !important; }
+
+/* Border radius */
+#buyr-scanner-root .rounded-full { border-radius: 9999px !important; }
+#buyr-scanner-root .rounded-xl { border-radius: 0.75rem !important; }
+#buyr-scanner-root .rounded-lg { border-radius: 0.5rem !important; }
+#buyr-scanner-root .rounded-md { border-radius: 0.375rem !important; }
+
+/* Flex utilities */
+#buyr-scanner-root .flex { display: flex !important; }
+#buyr-scanner-root .flex-col { flex-direction: column !important; }
+#buyr-scanner-root .items-center { align-items: center !important; }
+#buyr-scanner-root .justify-center { justify-content: center !important; }
+#buyr-scanner-root .text-center { text-align: center !important; }
+
+/* Input specific styles */
+#buyr-scanner-root .pl-12 { padding-left: 3rem !important; }
+#buyr-scanner-root input {
+  background-color: hsl(0 0% 10%) !important;
+  border: 1px solid hsl(0 0% 18%) !important;
+  border-radius: 0.5rem !important;
+}
+#buyr-scanner-root input:focus {
+  border-color: hsl(145 89% 71%) !important;
+  outline: none !important;
 }
 
 /* Focus styles */
