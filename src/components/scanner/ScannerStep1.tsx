@@ -212,7 +212,7 @@ export default function ScannerStep1({ onSubmit }: ScannerStep1Props) {
         transition={{ delay: 0.6 }}
         className="text-xs text-muted-foreground mt-4"
       >
-        ~30 sek • Gratis
+        ~30 sek
       </motion.p>
     </div>
   );
