@@ -638,7 +638,7 @@ Returnera ENDAST valid JSON enligt detta schema:
           },
           body: JSON.stringify({
             model: "openai/gpt-5-mini",
-            max_tokens: 4000, // Ensure enough tokens for complete JSON response
+            max_completion_tokens: 4000, // Ensure enough tokens for complete JSON response
             messages: [
               { role: "system", content: systemPrompt },
               { role: "user", content: userMessage }
