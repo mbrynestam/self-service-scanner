@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Brain, CheckCircle2, Terminal } from "lucide-react";
+import { Brain, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Opportunity } from "./OpportunityScanner";
 
@@ -120,9 +120,9 @@ export default function ScannerStep2({ url, onComplete }: ScannerStep2Props) {
         charIndex++;
       } else {
         clearInterval(typeInterval);
-        // Add to visible insights and move to next
+        // Add to visible insights at the TOP and move to next
         setTimeout(() => {
-          setVisibleInsights(prev => [...prev, currentInsight]);
+          setVisibleInsights(prev => [currentInsight, ...prev]);
           setDisplayedText("");
           setCurrentTypingIndex(prev => prev + 1);
         }, 150); // Faster pause between lines
@@ -223,74 +223,68 @@ export default function ScannerStep2({ url, onComplete }: ScannerStep2Props) {
         </div>
       </div>
 
-      {/* Terminal-style insights display */}
-      <div className="w-full max-w-lg bg-[#0d1117] border border-[#30363d] rounded-lg p-4 font-mono text-sm text-center min-h-[200px]">
-        {/* Terminal header */}
-        <div className="flex items-center gap-2 mb-3 pb-2 border-b border-[#30363d]">
-          <Terminal className="w-4 h-4 text-[#8b949e]" />
-          <span className="text-[#8b949e] text-xs">buyr-scanner</span>
-        </div>
-
-        {/* Insights list */}
-        <div className="space-y-1">
-          {/* Waiting state */}
-          {!analysisData && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-[#8b949e]"
+      {/* Insights display - no box, just text */}
+      <div className="w-full max-w-lg font-mono text-sm text-center min-h-[200px] space-y-2">
+        {/* Waiting state */}
+        {!analysisData && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.5 }}
+            className="text-muted-foreground"
+          >
+            Ansluter till AI...
+            <motion.span
+              animate={{ opacity: [1, 0, 1] }}
+              transition={{ duration: 0.8, repeat: Infinity }}
+              className="ml-1"
             >
-              <span className="text-[#58a6ff]">$</span> Ansluter till AI...
-              <motion.span
-                animate={{ opacity: [1, 0, 1] }}
-                transition={{ duration: 0.8, repeat: Infinity }}
-                className="ml-1"
-              >
-                _
-              </motion.span>
-            </motion.div>
-          )}
+              _
+            </motion.span>
+          </motion.div>
+        )}
 
-          {/* Previously shown insights */}
-          <AnimatePresence>
-            {visibleInsights.map((insight, index) => (
+        {/* Currently typing insight - shown at top */}
+        {displayedText && (
+          <div style={{ opacity: 0.5 }} className="text-primary">
+            {displayedText}
+            <motion.span
+              animate={{ opacity: [1, 0, 1] }}
+              transition={{ duration: 0.5, repeat: Infinity }}
+            >
+              _
+            </motion.span>
+          </div>
+        )}
+
+        {/* Previously shown insights - newest first with decreasing opacity */}
+        <AnimatePresence>
+          {visibleInsights.map((insight, index) => {
+            // Calculate opacity: 50% for first, 40% for second, etc. (min 10%)
+            const opacity = Math.max(0.1, 0.5 - index * 0.1);
+            return (
               <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 5 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-[#c9d1d9]"
+                key={insight}
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="text-primary"
               >
-                <span className="text-[#7ee787]">{insight}</span>
+                {insight}
               </motion.div>
-            ))}
-          </AnimatePresence>
+            );
+          })}
+        </AnimatePresence>
 
-          {/* Currently typing insight */}
-          {displayedText && (
-            <div className="text-[#c9d1d9]">
-              <span className="text-[#7ee787]">{displayedText}</span>
-              <motion.span
-                animate={{ opacity: [1, 0, 1] }}
-                transition={{ duration: 0.5, repeat: Infinity }}
-                className="text-[#7ee787]"
-              >
-                _
-              </motion.span>
-            </div>
-          )}
-
-          {/* Completion message */}
-          {isComplete && (
-            <motion.div
-              initial={{ opacity: 0, y: 5 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mt-3 pt-2 border-t border-[#30363d]"
-            >
-              <span className="text-[#58a6ff]">$</span>
-              <span className="text-[#c9d1d9] ml-2">Analys klar. Laddar resultat...</span>
-            </motion.div>
-          )}
-        </div>
+        {/* Completion message */}
+        {isComplete && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 0.6, y: 0 }}
+            className="mt-3 pt-2 text-muted-foreground"
+          >
+            Analys klar. Laddar resultat...
+          </motion.div>
+        )}
       </div>
     </div>
   );
