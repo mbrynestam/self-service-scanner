@@ -1,0 +1,81 @@
+/*
+ * Buyr Scanner - WordPress Override CSS
+ * Ladda via: <buyr-scanner css-url="URL_TILL_DENNA_FIL"></buyr-scanner>
+ */
+
+/* ===== RUBRIK ===== */
+#buyr-scanner-root h2 {
+  font-size: 2.5rem !important;
+  line-height: 1.2 !important;
+  font-weight: 700 !important;
+  margin-bottom: 0.5rem !important;
+}
+
+/* ===== UNDERTEXT (under rubriken) ===== */
+#buyr-scanner-root h2 + p,
+#buyr-scanner-root .text-muted-foreground {
+  font-size: 1rem !important;
+  line-height: 1.6 !important;
+}
+
+/* ===== INPUT-FÄLT ===== */
+#buyr-scanner-root input[type="text"],
+#buyr-scanner-root input[type="email"],
+#buyr-scanner-root input[type="url"] {
+  height: 3.5rem !important;
+  font-size: 1.25rem !important;
+  line-height: 1.7 !important;
+  padding-left: 3rem !important;
+  padding-right: 1rem !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+/* ===== INPUT-IKON (Globe/Länk-ikon) ===== */
+#buyr-scanner-root .relative > svg:first-child {
+  position: absolute !important;
+  left: 1rem !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  width: 1.25rem !important;
+  height: 1.25rem !important;
+}
+
+/* ===== KNAPP ===== */
+#buyr-scanner-root button[type="submit"],
+#buyr-scanner-root button.w-full {
+  height: 3.5rem !important;
+  padding-left: 2.5rem !important;
+  padding-right: 2.5rem !important;
+  font-size: 1.25rem !important;
+  line-height: 1 !important;
+  font-weight: 700 !important;
+  border-radius: 0.75rem !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.5rem !important;
+}
+
+#buyr-scanner-root button svg {
+  width: 1.25rem !important;
+  height: 1.25rem !important;
+}
+
+/* ===== TEXT UNDER KNAPPEN ===== */
+#buyr-scanner-root button + p,
+#buyr-scanner-root .text-xs {
+  font-size: 0.875rem !important;
+  line-height: 1.5 !important;
+}
+
+/* ===== SPACING ===== */
+#buyr-scanner-root .space-y-4 > * + * {
+  margin-top: 1rem !important;
+}
+
+#buyr-scanner-root .mb-6 {
+  margin-bottom: 1.5rem !important;
+}
