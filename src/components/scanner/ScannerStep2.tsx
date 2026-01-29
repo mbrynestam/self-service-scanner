@@ -253,8 +253,8 @@ export default function ScannerStep2({ url, onComplete }: ScannerStep2Props) {
         </div>
       </div>
 
-      {/* Insights display - left aligned, max 4 rows */}
-      <div className="w-full max-w-lg font-mono text-sm text-left min-h-[120px] max-h-[120px] overflow-hidden space-y-1">
+      {/* Insights display - left aligned, auto height */}
+      <div className="w-full max-w-lg font-mono text-sm text-left space-y-1">
         {/* Waiting state - cycling messages */}
         {!analysisData && (
           <motion.div
