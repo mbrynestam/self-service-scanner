@@ -47,35 +47,32 @@ function isRateLimited(ip: string): boolean {
   return false;
 }
 
-// Bot detection - validate the bot protection token
+// Bot detection - validate the bot protection token (relaxed for legitimate users)
 function isValidBotToken(token: string | undefined): { valid: boolean; reason?: string } {
+  // If no token provided, allow but log it (some embeds may not send tokens)
   if (!token || typeof token !== 'string') {
-    return { valid: false, reason: 'Missing bot token' };
+    console.log("No bot token provided, allowing request");
+    return { valid: true };
   }
 
   // Token format: hash-interactionCount-timeOnPageSeconds
   const parts = token.split('-');
   if (parts.length !== 3) {
-    return { valid: false, reason: 'Invalid token format' };
+    // Invalid format but don't block - could be old client
+    console.log("Invalid token format, allowing request");
+    return { valid: true };
   }
 
   const [, interactionCount, timeOnPage] = parts;
   const interactions = parseInt(interactionCount, 10);
   const timeSeconds = parseInt(timeOnPage, 10);
 
-  // Require at least 2 interactions (mouse movement, typing, etc.)
-  if (isNaN(interactions) || interactions < 2) {
-    return { valid: false, reason: 'Insufficient user interaction' };
-  }
+  // Log the values for debugging
+  console.log("Bot token values - interactions:", interactions, "timeOnPage:", timeSeconds);
 
-  // Require at least 3 seconds on page before submission
-  if (isNaN(timeSeconds) || timeSeconds < 3) {
-    return { valid: false, reason: 'Form submitted too quickly' };
-  }
-
-  // Reject if time on page is unrealistically high (> 1 hour)
-  if (timeSeconds > 3600) {
-    return { valid: false, reason: 'Suspicious timing' };
+  // Only block obvious bots: zero interactions AND instant submission
+  if (!isNaN(interactions) && interactions === 0 && !isNaN(timeSeconds) && timeSeconds === 0) {
+    return { valid: false, reason: 'Automated request detected' };
   }
 
   return { valid: true };
@@ -662,14 +659,14 @@ Returnera ENDAST valid JSON enligt detta schema:
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            model: "openai/gpt-5-mini",
-            max_completion_tokens: 4000, // Ensure enough tokens for complete JSON response
+            model: "google/gemini-3-flash-preview", // Faster model for quicker response
+            max_completion_tokens: 4000,
             messages: [
               { role: "system", content: systemPrompt },
               { role: "user", content: userMessage }
             ],
           }),
-        }, 40000);
+        }, 90000); // Increased to 90 seconds
 
         if (!response.ok) {
           if (response.status === 429) {
