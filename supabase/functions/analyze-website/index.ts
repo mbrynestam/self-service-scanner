@@ -13,6 +13,23 @@ const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 const RATE_LIMIT_WINDOW_MS = 60000; // 1 minute
 const RATE_LIMIT_MAX_REQUESTS = 10; // Max 10 requests per minute per IP
 
+function isAbortError(err: unknown): boolean {
+  return (
+    err instanceof Error &&
+    (err.name === "AbortError" || /aborted|timeout/i.test(err.message))
+  );
+}
+
+async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit, timeoutMs: number) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(input, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
 function isRateLimited(ip: string): boolean {
   const now = Date.now();
   const entry = rateLimitMap.get(ip);
@@ -175,7 +192,7 @@ async function scrapeWithFirecrawl(url: string): Promise<string> {
 
     console.log("Scraping with Firecrawl:", fullUrl);
     
-    const response = await fetch('https://api.firecrawl.dev/v1/scrape', {
+    const response = await fetchWithTimeout('https://api.firecrawl.dev/v1/scrape', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
@@ -187,7 +204,7 @@ async function scrapeWithFirecrawl(url: string): Promise<string> {
         onlyMainContent: true,
         waitFor: 3000, // Wait for JavaScript to render
       }),
-    });
+    }, 15000);
 
     if (!response.ok) {
       console.error("Firecrawl API error:", response.status);
@@ -207,7 +224,11 @@ async function scrapeWithFirecrawl(url: string): Promise<string> {
     console.log("Firecrawl extracted text length:", markdown.length);
     return markdown;
   } catch (error) {
-    console.error("Firecrawl error:", error);
+    if (isAbortError(error)) {
+      console.warn("Firecrawl timeout, falling back to basic scraper");
+    } else {
+      console.error("Firecrawl error:", error);
+    }
     return scrapeWebsiteBasic(url);
   }
 }
@@ -248,13 +269,13 @@ async function scrapeWebsiteBasic(url: string): Promise<string> {
 
     console.log("Basic scraper fetching:", fullUrl);
     
-    const response = await fetch(fullUrl, {
+    const response = await fetchWithTimeout(fullUrl, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
         'Accept-Language': 'sv-SE,sv;q=0.9,en;q=0.8',
       },
-    });
+    }, 10000);
 
     if (!response.ok) {
       console.error("Basic scraper failed:", response.status);
@@ -272,7 +293,11 @@ async function scrapeWebsiteBasic(url: string): Promise<string> {
     console.log("Basic scraper extracted:", text.length, "chars");
     return text;
   } catch (error) {
-    console.error("Basic scraper error:", error);
+    if (isAbortError(error)) {
+      console.warn("Basic scraper timeout");
+    } else {
+      console.error("Basic scraper error:", error);
+    }
     return "";
   }
 }
@@ -625,12 +650,12 @@ Returnera ENDAST valid JSON enligt detta schema:
     // Retry logic for AI calls
     let content: string | null = null;
     let lastError: Error | null = null;
-    const maxRetries = 2;
+    const maxRetries = 1;
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
         console.log(`AI attempt ${attempt + 1}...`);
-        const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        const response = await fetchWithTimeout("https://ai.gateway.lovable.dev/v1/chat/completions", {
           method: "POST",
           headers: {
             Authorization: `Bearer ${LOVABLE_API_KEY}`,
@@ -644,7 +669,7 @@ Returnera ENDAST valid JSON enligt detta schema:
               { role: "user", content: userMessage }
             ],
           }),
-        });
+        }, 40000);
 
         if (!response.ok) {
           if (response.status === 429) {
@@ -703,6 +728,7 @@ Returnera ENDAST valid JSON enligt detta schema:
       return new Response(
         JSON.stringify({ 
           error: "Analysen kunde inte slutföras just nu. Vänligen försök igen om en stund.",
+          details: isAbortError(lastError) ? "AI-förfrågan tog för lång tid." : undefined,
           retry: true 
         }),
         { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
