@@ -79,8 +79,10 @@ function BusinessValueDots({ value }: { value: number }) {
 export default function ScannerStep3({ opportunities, url }: ScannerStep3Props) {
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
   
-  // Only show best 3-6 opportunities
-  const displayOpportunities = opportunities.slice(0, 6);
+  // Sort by business value (high to low) and take top 6
+  const sortedOpportunities = [...opportunities]
+    .sort((a, b) => getBusinessValue(b) - getBusinessValue(a))
+    .slice(0, 6);
   
   return (
     <div className="flex flex-col items-center max-w-4xl mx-auto px-4 relative">
@@ -102,9 +104,9 @@ export default function ScannerStep3({ opportunities, url }: ScannerStep3Props) 
         Exempel på vad som är möjligt – inte rekommendationer på vad ni ska bygga.
       </motion.p>
 
-      {/* Masonry grid with CSS columns */}
-      <div className="w-full columns-1 md:columns-2 lg:columns-3 gap-3 space-y-3">
-        {displayOpportunities.map((opportunity, index) => {
+      {/* Grid layout with equal height cards */}
+      <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 auto-rows-fr">
+        {sortedOpportunities.map((opportunity, index) => {
           const categoryLabel = getCategoryLabel(opportunity.type);
           const businessValue = getBusinessValue(opportunity);
           
@@ -114,7 +116,7 @@ export default function ScannerStep3({ opportunities, url }: ScannerStep3Props) 
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.08 + index * 0.06 }}
-              className="break-inside-avoid p-3 bg-card rounded-lg border border-border flex flex-col"
+              className="p-3 bg-card rounded-lg border border-border flex flex-col h-full"
             >
               {/* Category badge - small green pill */}
               <Badge 
@@ -130,12 +132,12 @@ export default function ScannerStep3({ opportunities, url }: ScannerStep3Props) 
               </h3>
 
               {/* Description */}
-              <p className="text-[11px] text-muted-foreground mb-3 leading-relaxed">
+              <p className="text-[11px] text-muted-foreground mb-3 leading-relaxed flex-1">
                 {opportunity.description}
               </p>
 
               {/* Business value - at bottom */}
-              <div className="flex items-center justify-between mt-auto">
+              <div className="flex items-center justify-between mt-auto pt-2 border-t border-border/50">
                 <span className="text-[10px] text-muted-foreground">Affärsvärde</span>
                 <BusinessValueDots value={businessValue} />
               </div>
