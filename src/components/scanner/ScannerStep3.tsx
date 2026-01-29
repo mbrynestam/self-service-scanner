@@ -83,7 +83,7 @@ export default function ScannerStep3({ opportunities, url }: ScannerStep3Props) 
   const displayOpportunities = opportunities.slice(0, 6);
   
   return (
-    <div className="flex flex-col items-center max-w-4xl mx-auto px-4">
+    <div className="flex flex-col items-center max-w-4xl mx-auto px-4 relative">
       {/* Heading */}
       <motion.h2
         initial={{ opacity: 0, y: 10 }}

@@ -89,24 +89,29 @@ export default function ContactModal({
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Backdrop */}
+          {/* Backdrop - covers the scanner container */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm z-50"
+            style={{ position: 'absolute' }}
           />
 
-          {/* Modal */}
+          {/* Modal - centered within container */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md"
+            className="absolute inset-0 z-50 flex items-center justify-center p-4"
+            style={{ position: 'absolute' }}
           >
-            <div className="bg-card border border-border rounded-xl p-6 shadow-2xl">
+            <div 
+              className="bg-card border border-border rounded-xl p-5 shadow-2xl w-full max-w-sm"
+              onClick={(e) => e.stopPropagation()}
+            >
               {/* Header */}
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold">Boka samtal</h3>

@@ -73,7 +73,7 @@ export default function OpportunityScanner({ onClose, embedded = false }: Opport
   };
 
   return (
-    <div className="w-full relative">
+    <div className="w-full relative min-h-[500px]">
 
       {/* Progress indicator */}
       <div className="flex justify-center mb-8 pt-2">
