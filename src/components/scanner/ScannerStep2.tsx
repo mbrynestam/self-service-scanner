@@ -27,9 +27,16 @@ export default function ScannerStep2({ url, onComplete }: ScannerStep2Props) {
   const [visibleInsights, setVisibleInsights] = useState<string[]>([]);
   const [currentTypingIndex, setCurrentTypingIndex] = useState(0);
   const [displayedText, setDisplayedText] = useState("");
+  const [waitingMessageIndex, setWaitingMessageIndex] = useState(0);
   const opportunitiesRef = useRef<Opportunity[]>([]);
   const analysisStartedRef = useRef(false);
   const insightsQueueRef = useRef<string[]>([]);
+
+  const waitingMessages = [
+    "Analyserar verksamhet",
+    "Identifierar målgrupp och typiska köproller",
+    "Genomför psykologisk analys gällande köpbeteenden",
+  ];
 
   // Generate insights from analysis data
   const generateInsights = (data: AnalysisData): string[] => {
@@ -96,6 +103,17 @@ export default function ScannerStep2({ url, onComplete }: ScannerStep2Props) {
 
     fetchAnalysis();
   }, [url]);
+
+  // Cycle through waiting messages while waiting for data
+  useEffect(() => {
+    if (analysisData) return; // Stop when data arrives
+    
+    const interval = setInterval(() => {
+      setWaitingMessageIndex(prev => (prev + 1) % waitingMessages.length);
+    }, 2500); // Change message every 2.5 seconds
+    
+    return () => clearInterval(interval);
+  }, [analysisData, waitingMessages.length]);
 
   // Trigger fireworks celebration
   const triggerFireworks = () => {
@@ -256,20 +274,23 @@ export default function ScannerStep2({ url, onComplete }: ScannerStep2Props) {
 
       {/* Insights display - left aligned, max 4 rows */}
       <div className="w-full max-w-lg font-mono text-sm text-left min-h-[120px] max-h-[120px] overflow-hidden space-y-1">
-        {/* Waiting state */}
+        {/* Waiting state - cycling messages */}
         {!analysisData && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.5 }}
+            key={waitingMessageIndex}
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 0.6, y: 0 }}
+            exit={{ opacity: 0, y: -5 }}
+            transition={{ duration: 0.3 }}
             className="text-muted-foreground"
           >
-            Ansluter till AI...
+            {waitingMessages[waitingMessageIndex]}
             <motion.span
-              animate={{ opacity: [1, 0, 1] }}
-              transition={{ duration: 0.8, repeat: Infinity }}
+              animate={{ opacity: [1, 0.3, 1] }}
+              transition={{ duration: 1.2, repeat: Infinity }}
               className="ml-1"
             >
-              _
+              ...
             </motion.span>
           </motion.div>
         )}
