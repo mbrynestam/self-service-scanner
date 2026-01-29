@@ -34,7 +34,7 @@ export default function ScannerStep2({ url, botToken, onComplete }: ScannerStep2
   const [displayedText, setDisplayedText] = useState("");
   const [waitingMessageIndex, setWaitingMessageIndex] = useState(0);
   const opportunitiesRef = useRef<Opportunity[]>([]);
-  const analysisStartedRef = useRef(false);
+  const lastRunKeyRef = useRef<string | null>(null);
   const insightsQueueRef = useRef<string[]>([]);
 
   const waitingMessages = [
@@ -80,8 +80,11 @@ export default function ScannerStep2({ url, botToken, onComplete }: ScannerStep2
 
   // Fetch complete analysis from the API
   useEffect(() => {
-    if (analysisStartedRef.current) return;
-    analysisStartedRef.current = true;
+    const runKey = `${url}::${botToken ?? ""}::${retryNonce}`;
+    if (lastRunKeyRef.current === runKey) return;
+    lastRunKeyRef.current = runKey;
+
+    const abortController = new AbortController();
 
     const fetchAnalysis = async () => {
       console.log("Starting analysis for:", url);
@@ -93,6 +96,9 @@ export default function ScannerStep2({ url, botToken, onComplete }: ScannerStep2
             url,
             botToken,
           },
+          // Ensure the request doesn't hang forever (uses AbortController under the hood)
+          timeout: 120000,
+          signal: abortController.signal,
         });
 
         console.log("Analysis response received:", { data, error });
@@ -122,17 +128,26 @@ export default function ScannerStep2({ url, botToken, onComplete }: ScannerStep2
         setErrorMessage("Analysen returnerade inget resultat för den här URL:en.");
       } catch (err) {
         console.error('Failed to fetch analysis:', err);
-        setErrorMessage("Något gick fel när vi försökte analysera URL:en.");
+        const isAbort = err instanceof Error && (err.name === 'AbortError' || /aborted|timeout/i.test(err.message));
+        setErrorMessage(
+          isAbort
+            ? "Analysen tog för lång tid och avbröts. Försök igen eller testa en annan URL."
+            : "Något gick fel när vi försökte analysera URL:en."
+        );
       }
     };
 
     fetchAnalysis();
+
+    return () => {
+      abortController.abort();
+    };
   }, [url, botToken, retryNonce]);
 
   // If we never get data (or an explicit error), show a timeout fallback so it doesn't spin forever.
   useEffect(() => {
     if (analysisData || errorMessage) return;
-    const t = setTimeout(() => setHasTimedOut(true), 90000); // 90 seconds timeout
+    const t = setTimeout(() => setHasTimedOut(true), 150000); // 150 seconds timeout
     return () => clearTimeout(t);
   }, [analysisData, errorMessage]);
 
@@ -147,7 +162,7 @@ export default function ScannerStep2({ url, botToken, onComplete }: ScannerStep2
     setCurrentTypingIndex(-1);
     opportunitiesRef.current = [];
     insightsQueueRef.current = [];
-    analysisStartedRef.current = false;
+    lastRunKeyRef.current = null;
     setRetryNonce((n) => n + 1);
   };
 
