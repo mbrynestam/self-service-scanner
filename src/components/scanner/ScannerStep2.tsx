@@ -95,6 +95,8 @@ export default function ScannerStep2({ url, botToken, onComplete }: ScannerStep2
           },
         });
 
+        console.log("Analysis response received:", { data, error });
+
         if (error) {
           console.error('Edge function error:', error);
           setErrorMessage("Analysen kunde inte köras för den här URL:en just nu.");
@@ -102,12 +104,16 @@ export default function ScannerStep2({ url, botToken, onComplete }: ScannerStep2
         }
 
         if (data?.analysis) {
+          console.log("Setting analysis data:", data.analysis);
           setAnalysisData(data.analysis);
           if (data.analysis.opportunities) {
             opportunitiesRef.current = data.analysis.opportunities;
           }
           const insights = generateInsights(data.analysis);
+          console.log("Generated insights:", insights);
           insightsQueueRef.current = insights;
+          // Force trigger the typing by ensuring state updates
+          setCurrentTypingIndex(0);
           return;
         }
 
@@ -126,7 +132,7 @@ export default function ScannerStep2({ url, botToken, onComplete }: ScannerStep2
   // If we never get data (or an explicit error), show a timeout fallback so it doesn't spin forever.
   useEffect(() => {
     if (analysisData || errorMessage) return;
-    const t = setTimeout(() => setHasTimedOut(true), 45000);
+    const t = setTimeout(() => setHasTimedOut(true), 90000); // 90 seconds timeout
     return () => clearTimeout(t);
   }, [analysisData, errorMessage]);
 
@@ -205,9 +211,10 @@ export default function ScannerStep2({ url, botToken, onComplete }: ScannerStep2
     return () => clearInterval(typeInterval);
   }, [currentTypingIndex, analysisData, onComplete]);
 
-  // Trigger typing when analysis data arrives
+  // This effect is now a backup - primary trigger is in fetchAnalysis
   useEffect(() => {
     if (analysisData && insightsQueueRef.current.length > 0 && currentTypingIndex === -1) {
+      console.log("Backup trigger: starting typing from effect");
       setCurrentTypingIndex(0);
     }
   }, [analysisData, currentTypingIndex]);
