@@ -1,9 +1,14 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "lucide-react";
 import type { Opportunity } from "./OpportunityScanner";
+import ContactModal from "./ContactModal";
 
 interface ScannerStep3Props {
   opportunities: Opportunity[];
+  url?: string;
 }
 
 // Map opportunity types to Swedish category labels
@@ -37,7 +42,6 @@ const getCategoryLabel = (type: string): string => {
 
 // Convert potentialValue string to number (1-3)
 const getBusinessValue = (opportunity: Opportunity): number => {
-  // Check both potentialValue (string) and fit (number)
   if (typeof opportunity.fit === 'number') {
     return Math.min(3, Math.max(1, opportunity.fit));
   }
@@ -72,7 +76,9 @@ function BusinessValueDots({ value }: { value: number }) {
   );
 }
 
-export default function ScannerStep3({ opportunities }: ScannerStep3Props) {
+export default function ScannerStep3({ opportunities, url }: ScannerStep3Props) {
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+  
   // Only show best 3-6 opportunities
   const displayOpportunities = opportunities.slice(0, 6);
   
@@ -138,15 +144,43 @@ export default function ScannerStep3({ opportunities }: ScannerStep3Props) {
         })}
       </div>
 
+      {/* CTA Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+        className="w-full max-w-md mt-6 text-center"
+      >
+        <p className="text-xs text-muted-foreground mb-3">
+          Nästa steg är att boka ett möte för att visa vad som är möjligt och vad som ger mest effekt för din försäljning.
+        </p>
+        
+        <Button
+          onClick={() => setIsContactModalOpen(true)}
+          className="h-10 px-6"
+        >
+          <Calendar className="w-4 h-4 mr-2" />
+          Boka samtal
+        </Button>
+      </motion.div>
+
       {/* Bottom note */}
       <motion.p
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.4 }}
+        transition={{ delay: 0.5 }}
         className="text-[10px] text-muted-foreground text-center mt-4 max-w-lg"
       >
         Vilket verktyg som är rätt att bygga beror på er säljprocess, era mål och er interna mognad. Det avgörs bäst tillsammans.
       </motion.p>
+
+      {/* Contact Modal */}
+      <ContactModal
+        isOpen={isContactModalOpen}
+        onClose={() => setIsContactModalOpen(false)}
+        analyzedUrl={url}
+        opportunities={opportunities}
+      />
     </div>
   );
 }

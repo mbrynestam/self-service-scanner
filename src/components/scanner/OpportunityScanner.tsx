@@ -127,7 +127,7 @@ export default function OpportunityScanner({ onClose, embedded = false }: Opport
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3 }}
           >
-            <ScannerStep3 opportunities={state.opportunities} />
+            <ScannerStep3 opportunities={state.opportunities} url={state.url} />
           </motion.div>
         )}
 
