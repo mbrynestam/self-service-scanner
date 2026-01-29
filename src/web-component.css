@@ -1,17 +1,21 @@
-@tailwind base;
+/* 
+ * Web Component Styles - Completely isolated from host page
+ * DO NOT use @tailwind base - it inherits from host page's :root
+ */
+
 @tailwind components;
 @tailwind utilities;
 
+/* Import font */
 @import url('https://fonts.googleapis.com/css2?family=Flow+Circular&display=swap');
 
-/* Reset base styles to be scoped - override Tailwind base resets */
+/* Complete style isolation - reset everything from host */
 #buyr-scanner-root {
   all: initial;
   display: block;
-}
-
-/* Scoped CSS variables for web component - applied to the container, not :root */
-#buyr-scanner-root {
+  box-sizing: border-box;
+  
+  /* Define ALL CSS variables locally - these override any inherited values */
   --background: 0 0% 5%;
   --foreground: 0 0% 100%;
 
@@ -59,30 +63,117 @@
   --sidebar-border: 0 0% 18%;
   --sidebar-ring: 145 89% 71%;
 
-  /* Base styles for the container */
-  background-color: hsl(var(--background));
-  color: hsl(var(--foreground));
-  font-family: 'Flow Circular', sans-serif;
+  /* Base styles applied directly */
+  background-color: hsl(0 0% 5%);
+  color: hsl(0 0% 100%);
+  font-family: 'Flow Circular', ui-sans-serif, system-ui, sans-serif;
   font-size: 18px;
   line-height: 1.7;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
 }
 
-/* Scoped base styles */
-#buyr-scanner-root * {
-  border-color: hsl(var(--border));
+/* Reset all children to use component's box-sizing */
+#buyr-scanner-root *,
+#buyr-scanner-root *::before,
+#buyr-scanner-root *::after {
+  box-sizing: border-box;
+  border-width: 0;
+  border-style: solid;
+  border-color: hsl(0 0% 18%);
 }
 
+/* Reset common elements */
 #buyr-scanner-root h1,
 #buyr-scanner-root h2,
 #buyr-scanner-root h3,
 #buyr-scanner-root h4,
 #buyr-scanner-root h5,
 #buyr-scanner-root h6 {
-  font-family: 'Flow Circular', sans-serif;
+  font-size: inherit;
+  font-weight: inherit;
+  font-family: 'Flow Circular', ui-sans-serif, system-ui, sans-serif;
+  margin: 0;
 }
 
+#buyr-scanner-root p {
+  margin: 0;
+}
+
+#buyr-scanner-root a {
+  color: inherit;
+  text-decoration: inherit;
+}
+
+#buyr-scanner-root button,
+#buyr-scanner-root input,
+#buyr-scanner-root optgroup,
+#buyr-scanner-root select,
+#buyr-scanner-root textarea {
+  font-family: inherit;
+  font-feature-settings: inherit;
+  font-variation-settings: inherit;
+  font-size: 100%;
+  font-weight: inherit;
+  line-height: inherit;
+  color: inherit;
+  margin: 0;
+  padding: 0;
+}
+
+#buyr-scanner-root button,
+#buyr-scanner-root select {
+  text-transform: none;
+}
+
+#buyr-scanner-root button,
+#buyr-scanner-root [type='button'],
+#buyr-scanner-root [type='reset'],
+#buyr-scanner-root [type='submit'] {
+  -webkit-appearance: button;
+  background-color: transparent;
+  background-image: none;
+}
+
+#buyr-scanner-root input::placeholder,
+#buyr-scanner-root textarea::placeholder {
+  opacity: 1;
+  color: hsl(0 0% 65%);
+}
+
+#buyr-scanner-root button,
+#buyr-scanner-root [role="button"] {
+  cursor: pointer;
+}
+
+#buyr-scanner-root :disabled {
+  cursor: default;
+}
+
+#buyr-scanner-root img,
+#buyr-scanner-root svg,
+#buyr-scanner-root video,
+#buyr-scanner-root canvas,
+#buyr-scanner-root audio,
+#buyr-scanner-root iframe,
+#buyr-scanner-root embed,
+#buyr-scanner-root object {
+  display: block;
+  vertical-align: middle;
+}
+
+#buyr-scanner-root img,
+#buyr-scanner-root video {
+  max-width: 100%;
+  height: auto;
+}
+
+#buyr-scanner-root [hidden] {
+  display: none;
+}
+
+/* Typography */
 #buyr-scanner-root p,
 #buyr-scanner-root li {
   font-size: 1.125rem;
@@ -97,6 +188,12 @@
 #buyr-scanner-root h6 span {
   font-size: inherit;
   line-height: inherit;
+}
+
+/* Focus styles */
+#buyr-scanner-root :focus-visible {
+  outline: 2px solid hsl(145 89% 71%);
+  outline-offset: 2px;
 }
 
 /* Component utilities */
@@ -131,4 +228,102 @@
 
 #buyr-scanner-root .text-balance {
   text-wrap: balance;
+}
+
+/* Ensure Tailwind color utilities work with our variables */
+#buyr-scanner-root .bg-background {
+  background-color: hsl(0 0% 5%) !important;
+}
+
+#buyr-scanner-root .bg-card {
+  background-color: hsl(0 0% 10%) !important;
+}
+
+#buyr-scanner-root .bg-primary {
+  background-color: hsl(145 89% 71%) !important;
+}
+
+#buyr-scanner-root .bg-primary\/10 {
+  background-color: hsl(145 89% 71% / 0.1) !important;
+}
+
+#buyr-scanner-root .bg-muted {
+  background-color: hsl(0 0% 15%) !important;
+}
+
+#buyr-scanner-root .text-foreground {
+  color: hsl(0 0% 100%) !important;
+}
+
+#buyr-scanner-root .text-primary {
+  color: hsl(145 89% 71%) !important;
+}
+
+#buyr-scanner-root .text-primary-foreground {
+  color: hsl(0 0% 5%) !important;
+}
+
+#buyr-scanner-root .text-muted-foreground {
+  color: hsl(0 0% 65%) !important;
+}
+
+#buyr-scanner-root .text-destructive {
+  color: hsl(0 84% 60%) !important;
+}
+
+#buyr-scanner-root .border-border {
+  border-color: hsl(0 0% 18%) !important;
+}
+
+#buyr-scanner-root .border-primary {
+  border-color: hsl(145 89% 71%) !important;
+}
+
+#buyr-scanner-root .border-input {
+  border-color: hsl(0 0% 18%) !important;
+}
+
+#buyr-scanner-root .ring-ring {
+  --tw-ring-color: hsl(145 89% 71%) !important;
+}
+
+/* Button hero variant specific styles */
+#buyr-scanner-root .bg-gradient-to-r {
+  background-image: linear-gradient(to right, var(--tw-gradient-stops)) !important;
+}
+
+#buyr-scanner-root .from-primary {
+  --tw-gradient-from: hsl(145 89% 71%) !important;
+  --tw-gradient-to: hsl(145 89% 71% / 0) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+
+#buyr-scanner-root .to-accent {
+  --tw-gradient-to: hsl(145 89% 71%) !important;
+}
+
+/* Shadow styles */
+#buyr-scanner-root .shadow-lg {
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1) !important;
+}
+
+/* Animation for spinner/loading */
+@keyframes buyr-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+#buyr-scanner-root .animate-spin {
+  animation: buyr-spin 1s linear infinite;
+}
+
+@keyframes buyr-pulse {
+  50% {
+    opacity: .5;
+  }
+}
+
+#buyr-scanner-root .animate-pulse {
+  animation: buyr-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
