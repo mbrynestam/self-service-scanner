@@ -117,31 +117,12 @@ export default function ScannerStep2({ url, onComplete }: ScannerStep2Props) {
 
   // Trigger fireworks celebration
   const triggerFireworks = () => {
-    const duration = 2000;
-    const end = Date.now() + duration;
-
-    const frame = () => {
-      confetti({
-        particleCount: 3,
-        angle: 60,
-        spread: 55,
-        origin: { x: 0, y: 0.7 },
-        colors: ['#10B981', '#34D399', '#6EE7B7'],
-      });
-      confetti({
-        particleCount: 3,
-        angle: 120,
-        spread: 55,
-        origin: { x: 1, y: 0.7 },
-        colors: ['#10B981', '#34D399', '#6EE7B7'],
-      });
-
-      if (Date.now() < end) {
-        requestAnimationFrame(frame);
-      }
-    };
-
-    frame();
+    confetti({
+      particleCount: 80,
+      spread: 70,
+      origin: { x: 0.5, y: 0.5 },
+      colors: ['#10B981', '#34D399', '#6EE7B7'],
+    });
   };
 
   // Typewriter effect for current insight
