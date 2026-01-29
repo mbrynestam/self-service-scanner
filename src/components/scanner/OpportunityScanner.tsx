@@ -74,24 +74,6 @@ export default function OpportunityScanner({ onClose, embedded = false }: Opport
 
   return (
     <div className={`w-full ${embedded ? '' : 'min-h-[500px]'} max-h-[800px] overflow-y-auto relative`}>
-      {/* Back button */}
-      {step > 1 && step < 5 && (
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="absolute top-0 left-0 z-10"
-        >
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleBack}
-            className="text-muted-foreground hover:text-foreground"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Tillbaka
-          </Button>
-        </motion.div>
-      )}
 
       {/* Progress indicator */}
       <div className="flex justify-center mb-8 pt-2">
