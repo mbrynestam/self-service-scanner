@@ -26,7 +26,7 @@ export default function ScannerStep2({ url, botToken, onComplete }: ScannerStep2
   const [isComplete, setIsComplete] = useState(false);
   const [analysisData, setAnalysisData] = useState<AnalysisData | null>(null);
   const [visibleInsights, setVisibleInsights] = useState<string[]>([]);
-  const [currentTypingIndex, setCurrentTypingIndex] = useState(0);
+  const [currentTypingIndex, setCurrentTypingIndex] = useState(-1); // Start at -1, will be set to 0 when data arrives
   const [displayedText, setDisplayedText] = useState("");
   const [waitingMessageIndex, setWaitingMessageIndex] = useState(0);
   const opportunitiesRef = useRef<Opportunity[]>([]);
@@ -85,18 +85,20 @@ export default function ScannerStep2({ url, botToken, onComplete }: ScannerStep2
         const { data, error } = await supabase.functions.invoke('analyze-website', {
           body: { 
             url,
-            botToken, // Include bot protection token
+            botToken,
           },
         });
 
-        console.log("Analysis response:", data);
+        if (error) {
+          console.error('Edge function error:', error);
+          return;
+        }
 
-        if (!error && data?.analysis) {
+        if (data?.analysis) {
           setAnalysisData(data.analysis);
           if (data.analysis.opportunities) {
             opportunitiesRef.current = data.analysis.opportunities;
           }
-          // Generate and queue insights
           const insights = generateInsights(data.analysis);
           insightsQueueRef.current = insights;
         }
@@ -131,6 +133,8 @@ export default function ScannerStep2({ url, botToken, onComplete }: ScannerStep2
 
   // Typewriter effect for current insight
   useEffect(() => {
+    // Don't start until triggered (currentTypingIndex >= 0)
+    if (currentTypingIndex < 0) return;
     if (insightsQueueRef.current.length === 0) return;
     if (currentTypingIndex >= insightsQueueRef.current.length) {
       // All insights shown, complete after a short delay
@@ -168,12 +172,10 @@ export default function ScannerStep2({ url, botToken, onComplete }: ScannerStep2
 
   // Trigger typing when analysis data arrives
   useEffect(() => {
-    if (analysisData && insightsQueueRef.current.length > 0 && currentTypingIndex === 0) {
+    if (analysisData && insightsQueueRef.current.length > 0 && currentTypingIndex === -1) {
       setCurrentTypingIndex(0);
-      // Force re-trigger
-      setDisplayedText("");
     }
-  }, [analysisData]);
+  }, [analysisData, currentTypingIndex]);
 
   // Continuous slow progress - never stops completely
   const [slowProgress, setSlowProgress] = useState(5);
