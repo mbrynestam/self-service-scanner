@@ -1,5 +1,5 @@
 const STORAGE_KEY = 'scanner_usage';
-const MAX_USES = 3;
+const MAX_USES = 999; // Temporarily unlimited for testing
 const COOLDOWN_MS = 60 * 60 * 1000; // 60 minutes
 
 interface UsageData {
