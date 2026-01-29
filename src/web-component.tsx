@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/toaster";
 import OpportunityScanner from "@/components/scanner/OpportunityScanner";
+import indexCss from "@/index.css?inline";
 
 const queryClient = new QueryClient();
 
@@ -20,51 +21,11 @@ class BuyrScanner extends HTMLElement {
     this.mountPoint = document.createElement("div");
     this.mountPoint.setAttribute("id", "buyr-scanner-root");
 
-    // Create style element with CSS variables and base styles
+    // Create style element with inlined Tailwind CSS
     const styles = document.createElement("style");
-    styles.textContent = `
-      @import url('https://fonts.googleapis.com/css2?family=Flow+Circular&display=swap');
-      
-      :host {
-        display: block;
-        font-family: 'Flow Circular', system-ui, -apple-system, sans-serif;
-      }
-      
-      #buyr-scanner-root {
-        --background: 0 0% 5%;
-        --foreground: 0 0% 100%;
-        --card: 0 0% 10%;
-        --card-foreground: 0 0% 100%;
-        --popover: 0 0% 10%;
-        --popover-foreground: 0 0% 100%;
-        --primary: 145 89% 71%;
-        --primary-foreground: 0 0% 5%;
-        --secondary: 0 0% 15%;
-        --secondary-foreground: 0 0% 100%;
-        --muted: 0 0% 15%;
-        --muted-foreground: 0 0% 65%;
-        --accent: 145 89% 71%;
-        --accent-foreground: 0 0% 5%;
-        --destructive: 0 84% 60%;
-        --destructive-foreground: 0 0% 100%;
-        --border: 0 0% 18%;
-        --input: 0 0% 18%;
-        --ring: 145 89% 71%;
-        --radius: 0.75rem;
-        
-        background: transparent;
-        color: hsl(var(--foreground));
-        font-family: 'Flow Circular', system-ui, -apple-system, sans-serif;
-        font-size: 18px;
-        line-height: 1.7;
-      }
-      
-      #buyr-scanner-root * {
-        box-sizing: border-box;
-      }
-    `;
+    styles.textContent = indexCss;
 
-    // Optional external CSS link
+    // Optional external CSS link for customization
     const cssUrl = this.getAttribute("css-url");
     if (cssUrl) {
       const styleLink = document.createElement("link");
