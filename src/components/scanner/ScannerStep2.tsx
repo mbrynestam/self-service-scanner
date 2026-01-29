@@ -7,6 +7,7 @@ import type { Opportunity } from "./OpportunityScanner";
 
 interface ScannerStep2Props {
   url: string;
+  botToken?: string;
   onComplete: (opportunities?: Opportunity[]) => void;
 }
 
@@ -21,7 +22,7 @@ interface AnalysisData {
   opportunities?: Opportunity[];
 }
 
-export default function ScannerStep2({ url, onComplete }: ScannerStep2Props) {
+export default function ScannerStep2({ url, botToken, onComplete }: ScannerStep2Props) {
   const [isComplete, setIsComplete] = useState(false);
   const [analysisData, setAnalysisData] = useState<AnalysisData | null>(null);
   const [visibleInsights, setVisibleInsights] = useState<string[]>([]);
@@ -82,7 +83,10 @@ export default function ScannerStep2({ url, onComplete }: ScannerStep2Props) {
       console.log("Starting analysis for:", url);
       try {
         const { data, error } = await supabase.functions.invoke('analyze-website', {
-          body: { url },
+          body: { 
+            url,
+            botToken, // Include bot protection token
+          },
         });
 
         console.log("Analysis response:", data);
@@ -102,7 +106,7 @@ export default function ScannerStep2({ url, onComplete }: ScannerStep2Props) {
     };
 
     fetchAnalysis();
-  }, [url]);
+  }, [url, botToken]);
 
   // Cycle through waiting messages while waiting for data
   useEffect(() => {

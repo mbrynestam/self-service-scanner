@@ -30,6 +30,65 @@ function isRateLimited(ip: string): boolean {
   return false;
 }
 
+// Bot detection - validate the bot protection token
+function isValidBotToken(token: string | undefined): { valid: boolean; reason?: string } {
+  if (!token || typeof token !== 'string') {
+    return { valid: false, reason: 'Missing bot token' };
+  }
+
+  // Token format: hash-interactionCount-timeOnPageSeconds
+  const parts = token.split('-');
+  if (parts.length !== 3) {
+    return { valid: false, reason: 'Invalid token format' };
+  }
+
+  const [, interactionCount, timeOnPage] = parts;
+  const interactions = parseInt(interactionCount, 10);
+  const timeSeconds = parseInt(timeOnPage, 10);
+
+  // Require at least 2 interactions (mouse movement, typing, etc.)
+  if (isNaN(interactions) || interactions < 2) {
+    return { valid: false, reason: 'Insufficient user interaction' };
+  }
+
+  // Require at least 3 seconds on page before submission
+  if (isNaN(timeSeconds) || timeSeconds < 3) {
+    return { valid: false, reason: 'Form submitted too quickly' };
+  }
+
+  // Reject if time on page is unrealistically high (> 1 hour)
+  if (timeSeconds > 3600) {
+    return { valid: false, reason: 'Suspicious timing' };
+  }
+
+  return { valid: true };
+}
+
+// Suspicious user agent patterns
+const SUSPICIOUS_USER_AGENTS = [
+  /bot/i,
+  /crawler/i,
+  /spider/i,
+  /scraper/i,
+  /curl/i,
+  /wget/i,
+  /python/i,
+  /java(?!script)/i,
+  /go-http/i,
+  /headless/i,
+  /phantom/i,
+  /selenium/i,
+  /puppeteer/i,
+  /playwright/i,
+];
+
+function isSuspiciousUserAgent(ua: string | null): boolean {
+  if (!ua) return true; // No user agent is suspicious
+  if (ua.length < 20) return true; // Too short is suspicious
+  
+  return SUSPICIOUS_USER_AGENTS.some(pattern => pattern.test(ua));
+}
+
 // URL validation to prevent SSRF attacks
 function isValidPublicUrl(urlString: string): { valid: boolean; error?: string; url?: string } {
   try {
@@ -237,7 +296,27 @@ serve(async (req) => {
       );
     }
 
-    const { url } = await req.json();
+    // Bot detection: Check user agent
+    const userAgent = req.headers.get("user-agent");
+    if (isSuspiciousUserAgent(userAgent)) {
+      console.warn("Suspicious user agent blocked:", userAgent, "IP:", clientIp);
+      return new Response(
+        JSON.stringify({ error: "Request blocked" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { url, botToken } = await req.json();
+    
+    // Bot detection: Validate bot protection token
+    const tokenValidation = isValidBotToken(botToken);
+    if (!tokenValidation.valid) {
+      console.warn("Bot token validation failed:", tokenValidation.reason, "IP:", clientIp);
+      return new Response(
+        JSON.stringify({ error: "Request validation failed" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
     
     if (!url || typeof url !== 'string') {
       return new Response(
