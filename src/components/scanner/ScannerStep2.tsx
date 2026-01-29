@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 
 interface ScannerStep2Props {
   url: string;
-  botToken?: string;
+  honeypot?: string;
   onComplete: (opportunities?: Opportunity[]) => void;
 }
 
@@ -23,7 +23,7 @@ interface AnalysisData {
   opportunities?: Opportunity[];
 }
 
-export default function ScannerStep2({ url, botToken, onComplete }: ScannerStep2Props) {
+export default function ScannerStep2({ url, honeypot, onComplete }: ScannerStep2Props) {
   const [isComplete, setIsComplete] = useState(false);
   const [analysisData, setAnalysisData] = useState<AnalysisData | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -80,7 +80,7 @@ export default function ScannerStep2({ url, botToken, onComplete }: ScannerStep2
 
   // Fetch complete analysis from the API
   useEffect(() => {
-    const runKey = `${url}::${botToken ?? ""}::${retryNonce}`;
+    const runKey = `${url}::${honeypot ?? ""}::${retryNonce}`;
     if (lastRunKeyRef.current === runKey) return;
     lastRunKeyRef.current = runKey;
 
@@ -94,7 +94,7 @@ export default function ScannerStep2({ url, botToken, onComplete }: ScannerStep2
         const { data, error } = await supabase.functions.invoke('analyze-website', {
           body: { 
             url,
-            botToken,
+            honeypot, // Send honeypot value (should be empty for real users)
           },
           // Ensure the request doesn't hang forever (uses AbortController under the hood)
           timeout: 120000,
@@ -142,7 +142,7 @@ export default function ScannerStep2({ url, botToken, onComplete }: ScannerStep2
     return () => {
       abortController.abort();
     };
-  }, [url, botToken, retryNonce]);
+  }, [url, honeypot, retryNonce]);
 
   // If we never get data (or an explicit error), show a timeout fallback so it doesn't spin forever.
   useEffect(() => {

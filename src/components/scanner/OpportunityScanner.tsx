@@ -20,7 +20,7 @@ export interface Opportunity {
 
 export interface ScannerState {
   url: string;
-  botToken?: string;
+  honeypot?: string;
   focusArea: FocusArea | null;
   selectedSuggestion: number | null;
   opportunities: Opportunity[];
@@ -35,14 +35,14 @@ export default function OpportunityScanner({ onClose, embedded = false }: Opport
   const [step, setStep] = useState(1);
   const [state, setState] = useState<ScannerState>({
     url: "",
-    botToken: undefined,
+    honeypot: undefined,
     focusArea: null,
     selectedSuggestion: null,
     opportunities: [],
   });
 
-  const handleUrlSubmit = (url: string, botToken?: string) => {
-    setState(prev => ({ ...prev, url, botToken }));
+  const handleUrlSubmit = (url: string, honeypot?: string) => {
+    setState(prev => ({ ...prev, url, honeypot }));
     setStep(2);
   };
 
@@ -71,7 +71,7 @@ export default function OpportunityScanner({ onClose, embedded = false }: Opport
 
   const handleReset = () => {
     setStep(1);
-    setState({ url: "", botToken: undefined, focusArea: null, selectedSuggestion: null, opportunities: [] });
+    setState({ url: "", honeypot: undefined, focusArea: null, selectedSuggestion: null, opportunities: [] });
   };
 
   return (
@@ -117,7 +117,7 @@ export default function OpportunityScanner({ onClose, embedded = false }: Opport
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3 }}
           >
-            <ScannerStep2 url={state.url} botToken={state.botToken} onComplete={handleAnalysisComplete} />
+            <ScannerStep2 url={state.url} honeypot={state.honeypot} onComplete={handleAnalysisComplete} />
           </motion.div>
         )}
 

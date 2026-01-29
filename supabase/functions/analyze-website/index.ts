@@ -47,35 +47,10 @@ function isRateLimited(ip: string): boolean {
   return false;
 }
 
-// Bot detection - validate the bot protection token (relaxed for legitimate users)
-function isValidBotToken(token: string | undefined): { valid: boolean; reason?: string } {
-  // If no token provided, allow but log it (some embeds may not send tokens)
-  if (!token || typeof token !== 'string') {
-    console.log("No bot token provided, allowing request");
-    return { valid: true };
-  }
-
-  // Token format: hash-interactionCount-timeOnPageSeconds
-  const parts = token.split('-');
-  if (parts.length !== 3) {
-    // Invalid format but don't block - could be old client
-    console.log("Invalid token format, allowing request");
-    return { valid: true };
-  }
-
-  const [, interactionCount, timeOnPage] = parts;
-  const interactions = parseInt(interactionCount, 10);
-  const timeSeconds = parseInt(timeOnPage, 10);
-
-  // Log the values for debugging
-  console.log("Bot token values - interactions:", interactions, "timeOnPage:", timeSeconds);
-
-  // Only block obvious bots: zero interactions AND instant submission
-  if (!isNaN(interactions) && interactions === 0 && !isNaN(timeSeconds) && timeSeconds === 0) {
-    return { valid: false, reason: 'Automated request detected' };
-  }
-
-  return { valid: true };
+// Honeypot bot detection - bots fill in hidden fields, humans don't
+function isHoneypotTriggered(honeypot: string | undefined | null): boolean {
+  // If honeypot field has any value, it's likely a bot
+  return typeof honeypot === 'string' && honeypot.trim().length > 0;
 }
 
 // Suspicious user agent patterns
@@ -328,12 +303,11 @@ serve(async (req) => {
       );
     }
 
-    const { url, botToken } = await req.json();
+    const { url, honeypot } = await req.json();
     
-    // Bot detection: Validate bot protection token
-    const tokenValidation = isValidBotToken(botToken);
-    if (!tokenValidation.valid) {
-      console.warn("Bot token validation failed:", tokenValidation.reason, "IP:", clientIp);
+    // Honeypot bot detection: If hidden field is filled, it's a bot
+    if (isHoneypotTriggered(honeypot)) {
+      console.warn("Honeypot triggered - bot detected, IP:", clientIp);
       return new Response(
         JSON.stringify({ error: "Request validation failed" }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
