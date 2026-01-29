@@ -127,13 +127,7 @@ export default function OpportunityScanner({ onClose, embedded = false }: Opport
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3 }}
           >
-            <ScannerStep3 
-              opportunities={state.opportunities} 
-              onSelect={(opportunity) => {
-                // For now, just go to step 4 with first focus area
-                handleFocusAreaSelect("assessment");
-              }} 
-            />
+            <ScannerStep3 opportunities={state.opportunities} />
           </motion.div>
         )}
 
