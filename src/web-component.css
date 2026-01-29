@@ -1,7 +1,14 @@
+@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @import url('https://fonts.googleapis.com/css2?family=Flow+Circular&display=swap');
+
+/* Reset base styles to be scoped - override Tailwind base resets */
+#buyr-scanner-root {
+  all: initial;
+  display: block;
+}
 
 /* Scoped CSS variables for web component - applied to the container, not :root */
 #buyr-scanner-root {
