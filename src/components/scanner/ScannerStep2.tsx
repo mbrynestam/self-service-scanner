@@ -4,6 +4,7 @@ import { Brain, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import confetti from "canvas-confetti";
 import type { Opportunity } from "./OpportunityScanner";
+import { Button } from "@/components/ui/button";
 
 interface ScannerStep2Props {
   url: string;
@@ -25,6 +26,9 @@ interface AnalysisData {
 export default function ScannerStep2({ url, botToken, onComplete }: ScannerStep2Props) {
   const [isComplete, setIsComplete] = useState(false);
   const [analysisData, setAnalysisData] = useState<AnalysisData | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [hasTimedOut, setHasTimedOut] = useState(false);
+  const [retryNonce, setRetryNonce] = useState(0);
   const [visibleInsights, setVisibleInsights] = useState<string[]>([]);
   const [currentTypingIndex, setCurrentTypingIndex] = useState(-1); // Start at -1, will be set to 0 when data arrives
   const [displayedText, setDisplayedText] = useState("");
@@ -81,6 +85,8 @@ export default function ScannerStep2({ url, botToken, onComplete }: ScannerStep2
 
     const fetchAnalysis = async () => {
       console.log("Starting analysis for:", url);
+      setErrorMessage(null);
+      setHasTimedOut(false);
       try {
         const { data, error } = await supabase.functions.invoke('analyze-website', {
           body: { 
@@ -91,6 +97,7 @@ export default function ScannerStep2({ url, botToken, onComplete }: ScannerStep2
 
         if (error) {
           console.error('Edge function error:', error);
+          setErrorMessage("Analysen kunde inte köras för den här URL:en just nu.");
           return;
         }
 
@@ -101,14 +108,42 @@ export default function ScannerStep2({ url, botToken, onComplete }: ScannerStep2
           }
           const insights = generateInsights(data.analysis);
           insightsQueueRef.current = insights;
+          return;
         }
+
+        // Defensive: backend responded but without expected payload
+        console.warn("Analysis response missing 'analysis':", data);
+        setErrorMessage("Analysen returnerade inget resultat för den här URL:en.");
       } catch (err) {
         console.error('Failed to fetch analysis:', err);
+        setErrorMessage("Något gick fel när vi försökte analysera URL:en.");
       }
     };
 
     fetchAnalysis();
-  }, [url, botToken]);
+  }, [url, botToken, retryNonce]);
+
+  // If we never get data (or an explicit error), show a timeout fallback so it doesn't spin forever.
+  useEffect(() => {
+    if (analysisData || errorMessage) return;
+    const t = setTimeout(() => setHasTimedOut(true), 45000);
+    return () => clearTimeout(t);
+  }, [analysisData, errorMessage]);
+
+  const handleRetry = () => {
+    // Reset all state and re-run analysis
+    setIsComplete(false);
+    setAnalysisData(null);
+    setErrorMessage(null);
+    setHasTimedOut(false);
+    setVisibleInsights([]);
+    setDisplayedText("");
+    setCurrentTypingIndex(-1);
+    opportunitiesRef.current = [];
+    insightsQueueRef.current = [];
+    analysisStartedRef.current = false;
+    setRetryNonce((n) => n + 1);
+  };
 
   // Cycle through waiting messages while waiting for data
   useEffect(() => {
@@ -261,8 +296,36 @@ export default function ScannerStep2({ url, botToken, onComplete }: ScannerStep2
 
       {/* Insights display - left aligned, auto height */}
       <div className="w-full max-w-lg font-mono text-sm text-left space-y-1">
+        {/* Error/timeout state */}
+        {(errorMessage || hasTimedOut) && !analysisData && (
+          <div className="space-y-3">
+            <div className="text-muted-foreground">
+              {errorMessage ?? "Det tar längre tid än väntat att analysera den här URL:en."}
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button type="button" onClick={handleRetry}>
+                Försök igen
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  // Let the parent unmount/remount step2 by finishing with empty result.
+                  // Parent flow typically allows going back and trying another URL.
+                  onComplete(opportunitiesRef.current);
+                }}
+              >
+                Gå vidare
+              </Button>
+            </div>
+            <div className="text-xs text-muted-foreground">
+              Tips: testa att klistra in en full URL (t.ex. https://exempel.se) och se om sidan kräver inloggning eller blockerar robotar.
+            </div>
+          </div>
+        )}
+
         {/* Waiting state - cycling messages */}
-        {!analysisData && (
+        {!analysisData && !errorMessage && !hasTimedOut && (
           <motion.div
             key={waitingMessageIndex}
             initial={{ opacity: 0, y: 5 }}
