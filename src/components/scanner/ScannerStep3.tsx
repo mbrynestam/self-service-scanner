@@ -1,106 +1,115 @@
 import { motion } from "framer-motion";
-import { Calculator, Brain, Puzzle, Target } from "lucide-react";
-import type { FocusArea } from "./OpportunityScanner";
+import { Badge } from "@/components/ui/badge";
+import type { Opportunity } from "./OpportunityScanner";
 
 interface ScannerStep3Props {
-  onSelect: (area: FocusArea) => void;
+  opportunities: Opportunity[];
+  onSelect: (opportunity: Opportunity) => void;
 }
 
-const focusAreas = [
-  {
-    id: "pricing" as FocusArea,
-    icon: Calculator,
-    title: "Visa pris tidigare i köpresan",
-    description: "För köpare som vill förstå budget innan dialog",
-  },
-  {
-    id: "assessment" as FocusArea,
-    icon: Brain,
-    title: "Hjälpa köpare förstå sitt behov",
-    description: "Assessment, guider, självtester",
-  },
-  {
-    id: "configurator" as FocusArea,
-    icon: Puzzle,
-    title: "Låta köpare bygga sin lösning",
-    description: "Konfiguratorer och valverktyg",
-  },
-  {
-    id: "selector" as FocusArea,
-    icon: Target,
-    title: "Hjälpa köpare välja rätt alternativ",
-    description: "Produkt-/lösningsväljare",
-  },
-];
+// Map opportunity types to display categories
+const categoryLabels: Record<string, string> = {
+  "self-assessment": "Självtest",
+  "solution-finder": "Lösningsväljare",
+  "price-calculator": "Priskalkylator",
+  "configurator": "Konfigurator",
+  "booking": "Bokning",
+  "roi-calculator": "ROI-kalkylator",
+  "maturity-test": "Mognadstest",
+  "guide": "Guide",
+};
 
-export default function ScannerStep3({ onSelect }: ScannerStep3Props) {
+// Render business value dots (1-3)
+function BusinessValueDots({ value }: { value: number }) {
+  const dots = Math.min(3, Math.max(1, value));
   return (
-    <div className="flex flex-col items-center max-w-3xl mx-auto px-4">
+    <div className="flex items-center gap-1">
+      {[1, 2, 3].map((i) => (
+        <div
+          key={i}
+          className={`w-2.5 h-2.5 rounded-full ${
+            i <= dots ? "bg-primary" : "bg-muted"
+          }`}
+        />
+      ))}
+    </div>
+  );
+}
+
+export default function ScannerStep3({ opportunities, onSelect }: ScannerStep3Props) {
+  return (
+    <div className="flex flex-col items-center max-w-4xl mx-auto px-4">
       {/* Heading */}
       <motion.h2
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         className="text-xl md:text-2xl font-bold text-center mb-2"
       >
-        Vilket område är mest relevant för er just nu?
+        Klar! Här är era <span className="text-primary">self-service-möjligheter</span>
       </motion.h2>
 
       <motion.p
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="text-muted-foreground text-center mb-5 text-sm"
+        className="text-muted-foreground text-center mb-6 text-sm"
       >
-        Välj det som bäst matchar era köpares behov
+        Exempel på vad som är möjligt – inte rekommendationer på vad ni ska bygga.
       </motion.p>
 
-      {/* Focus area cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full">
-        {focusAreas.map((area, index) => (
-          <motion.button
-            key={area.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 + index * 0.1 }}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => onSelect(area.id)}
-            className="group relative p-4 bg-card rounded-xl border border-transparent hover:border-primary transition-all duration-300 text-left"
-          >
-            {/* Icon */}
-            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-3 group-hover:bg-primary/20 transition-colors">
-              <area.icon className="w-5 h-5 text-primary" />
-            </div>
+      {/* Opportunity cards grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
+        {opportunities.slice(0, 6).map((opportunity, index) => {
+          const categoryLabel = categoryLabels[opportunity.type] || opportunity.type;
+          
+          return (
+            <motion.button
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 + index * 0.08 }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => onSelect(opportunity)}
+              className="group relative p-4 bg-card rounded-xl border border-border hover:border-primary/50 transition-all duration-300 text-left flex flex-col h-full min-h-[160px]"
+            >
+              {/* Category badge */}
+              <Badge 
+                variant="default" 
+                className="w-fit mb-3 text-xs bg-primary/90 hover:bg-primary"
+              >
+                {categoryLabel}
+              </Badge>
 
-            {/* Content */}
-            <h3 className="text-base font-semibold mb-1 group-hover:text-primary transition-colors">
-              {area.title}
-            </h3>
-            <p className="text-xs text-muted-foreground">
-              {area.description}
-            </p>
+              {/* Title */}
+              <h3 className="text-base font-semibold mb-2 group-hover:text-primary transition-colors line-clamp-2">
+                {opportunity.title}
+              </h3>
 
-            {/* Hover indicator */}
-            <div className="absolute top-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity">
-              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                <svg
-                  className="w-4 h-4 text-primary"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 5l7 7-7 7"
-                  />
-                </svg>
+              {/* Description */}
+              <p className="text-xs text-muted-foreground mb-4 flex-1 line-clamp-3">
+                {opportunity.description}
+              </p>
+
+              {/* Business value */}
+              <div className="flex items-center justify-between mt-auto pt-2">
+                <span className="text-xs text-muted-foreground">Affärsvärde</span>
+                <BusinessValueDots value={opportunity.fit} />
               </div>
-            </div>
-          </motion.button>
-        ))}
+            </motion.button>
+          );
+        })}
       </div>
+
+      {/* Bottom note */}
+      <motion.p
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.5 }}
+        className="text-xs text-muted-foreground text-center mt-6 max-w-xl"
+      >
+        Vilket verktyg som är rätt att bygga beror på er säljprocess, era mål och er interna mognad. Det avgörs bäst tillsammans.
+      </motion.p>
     </div>
   );
 }

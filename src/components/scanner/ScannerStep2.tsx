@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Brain, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import confetti from "canvas-confetti";
 import type { Opportunity } from "./OpportunityScanner";
 
 interface ScannerStep2Props {
@@ -96,6 +97,35 @@ export default function ScannerStep2({ url, onComplete }: ScannerStep2Props) {
     fetchAnalysis();
   }, [url]);
 
+  // Trigger fireworks celebration
+  const triggerFireworks = () => {
+    const duration = 2000;
+    const end = Date.now() + duration;
+
+    const frame = () => {
+      confetti({
+        particleCount: 3,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0, y: 0.7 },
+        colors: ['#10B981', '#34D399', '#6EE7B7'],
+      });
+      confetti({
+        particleCount: 3,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1, y: 0.7 },
+        colors: ['#10B981', '#34D399', '#6EE7B7'],
+      });
+
+      if (Date.now() < end) {
+        requestAnimationFrame(frame);
+      }
+    };
+
+    frame();
+  };
+
   // Typewriter effect for current insight
   useEffect(() => {
     if (insightsQueueRef.current.length === 0) return;
@@ -103,9 +133,10 @@ export default function ScannerStep2({ url, onComplete }: ScannerStep2Props) {
       // All insights shown, complete after a short delay
       const timeout = setTimeout(() => {
         setIsComplete(true);
+        triggerFireworks();
         setTimeout(() => {
           onComplete(opportunitiesRef.current);
-        }, 1000);
+        }, 1500);
       }, 800);
       return () => clearTimeout(timeout);
     }
@@ -183,7 +214,7 @@ export default function ScannerStep2({ url, onComplete }: ScannerStep2Props) {
   const progress = slowProgress;
 
   return (
-    <div className="flex flex-col items-center text-center max-w-2xl mx-auto px-4">
+    <div className="flex flex-col items-center max-w-2xl mx-auto px-4">
       {/* Header with brain icon */}
       <div className="relative w-16 h-16 mb-4">
         <motion.div
@@ -207,7 +238,7 @@ export default function ScannerStep2({ url, onComplete }: ScannerStep2Props) {
       </div>
 
       {/* URL being analyzed */}
-      <div className="text-sm text-muted-foreground mb-4">
+      <div className="text-sm text-muted-foreground mb-4 text-center">
         Analyserar: <span className="font-medium text-foreground">{url.replace(/^https?:\/\//, "")}</span>
       </div>
 
@@ -223,8 +254,8 @@ export default function ScannerStep2({ url, onComplete }: ScannerStep2Props) {
         </div>
       </div>
 
-      {/* Insights display - no box, just text */}
-      <div className="w-full max-w-lg font-mono text-sm text-center min-h-[200px] space-y-2">
+      {/* Insights display - left aligned, max 4 rows */}
+      <div className="w-full max-w-lg font-mono text-sm text-left min-h-[120px] max-h-[120px] overflow-hidden space-y-1">
         {/* Waiting state */}
         {!analysisData && (
           <motion.div
@@ -256,18 +287,18 @@ export default function ScannerStep2({ url, onComplete }: ScannerStep2Props) {
           </div>
         )}
 
-        {/* Previously shown insights - newest first with decreasing opacity */}
+        {/* Previously shown insights - newest first with decreasing opacity, max 3 shown (4th is typing) */}
         <AnimatePresence>
-          {visibleInsights.map((insight, index) => {
-            // Calculate opacity: 50% for first, 40% for second, etc. (min 10%)
-            const opacity = Math.max(0.1, 0.5 - index * 0.1);
+          {visibleInsights.slice(0, 3).map((insight, index) => {
+            // Calculate opacity: 50% for first, 40% for second, 30% for third
+            const opacity = Math.max(0.2, 0.5 - index * 0.1);
             return (
               <motion.div
                 key={insight}
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity, y: 0 }}
                 transition={{ duration: 0.3 }}
-                className="text-primary"
+                className="text-primary truncate"
               >
                 {insight}
               </motion.div>
