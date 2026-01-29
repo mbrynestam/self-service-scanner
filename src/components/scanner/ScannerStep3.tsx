@@ -4,7 +4,6 @@ import type { Opportunity } from "./OpportunityScanner";
 
 interface ScannerStep3Props {
   opportunities: Opportunity[];
-  onContinue?: () => void;
 }
 
 // Map opportunity types to Swedish category labels
@@ -19,12 +18,13 @@ const getCategoryLabel = (type: string): string => {
     "roi-calculator": "ROI-kalkylator",
     "configurator": "Konfigurator",
     "booking": "Bokning",
+    "scheduling": "Bokning",
     "maturity-test": "Mognadstest",
     "guide": "Guide",
     "checklist": "Checklista",
+    "other": "Övrigt",
   };
   
-  // Check for partial matches
   const lowerType = type.toLowerCase();
   for (const [key, label] of Object.entries(typeMap)) {
     if (lowerType.includes(key) || key.includes(lowerType)) {
@@ -32,19 +32,38 @@ const getCategoryLabel = (type: string): string => {
     }
   }
   
-  // Default fallback - capitalize first letter
   return type.charAt(0).toUpperCase() + type.slice(1);
+};
+
+// Convert potentialValue string to number (1-3)
+const getBusinessValue = (opportunity: Opportunity): number => {
+  // Check both potentialValue (string) and fit (number)
+  if (typeof opportunity.fit === 'number') {
+    return Math.min(3, Math.max(1, opportunity.fit));
+  }
+  
+  const valueMap: Record<string, number> = {
+    "high": 3,
+    "högt": 3,
+    "medium": 2,
+    "medel": 2,
+    "low": 1,
+    "lågt": 1,
+  };
+  
+  const value = opportunity.potentialValue?.toLowerCase() || "medium";
+  return valueMap[value] || 2;
 };
 
 // Render business value dots (1-3)
 function BusinessValueDots({ value }: { value: number }) {
   const dots = Math.min(3, Math.max(1, value));
   return (
-    <div className="flex items-center gap-1.5">
+    <div className="flex items-center gap-1">
       {[1, 2, 3].map((i) => (
         <div
           key={i}
-          className={`w-3 h-3 rounded-full ${
+          className={`w-2 h-2 rounded-full ${
             i <= dots ? "bg-primary" : "bg-primary/30"
           }`}
         />
@@ -54,13 +73,16 @@ function BusinessValueDots({ value }: { value: number }) {
 }
 
 export default function ScannerStep3({ opportunities }: ScannerStep3Props) {
+  // Only show best 3-6 opportunities
+  const displayOpportunities = opportunities.slice(0, 6);
+  
   return (
     <div className="flex flex-col items-center max-w-4xl mx-auto px-4">
       {/* Heading */}
       <motion.h2
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-xl md:text-2xl font-bold text-center mb-2"
+        className="text-lg md:text-xl font-bold text-center mb-1"
       >
         Klar! Här är era <span className="text-primary">self-service-möjligheter</span>
       </motion.h2>
@@ -69,46 +91,47 @@ export default function ScannerStep3({ opportunities }: ScannerStep3Props) {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="text-muted-foreground text-center mb-6 text-sm"
+        className="text-muted-foreground text-center mb-4 text-xs"
       >
         Exempel på vad som är möjligt – inte rekommendationer på vad ni ska bygga.
       </motion.p>
 
-      {/* Opportunity cards grid - not clickable */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
-        {opportunities.slice(0, 6).map((opportunity, index) => {
+      {/* Masonry grid with CSS columns */}
+      <div className="w-full columns-1 md:columns-2 lg:columns-3 gap-3 space-y-3">
+        {displayOpportunities.map((opportunity, index) => {
           const categoryLabel = getCategoryLabel(opportunity.type);
+          const businessValue = getBusinessValue(opportunity);
           
           return (
             <motion.div
               key={index}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 + index * 0.08 }}
-              className="relative p-5 bg-card rounded-xl border border-border flex flex-col min-h-[180px]"
+              transition={{ delay: 0.08 + index * 0.06 }}
+              className="break-inside-avoid p-3 bg-card rounded-lg border border-border flex flex-col"
             >
               {/* Category badge - small green pill */}
               <Badge 
                 variant="default" 
-                className="w-fit mb-4 text-[11px] px-3 py-0.5 bg-primary hover:bg-primary font-medium"
+                className="w-fit mb-2 text-[10px] px-2 py-0 bg-primary hover:bg-primary font-medium"
               >
                 {categoryLabel}
               </Badge>
 
               {/* Title */}
-              <h3 className="text-base font-semibold mb-2 leading-tight">
+              <h3 className="text-sm font-semibold mb-1 leading-tight">
                 {opportunity.title}
               </h3>
 
               {/* Description */}
-              <p className="text-sm text-muted-foreground mb-6 flex-1 leading-relaxed">
+              <p className="text-[11px] text-muted-foreground mb-3 leading-relaxed">
                 {opportunity.description}
               </p>
 
               {/* Business value - at bottom */}
               <div className="flex items-center justify-between mt-auto">
-                <span className="text-xs text-muted-foreground">Affärsvärde</span>
-                <BusinessValueDots value={opportunity.fit} />
+                <span className="text-[10px] text-muted-foreground">Affärsvärde</span>
+                <BusinessValueDots value={businessValue} />
               </div>
             </motion.div>
           );
@@ -119,8 +142,8 @@ export default function ScannerStep3({ opportunities }: ScannerStep3Props) {
       <motion.p
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.5 }}
-        className="text-xs text-muted-foreground text-center mt-6 max-w-xl"
+        transition={{ delay: 0.4 }}
+        className="text-[10px] text-muted-foreground text-center mt-4 max-w-lg"
       >
         Vilket verktyg som är rätt att bygga beror på er säljprocess, era mål och er interna mognad. Det avgörs bäst tillsammans.
       </motion.p>
