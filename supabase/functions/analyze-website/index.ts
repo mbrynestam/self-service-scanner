@@ -540,13 +540,41 @@ Rangordna alla idéer efter förväntat affärsvärde i en B2B-säljprocess.
 
 Välj ut 4–6 starkaste förslagen totalt.
 
-STEG 7 – Presentation av förslagen
+STEG 7 – Presentation av förslagen (KRITISKT FÖR KVALITET)
+
+⚠️ MYCKET VIKTIGT: Varje verktygsförslag MÅSTE vara unikt och specifikt anpassat till just detta företag.
+
+FÖRBJUDET att använda generiska fraser som:
+- "er lösning", "era tjänster", "er verksamhet"
+- "baserat på deras behov", "anpassat till kunden"
+- "hjälper besökare förstå", "ger trygghet"
+
+OBLIGATORISKT att:
+- Nämna företagets faktiska erbjudande eller branschspecifika termer i titeln
+- Beskriva konkret HUR verktyget hjälper köparen med specifika scenarier
+- Referera till identifierade pain points och köpfrågor från steg 4
+
+Exempel på BRA vs DÅLIGT:
+
+DÅLIGT (generiskt):
+- Titel: "Priskalkylator för er lösning"
+- Beskrivning: "Låter besökare estimera kostnaden baserat på deras specifika behov."
+
+BRA (specifikt för ett kundundersökningsföretag):
+- Titel: "Beräkna kostnaden för er kundundersökning"  
+- Beskrivning: "Ange antal respondenter, undersökningstyp och frekvens för att få en prisuppskattning – så slipper ni vänta på offert."
+
+BRA (specifikt för ett SaaS-bolag inom HR):
+- Titel: "Beräkna ROI för automatiserad onboarding"
+- Beskrivning: "Se hur mycket tid era HR-chefer sparar per nyanställd och vad det motsvarar i kronor per år."
 
 För varje utvalt verktyg, visa:
 
-Titel: 3–6 ord, tydlig och konkret
+Titel: 3–8 ord, specifik och konkret med branschtermer eller företagets erbjudande
 
-Beskrivning: 10–20 ord som förklarar vad verktyget gör och vilken trygghet det ger köparen
+Beskrivning: 15–30 ord som beskriver:
+1. VAD användaren gör i verktyget (konkret handling)
+2. VARFÖR det hjälper dem (kopplat till deras oro eller fråga)
 
 Kategori: pricing, assessment, selector, configurator, scheduling eller other
 
@@ -579,8 +607,8 @@ Returnera ENDAST valid JSON enligt detta schema:
   "opportunities": [
     {
       "type": "pricing" | "assessment" | "selector" | "configurator" | "scheduling" | "other",
-      "title": "string (3-6 ord, komplett titel)",
-      "description": "string (10-20 ord, en fullständig mening)",
+      "title": "string (3-8 ord, specifik titel med branschtermer)",
+      "description": "string (15-30 ord, konkret beskrivning av vad användaren gör och varför det hjälper)",
       "potentialValue": "high" | "medium" | "low"
     }
   ] (4-6 verktyg, sorterade efter affärsvärde),
@@ -671,59 +699,13 @@ Returnera ENDAST valid JSON enligt detta schema:
     }
 
     if (!content || content.trim().length < 50) {
-      console.error("All AI attempts failed, using fallback");
-      const fallbackAnalysis = {
-        isB2B: true,
-        businessType: "tjänst",
-        industry: "Ej identifierat",
-        coreOffering: "Professionella tjänster",
-        targetAudience: "B2B-företag",
-        buyerRoles: ["VD", "Marknadschef", "Inköpschef"],
-        buyerQuestions: [
-          "Vad kostar det?",
-          "Hur lång är implementationstiden?",
-          "Passar detta för vår verksamhet?"
-        ],
-        painPoints: [
-          "Svårt att jämföra alternativ",
-          "Otydlig prisbild"
-        ],
-        concerns: [
-          "ROI osäkerhet",
-          "Implementeringsrisk"
-        ],
-        opportunities: [
-          {
-            type: "pricing",
-            title: "Priskalkylator för er lösning",
-            description: "Låter besökare estimera kostnaden baserat på deras specifika behov och storlek.",
-            potentialValue: "high"
-          },
-          {
-            type: "assessment",
-            title: "Behovsanalys för besökare",
-            description: "Hjälp potentiella köpare förstå om er lösning passar deras situation.",
-            potentialValue: "high"
-          },
-          {
-            type: "selector",
-            title: "Hitta rätt tjänst för er",
-            description: "Guidad väljare som matchar besökarens behov med rätt erbjudande.",
-            potentialValue: "medium"
-          },
-          {
-            type: "scheduling",
-            title: "Boka ett möte direkt",
-            description: "Låt kvalificerade besökare boka ett möte utan att vänta på svar.",
-            potentialValue: "medium"
-          }
-        ],
-        closingNote: "Detta är exempel på möjligheter, inte rekommendationer. Vilket verktyg som är rätt att bygga avgörs i dialog vid ett möte."
-      };
-      
+      console.error("All AI attempts failed, returning error");
       return new Response(
-        JSON.stringify({ success: true, analysis: fallbackAnalysis, hasScrapedContent: hasContent, fallback: true }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ 
+          error: "Analysen kunde inte slutföras just nu. Vänligen försök igen om en stund.",
+          retry: true 
+        }),
+        { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -736,32 +718,13 @@ Returnera ENDAST valid JSON enligt detta schema:
       analysis = JSON.parse(jsonStr);
     } catch (parseError) {
       console.error("Failed to parse AI response:", parseError, "Content:", content.substring(0, 500));
-      analysis = {
-        isB2B: true,
-        businessType: "tjänst",
-        industry: "Ej identifierat",
-        coreOffering: "Professionella tjänster",
-        targetAudience: "B2B-företag",
-        buyerRoles: ["VD", "Marknadschef"],
-        buyerQuestions: ["Vad kostar det?", "Passar detta för oss?"],
-        painPoints: ["Svårt att jämföra alternativ"],
-        concerns: ["ROI osäkerhet"],
-        opportunities: [
-          {
-            type: "pricing",
-            title: "Priskalkylator",
-            description: "Beräkna kostnader direkt baserat på era behov.",
-            potentialValue: "high"
-          },
-          {
-            type: "assessment",
-            title: "Behovsanalys",
-            description: "Hjälp besökare förstå sina behov och om lösningen passar.",
-            potentialValue: "high"
-          }
-        ],
-        closingNote: "Detta är exempel på möjligheter, inte rekommendationer."
-      };
+      return new Response(
+        JSON.stringify({ 
+          error: "Analysen kunde inte slutföras. Vänligen försök igen.",
+          retry: true 
+        }),
+        { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     return new Response(
