@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/toaster";
 import OpportunityScanner from "@/components/scanner/OpportunityScanner";
-import indexCss from "@/index.css?inline";
+import webComponentCss from "@/web-component.css?inline";
 
 const queryClient = new QueryClient();
 
@@ -23,7 +23,7 @@ class BuyrScanner extends HTMLElement {
 
     // Create style element with inlined Tailwind CSS
     const styles = document.createElement("style");
-    styles.textContent = indexCss;
+    styles.textContent = webComponentCss;
 
     // Optional external CSS link for customization
     const cssUrl = this.getAttribute("css-url");
